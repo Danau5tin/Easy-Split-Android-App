@@ -1,3 +1,25 @@
 <resources>
     <string name="app_name">My Application</string>
+
+    <!-- Itemised View -->
+    <string name="item_title_hint">Title</string>
+    <string name="item_date_hint">Date</string>
+    <string name="item_paidby_hint">Paid by</string>
+    <string name="item_forwhome_hint">FOR WHOM</string>
+
+
+    <!-- Recycler View Rows -->
+    <string name="row_overview_title_example">Receipt Title</string>
+    <string name="row_overview_price_example">£21.37</string>
+    <string name="row_overview_days_example">1 day ago</string>
+    <string name="row_overview_paidby_example">Paid by Dan</string>
+
+    <string name="row_item_example_item">Strawberries</string>
+    <string name="row_item_example_price">£2.99</string>
+    <string name="row_item_sample_name1">Daniel</string>
+    <string name="row_item_sample_name2">Marie</string>
+
+    <!-- Common Texts -->
+    <string name="finished">Finished</string>
+    <string name="next">Next</string>
 </resources>

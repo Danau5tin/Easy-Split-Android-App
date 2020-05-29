@@ -1,5 +1,6 @@
 package com.splitreceipt.myapplication
 
+import android.content.Intent
 import android.content.pm.PackageManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -22,7 +23,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun addNewReceiptButton(view: View) {
-        checkPermissions()
+        val intent = Intent(this, AfterItemizedActivity::class.java)
+        startActivity(intent)
+//        checkPermissions()
     }
 
     private fun checkPermissions() {
