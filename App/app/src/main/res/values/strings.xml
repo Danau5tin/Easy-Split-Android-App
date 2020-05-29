@@ -7,8 +7,18 @@
     <string name="item_paidby_hint">Paid by</string>
     <string name="item_forwhome_hint">FOR WHOM</string>
 
+    <!-- New Account Creation -->
+    <string name="account_description_hint">Description</string>
+    <string name="account_currency_hint">Currency</string>
+    <string name="account_category_hint">Category</string>
+    <string name="account_participants_hint">Participants</string>
+    <string name="account_yourname_hint">Your name</string>
+    <string name="account_addparticipant_hint">Add participant</string>
 
     <!-- Recycler View Rows -->
+    <string name="row_account_title_example">England Darling</string>
+    <string name="row_account_description_example">An account for the greatest couple in the world.</string>
+
     <string name="row_overview_title_example">Receipt Title</string>
     <string name="row_overview_price_example">£21.37</string>
     <string name="row_overview_days_example">1 day ago</string>

@@ -7,13 +7,19 @@ import android.view.View
 
 class AccountScreenActivity : AppCompatActivity() {
 
+    /*
+
+    Initial activity shown to user which shows all their accounts they currently have
+
+     */
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_account_screen)
     }
 
     fun addNewAccountButton(view: View) {
-        val intent = Intent(this, MainActivity::class.java)
+        val intent = Intent(this, AccountOverviewActivity::class.java)
         startActivity(intent)
     }
 }

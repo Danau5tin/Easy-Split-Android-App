@@ -8,7 +8,14 @@ import android.view.View
 import androidx.core.app.ActivityCompat
 import com.splitreceipt.myapplication.databinding.ActivityMainBinding
 
-class MainActivity : AppCompatActivity() {
+class AccountOverviewActivity : AppCompatActivity() {
+
+    /*
+
+    Activity shows the interior of a user account. Listing all prior transactions and receipts and
+    allowing the user to create new receipts.
+
+     */
 
     lateinit var mainBinding: ActivityMainBinding
 

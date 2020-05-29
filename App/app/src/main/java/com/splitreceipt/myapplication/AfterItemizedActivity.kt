@@ -6,6 +6,12 @@ import com.splitreceipt.myapplication.databinding.ActivityAfterItemizedBinding
 
 class AfterItemizedActivity : AppCompatActivity() {
 
+    /*
+
+    Activity gives the user the ability to input a new receipt/ transaction
+
+     */
+
     private lateinit var afterBinding: ActivityAfterItemizedBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
