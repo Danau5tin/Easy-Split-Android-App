@@ -20,8 +20,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".AccountOverviewActivity" />
-        <activity android:name=".AfterItemizedActivity" />
+        <activity android:name=".ReceiptOverviewActivity" />
+        <activity android:name=".ItemizedActivity" />
     </application>
 
 </manifest>

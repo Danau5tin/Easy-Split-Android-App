@@ -8,7 +8,7 @@ import android.view.View
 import androidx.core.app.ActivityCompat
 import com.splitreceipt.myapplication.databinding.ActivityMainBinding
 
-class AccountOverviewActivity : AppCompatActivity() {
+class ReceiptOverviewActivity : AppCompatActivity() {
 
     /*
 
@@ -30,7 +30,7 @@ class AccountOverviewActivity : AppCompatActivity() {
     }
 
     fun addNewReceiptButton(view: View) {
-        val intent = Intent(this, AfterItemizedActivity::class.java)
+        val intent = Intent(this, ItemizedActivity::class.java)
         startActivity(intent)
 //        checkPermissions()
     }

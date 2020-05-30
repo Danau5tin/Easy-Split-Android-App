@@ -1,0 +1,60 @@
+AccountId
+|	|
+|	--- Info
+|	|	|
+|	|	--- Name : xxxxxxxx
+|	|	|
+|	|	--- Cat : xxxx
+|	|	|
+|	|	--- Currency : xxx
+|	|
+|	--- Balance
+|	|	  |
+|	|	  --- "xxx,£xx.xx,xxxx/xxxxxx,£x,xxxx"
+|	|
+|	--- Participants
+|	|		|
+|	|		--- : "xxx"
+|	|		|
+|	|		--- : "xxxxx"
+|	|
+|	--- Receipts
+|		   |
+|		   --- ReceiptID
+|				|
+|				--- Title : xxxxx
+|				|
+|				--- Total : "£xx.xx"
+|				|
+|				--- PaidBy : "xxxxx"
+|				|
+|				--- items
+|					|
+|					--- Strawberries
+|					|		|
+|					|		--- Price : "£xx.xx"
+|					|		|
+|					|		--- For Whome: xxx
+|					|
+|					--- Tea : "£xx.xx"
+Users
+    |
+    ---
+
+
+
+
+
+Rules:
+AccountId == accountID(given by user) then read and write access is allowed.
+
+Spec:
+	- Users do not have to sign up to the use the app so no authid should be considered 
+	in rules.
+
+	- Users will update both the firebase database on creation/ update and the sql 
+	database in their phone, this way the user will always primarliy load the data 
+	from the sql database and avoid consistently downloading from FB database, only
+	downloading when another user has updated something.
+
+

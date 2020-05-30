@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".AfterItemizedActivity">
+    tools:context=".ItemizedActivity">
 
     <include
         android:id="@+id/toolbar"
@@ -16,7 +16,7 @@
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/textTitleInputLayout"
         android:layout_width="0dp"
-        android:layout_height="40dp"
+        android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
         android:layout_marginEnd="32dp"
         app:layout_constraintEnd_toStartOf="@+id/addReceiptImageButton"
@@ -24,7 +24,7 @@
         app:layout_constraintTop_toTopOf="@+id/addReceiptImageButton">
 
         <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/receiptTitleText"
+            android:id="@+id/receiptTitleEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/item_title_hint" />
@@ -146,6 +146,7 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"
         android:text="@string/next"
+        android:onClick="addNewItemizedReceiptButton"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/rightGuideline"
         app:layout_constraintStart_toStartOf="@+id/leftGuideline" />

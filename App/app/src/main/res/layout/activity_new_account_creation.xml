@@ -14,50 +14,17 @@
         android:id="@+id/accountTitleText"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
         app:layout_constraintEnd_toStartOf="@+id/rightGuideline"
         app:layout_constraintStart_toStartOf="@+id/leftGuideline"
         app:layout_constraintTop_toBottomOf="@+id/toolbar">
 
         <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/accountTitleEditText"
             android:layout_width="match_parent"
-
             android:layout_height="wrap_content"
             android:hint="@string/item_title_hint" />
     </com.google.android.material.textfield.TextInputLayout>
-
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/accountDescriptionText"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
-        app:layout_constraintEnd_toStartOf="@+id/rightGuideline"
-        app:layout_constraintStart_toStartOf="@+id/leftGuideline"
-        app:layout_constraintTop_toBottomOf="@+id/accountTitleText">
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="@string/account_description_hint" />
-    </com.google.android.material.textfield.TextInputLayout>
-
-    <Spinner
-        android:id="@+id/currencySpinner"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="62dp"
-        app:layout_constraintEnd_toStartOf="@+id/rightGuideline"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="@+id/leftGuideline"
-        app:layout_constraintTop_toBottomOf="@+id/accountDescriptionText" />
-
-    <TextView
-        android:id="@+id/currencyText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/account_currency_hint"
-        android:textSize="16sp"
-        app:layout_constraintBottom_toTopOf="@+id/currencySpinner"
-        app:layout_constraintStart_toStartOf="@+id/leftGuideline" />
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/leftGuideline"
@@ -73,57 +40,16 @@
         android:orientation="vertical"
         app:layout_constraintGuide_begin="395dp" />
 
-    <View
-        android:id="@+id/currenyUnderline"
-        android:layout_width="0dp"
-        android:layout_height="2dp"
-        android:background="@color/harshGrey"
-        app:layout_constraintEnd_toStartOf="@+id/rightGuideline"
-        app:layout_constraintStart_toStartOf="@+id/leftGuideline"
-        app:layout_constraintTop_toBottomOf="@+id/currencySpinner" />
-
-    <TextView
-        android:id="@+id/categoryText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="@string/account_category_hint"
-        app:layout_constraintStart_toStartOf="@+id/leftGuideline"
-        app:layout_constraintTop_toBottomOf="@+id/currenyUnderline" />
-
-    <com.google.android.material.chip.ChipGroup
-        android:id="@+id/chipGroup"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        app:layout_constraintEnd_toStartOf="@+id/rightGuideline"
-        app:layout_constraintStart_toStartOf="@+id/leftGuideline"
-        app:layout_constraintTop_toBottomOf="@+id/categoryText">
-
-        <com.google.android.material.chip.Chip
-            android:id="@+id/chip2"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Chip 1"
-            app:chipIcon="@drawable/ic_launcher_foreground" />
-
-        <com.google.android.material.chip.Chip
-            android:id="@+id/chip3"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Chip 2"
-            app:chipIcon="@drawable/vector_add_item_light_blue" />
-    </com.google.android.material.chip.ChipGroup>
 
     <View
         android:id="@+id/view3"
         android:layout_width="0dp"
-        android:layout_height="60dp"
-        android:layout_marginTop="8dp"
+        android:layout_height="100dp"
+        android:layout_marginTop="16dp"
         android:background="@color/backgroundGrey"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/chipGroup" />
+        app:layout_constraintTop_toBottomOf="@+id/toggleButton5" />
 
     <View
         android:id="@+id/view4"
@@ -153,6 +79,7 @@
         app:layout_constraintTop_toBottomOf="@+id/view3">
 
         <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/yourNameEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/account_yourname_hint" />
@@ -162,12 +89,13 @@
         android:id="@+id/addParticipantButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginStart="82dp"
         android:clickable="true"
         android:src="@android:drawable/ic_input_add"
         app:fabSize="mini"
-        app:layout_constraintStart_toStartOf="@+id/leftGuideline"
-        app:layout_constraintTop_toBottomOf="@+id/yourNameText" />
+        app:layout_constraintBottom_toBottomOf="@+id/view3"
+        app:layout_constraintStart_toEndOf="@+id/participantsText"
+        app:layout_constraintTop_toBottomOf="@+id/view4" />
 
     <TextView
         android:id="@+id/addParticipantText"
@@ -178,5 +106,55 @@
         android:textSize="15sp"
         app:layout_constraintBottom_toBottomOf="@+id/addParticipantButton"
         app:layout_constraintStart_toEndOf="@+id/addParticipantButton"
-        app:layout_constraintTop_toTopOf="@+id/addParticipantButton" />
+        app:layout_constraintTop_toTopOf="@+id/addParticipantButton"
+        app:layout_constraintVertical_bias="0.55" />
+
+    <Button
+        android:id="@+id/button2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="32dp"
+        android:onClick="saveNewAccount"
+        android:text="Save"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/rightGuideline"
+        app:layout_constraintStart_toStartOf="@+id/leftGuideline" />
+
+    <ToggleButton
+        android:id="@+id/toggleButton5"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="ToggleButton"
+        android:textOff="Apartment"
+        app:layout_constraintTop_toBottomOf="@+id/accountTitleText"
+        tools:layout_editor_absoluteX="18dp" />
+
+    <ToggleButton
+        android:id="@+id/toggleButton6"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="House"
+        android:textOff="House"
+        app:layout_constraintBaseline_toBaselineOf="@+id/toggleButton5"
+        app:layout_constraintStart_toEndOf="@+id/toggleButton5" />
+
+    <ToggleButton
+        android:id="@+id/toggleButton7"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="ToggleButton"
+        android:textOff="Trip"
+        app:layout_constraintBaseline_toBaselineOf="@+id/toggleButton6"
+        app:layout_constraintStart_toEndOf="@+id/toggleButton6" />
+
+    <ToggleButton
+        android:id="@+id/toggleButton8"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="ToggleButton"
+        android:textOff="Other"
+        app:layout_constraintBaseline_toBaselineOf="@+id/toggleButton7"
+        app:layout_constraintStart_toEndOf="@+id/toggleButton7" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
