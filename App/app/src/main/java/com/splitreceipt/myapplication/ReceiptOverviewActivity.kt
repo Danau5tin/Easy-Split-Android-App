@@ -5,6 +5,7 @@ import android.content.pm.PackageManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
+import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import com.splitreceipt.myapplication.databinding.ActivityMainBinding
 
@@ -27,6 +28,11 @@ class ReceiptOverviewActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         mainBinding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(mainBinding.root)
+
+        // TODO: Ensure these are static like variables to avoid errors
+        val getSqlId = intent.getStringExtra("sqlID")
+        val getFirebaseId = intent.getStringExtra("FirebaseID")
+        Toast.makeText(this, getSqlId, Toast.LENGTH_SHORT).show()
     }
 
     fun addNewReceiptButton(view: View) {
