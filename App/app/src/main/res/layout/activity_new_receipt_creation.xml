@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".NewReceiptCreationActivity">
+
+    <include
+        android:id="@+id/toolbar"
+        layout="@layout/toolbar"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/textTitleInputLayout"
+        android:layout_width="140dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="@+id/imageButton"
+        app:layout_constraintStart_toEndOf="@+id/imageButton"
+        app:layout_constraintTop_toTopOf="@+id/imageButton">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/receiptTitleEditText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:focusable="auto"
+            android:hint="@string/item_title_hint" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/leftGuideline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_begin="20dp" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/rightGuideline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_begin="395dp" />
+
+    <Spinner
+        android:id="@+id/paidBySpinner"
+        android:layout_width="140dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="3dp"
+        app:layout_constraintBottom_toBottomOf="@+id/imageButton3"
+        app:layout_constraintStart_toEndOf="@+id/imageButton3"
+        app:layout_constraintTop_toTopOf="@+id/imageButton3" />
+
+    <View
+        android:id="@+id/paidByUnderline"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:layout_marginStart="3dp"
+        android:background="@color/harshGrey"
+        app:layout_constraintEnd_toEndOf="@+id/paidBySpinner"
+        app:layout_constraintStart_toStartOf="@+id/paidBySpinner"
+        app:layout_constraintTop_toBottomOf="@+id/paidBySpinner" />
+
+    <TextView
+        android:id="@+id/paidByHintText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="1dp"
+        android:text="@string/item_paidby_hint"
+        app:layout_constraintBottom_toTopOf="@+id/paidBySpinner"
+        app:layout_constraintStart_toStartOf="@+id/paidBySpinner" />
+
+    <Spinner
+        android:id="@+id/dateSpinner"
+        android:layout_width="90dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="8dp"
+        app:layout_constraintBottom_toBottomOf="@+id/textTitleInputLayout"
+        app:layout_constraintEnd_toStartOf="@+id/rightGuideline"
+        app:layout_constraintTop_toTopOf="@+id/textTitleInputLayout" />
+
+    <View
+        android:id="@+id/dateUnderline"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:background="@color/harshGrey"
+        app:layout_constraintEnd_toEndOf="@+id/dateSpinner"
+        app:layout_constraintStart_toStartOf="@+id/dateSpinner"
+        app:layout_constraintTop_toBottomOf="@+id/dateSpinner" />
+
+    <View
+        android:id="@+id/tabLayoutOverline"
+        android:layout_width="0dp"
+        android:layout_height="2dp"
+        android:background="@color/harshGrey"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/receiptTabLayout" />
+
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/receiptTabLayout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="52dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/paidBySpinner">
+
+        <com.google.android.material.tabs.TabItem
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Split Manually" />
+
+        <com.google.android.material.tabs.TabItem
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Scan Receipt" />
+    </com.google.android.material.tabs.TabLayout>
+
+    <androidx.viewpager.widget.ViewPager
+        android:id="@+id/receiptViewPager"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="3dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/receiptTabLayout" />
+
+    <ImageButton
+        android:id="@+id/imageButton"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginTop="24dp"
+        android:background="@drawable/image_button_outline"
+        app:layout_constraintStart_toStartOf="@+id/leftGuideline"
+        app:layout_constraintTop_toBottomOf="@+id/toolbar"
+        app:srcCompat="@drawable/vector_tag_grey" />
+
+    <ImageButton
+        android:id="@+id/imageButton2"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:background="@null"
+        android:scaleType="center"
+        app:layout_constraintBottom_toBottomOf="@+id/dateSpinner"
+        app:layout_constraintEnd_toStartOf="@+id/dateSpinner"
+        app:layout_constraintTop_toTopOf="@+id/dateSpinner"
+        app:srcCompat="@drawable/vector_calendar_blue" />
+
+    <ImageButton
+        android:id="@+id/imageButton3"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginTop="42dp"
+        android:background="@drawable/image_button_outline"
+        android:scaleType="center"
+        app:layout_constraintStart_toStartOf="@+id/leftGuideline"
+        app:layout_constraintTop_toBottomOf="@+id/imageButton"
+        app:srcCompat="@drawable/vector_person_green" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

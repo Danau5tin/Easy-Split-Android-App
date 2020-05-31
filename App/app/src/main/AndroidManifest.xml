@@ -21,7 +21,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".ReceiptOverviewActivity" />
-        <activity android:name=".ItemizedActivity" />
+        <activity android:name=".NewReceiptCreationActivity" />
     </application>
 
 </manifest>

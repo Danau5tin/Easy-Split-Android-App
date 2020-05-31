@@ -5,8 +5,13 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.splitreceipt.myapplication.data.ReceiptData
+import java.text.SimpleDateFormat
+import java.util.*
+import kotlin.collections.ArrayList
+import kotlin.math.abs
 
-class ReceiptOverViewAdapter : RecyclerView.Adapter<ReceiptOverViewAdapter.ReceiptOverviewViewHolder>(){
+class ReceiptOverViewAdapter(var receiptList: ArrayList<ReceiptData>, var todaysDate: Date?) : RecyclerView.Adapter<ReceiptOverViewAdapter.ReceiptOverviewViewHolder>(){
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ReceiptOverviewViewHolder {
         val inflater: LayoutInflater = LayoutInflater.from(parent.context)
@@ -15,11 +20,35 @@ class ReceiptOverViewAdapter : RecyclerView.Adapter<ReceiptOverViewAdapter.Recei
     }
 
     override fun getItemCount(): Int {
-        TODO("Not yet implemented")
+        return receiptList.size
     }
 
     override fun onBindViewHolder(holder: ReceiptOverviewViewHolder, position: Int) {
-        TODO("Not yet implemented")
+        val dateOfReceipt = receiptList.get(position).date
+        val dateFormat = SimpleDateFormat("dd/MM/yyyy")
+        val date = dateFormat.parse(dateOfReceipt)
+        val difference = abs(date!!.time - todaysDate!!.time)
+        val differenceDates = difference / (24 * 60 * 60 * 1000)
+        val dayDiff = differenceDates.toString()
+        var dayDiffText = ""
+        if (dayDiff == "0"){
+            dayDiffText = "Today"
+        } else if (dayDiff == "1"){
+            dayDiffText = "Yesterday"
+        } else {
+            dayDiffText = "$dayDiff days ago"
+        }
+        holder.daysAgoTextView.text = dayDiffText
+
+        holder.receiptTitleTextView.text = receiptList.get(position).title
+
+        val totalToString = receiptList.get(position).total.toString()
+        val totalString = "£$totalToString"
+        holder.receiptTotalTextView.text = totalString
+
+        val paidBy = receiptList.get(position).paidBy
+        val paidByString = "Paid by $paidBy"
+        holder.receiptPaidByTextView.text = paidByString
     }
 
     class ReceiptOverviewViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {

@@ -18,6 +18,7 @@ object DatabaseManager {
         const val RECEIPT_TABLE_NAME = "receipts"
         const val RECEIPT_COL_ID = BaseColumns._ID
         const val RECEIPT_COL_UNIQUE_ID = "receipt_unique_id"
+        const val RECEIPT_COL_DATE = "date"
         const val RECEIPT_COL_TITLE = "title"
         const val RECEIPT_COL_TOTAL = "total_cost"
         const val RECEIPT_COL_PAID_BY = "paid_by"

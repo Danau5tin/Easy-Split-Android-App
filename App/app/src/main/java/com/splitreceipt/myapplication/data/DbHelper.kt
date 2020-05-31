@@ -16,6 +16,7 @@ import com.splitreceipt.myapplication.data.DatabaseManager.ReceiptItemsTable.ITE
 import com.splitreceipt.myapplication.data.DatabaseManager.ReceiptItemsTable.ITEMS_COL_VALUE
 import com.splitreceipt.myapplication.data.DatabaseManager.ReceiptItemsTable.ITEMS_COL_WHOME
 import com.splitreceipt.myapplication.data.DatabaseManager.ReceiptItemsTable.ITEMS_TABLE_NAME
+import com.splitreceipt.myapplication.data.DatabaseManager.ReceiptTable.RECEIPT_COL_DATE
 import com.splitreceipt.myapplication.data.DatabaseManager.ReceiptTable.RECEIPT_COL_FK_ACCOUNT_ID
 import com.splitreceipt.myapplication.data.DatabaseManager.ReceiptTable.RECEIPT_COL_ID
 import com.splitreceipt.myapplication.data.DatabaseManager.ReceiptTable.RECEIPT_COL_PAID_BY
@@ -45,6 +46,7 @@ class DbHelper(context: Context) : SQLiteOpenHelper(context,
         private const val CREATE_RECEIPT_TABLE = "CREATE TABLE $RECEIPT_TABLE_NAME (" +
                 "$RECEIPT_COL_ID INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "$RECEIPT_COL_UNIQUE_ID TEXT, " +
+                "$RECEIPT_COL_DATE TEXT, " +
                 "$RECEIPT_COL_TITLE TEXT, " +
                 "$RECEIPT_COL_TOTAL REAL, " +
                 "$RECEIPT_COL_PAID_BY TEXT, " +

@@ -5,12 +5,8 @@ AccountId
 |	|	--- Name : xxxxxxxx
 |	|	|
 |	|	--- Cat : xxxx
-|	|	|
-|	|	--- Currency : xxx
 |	|
-|	--- Balance
-|	|	  |
-|	|	  --- "xxx,£xx.xx,xxxx/xxxxxx,£x,xxxx"
+|	--- Balance : "xxx,£xx.xx,xxxx/xxxxxx,£x,xxxx"
 |	|
 |	--- Participants
 |	|		|
@@ -21,6 +17,8 @@ AccountId
 |	--- Receipts
 |		   |
 |		   --- ReceiptID
+|				|
+|				--- Date : xx/xx/xx
 |				|
 |				--- Title : xxxxx
 |				|

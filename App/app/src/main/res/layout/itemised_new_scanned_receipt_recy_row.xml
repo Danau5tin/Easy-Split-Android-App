@@ -3,10 +3,10 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="wrap_content">
 
     <TextView
-        android:id="@+id/itemisedItemName"
+        android:id="@+id/scannedName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
@@ -20,13 +20,13 @@
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:background="@color/harshGrey"
-        app:layout_constraintTop_toBottomOf="@+id/itemisedItemName"
         android:layout_marginTop="16dp"
+        android:background="@color/harshGrey"
+        app:layout_constraintTop_toBottomOf="@+id/scannedName"
         tools:layout_editor_absoluteX="0dp" />
 
     <TextView
-        android:id="@+id/itemisedItemValue"
+        android:id="@+id/participantContribution"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
