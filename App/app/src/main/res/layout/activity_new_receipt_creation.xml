@@ -16,9 +16,10 @@
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/textTitleInputLayout"
-        android:layout_width="140dp"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         app:layout_constraintBottom_toBottomOf="@+id/imageButton"
+        app:layout_constraintEnd_toStartOf="@+id/rightGuideline"
         app:layout_constraintStart_toEndOf="@+id/imageButton"
         app:layout_constraintTop_toTopOf="@+id/imageButton">
 
@@ -35,7 +36,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        app:layout_constraintGuide_begin="20dp" />
+        app:layout_constraintGuide_begin="16dp" />
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/rightGuideline"
@@ -46,7 +47,7 @@
 
     <Spinner
         android:id="@+id/paidBySpinner"
-        android:layout_width="140dp"
+        android:layout_width="120dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="3dp"
         app:layout_constraintBottom_toBottomOf="@+id/imageButton3"
@@ -74,13 +75,11 @@
 
     <Spinner
         android:id="@+id/dateSpinner"
-        android:layout_width="90dp"
+        android:layout_width="120dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:layout_marginEnd="8dp"
-        app:layout_constraintBottom_toBottomOf="@+id/textTitleInputLayout"
+        app:layout_constraintBottom_toBottomOf="@+id/paidBySpinner"
         app:layout_constraintEnd_toStartOf="@+id/rightGuideline"
-        app:layout_constraintTop_toTopOf="@+id/textTitleInputLayout" />
+        app:layout_constraintTop_toTopOf="@+id/paidBySpinner" />
 
     <View
         android:id="@+id/dateUnderline"
@@ -104,7 +103,7 @@
         android:id="@+id/receiptTabLayout"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="52dp"
+        android:layout_marginTop="42dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/paidBySpinner">
@@ -133,7 +132,7 @@
         android:id="@+id/imageButton"
         android:layout_width="40dp"
         android:layout_height="40dp"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="16dp"
         android:background="@drawable/image_button_outline"
         app:layout_constraintStart_toStartOf="@+id/leftGuideline"
         app:layout_constraintTop_toBottomOf="@+id/toolbar"
@@ -143,6 +142,7 @@
         android:id="@+id/imageButton2"
         android:layout_width="24dp"
         android:layout_height="24dp"
+        android:layout_marginTop="14dp"
         android:background="@null"
         android:scaleType="center"
         app:layout_constraintBottom_toBottomOf="@+id/dateSpinner"
@@ -154,7 +154,7 @@
         android:id="@+id/imageButton3"
         android:layout_width="40dp"
         android:layout_height="40dp"
-        android:layout_marginTop="42dp"
+        android:layout_marginTop="60dp"
         android:background="@drawable/image_button_outline"
         android:scaleType="center"
         app:layout_constraintStart_toStartOf="@+id/leftGuideline"

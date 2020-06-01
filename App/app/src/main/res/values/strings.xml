@@ -15,6 +15,22 @@
     <string name="account_yourname_hint">Your name</string>
     <string name="account_addparticipant_hint">Add participant</string>
 
+    <!-- New Receipt Creation -->
+    <string-array name="new_receipt_when">
+        <item>Today</item>
+        <item>Yesterday</item>
+        <item>Select another date</item>
+    </string-array>
+
+    <string-array name="new_recipt_currency">
+        <item>GBP</item>
+        <item>USD</item>
+        <item>EUR</item>
+        <item>AUD</item>
+        <item>CAD</item>
+    </string-array>
+
+
     <!-- Recycler View Rows -->
     <string name="row_account_title_example">England Darling</string>
     <string name="row_account_description_example">An account for the greatest couple in the world.</string>

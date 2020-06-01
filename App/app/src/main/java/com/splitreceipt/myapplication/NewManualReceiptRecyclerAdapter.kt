@@ -7,8 +7,9 @@ import android.widget.CheckBox
 import android.widget.Spinner
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.splitreceipt.myapplication.data.ParticipantData
 
-class NewManualReceiptRecyclerAdapter(var participantList: ArrayList<String>) : RecyclerView.Adapter<NewManualReceiptRecyclerAdapter.ItemizedViewholder>() {
+class NewManualReceiptRecyclerAdapter(var participantList: ArrayList<ParticipantData>) : RecyclerView.Adapter<NewManualReceiptRecyclerAdapter.ItemizedViewholder>() {
 
     override fun onCreateViewHolder(
         parent: ViewGroup,
@@ -27,9 +28,9 @@ class NewManualReceiptRecyclerAdapter(var participantList: ArrayList<String>) : 
         holder: ItemizedViewholder,
         position: Int
     ) {
-        holder.participantCheckBox.text = participantList.get(position)
+        holder.participantCheckBox.text = participantList.get(position).name
         holder.participantCheckBox.isChecked = true
-        holder.particpantContribution.text = "£1.40"
+        holder.particpantContribution.text = participantList.get(position).contribution
     }
 
     class ItemizedViewholder(itemView: View) : RecyclerView.ViewHolder(itemView){
