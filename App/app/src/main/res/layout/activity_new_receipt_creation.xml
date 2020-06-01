@@ -161,4 +161,13 @@
         app:layout_constraintTop_toBottomOf="@+id/imageButton"
         app:srcCompat="@drawable/vector_person_green" />
 
+    <Button
+        android:id="@+id/button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="addNewItemizedReceiptButton"
+        android:text="Button"
+        app:layout_constraintEnd_toStartOf="@+id/rightGuideline"
+        app:layout_constraintTop_toBottomOf="@+id/textTitleInputLayout" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

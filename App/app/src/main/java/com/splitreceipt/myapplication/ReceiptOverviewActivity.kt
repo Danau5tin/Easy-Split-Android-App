@@ -57,10 +57,10 @@ class ReceiptOverviewActivity : AppCompatActivity() {
     }
 
     @SuppressLint("SimpleDateFormat")
-    private fun getTodaysDate(): Date? {
+    fun getTodaysDate(): Date? {
         val currentTime = Calendar.getInstance().time
         val date: Date?
-        val dateFormat = SimpleDateFormat("dd,MM,yyyy")
+        val dateFormat = SimpleDateFormat(getString(R.string.date_format_dd_MM_yyyy))
         val todaysDate = dateFormat.format(currentTime)
         date = dateFormat.parse(todaysDate)
         return date

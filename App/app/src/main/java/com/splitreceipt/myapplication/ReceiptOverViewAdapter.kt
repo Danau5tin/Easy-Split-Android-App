@@ -1,5 +1,6 @@
 package com.splitreceipt.myapplication
 
+import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -23,6 +24,7 @@ class ReceiptOverViewAdapter(var receiptList: ArrayList<ReceiptData>, var todays
         return receiptList.size
     }
 
+    @SuppressLint("SimpleDateFormat")
     override fun onBindViewHolder(holder: ReceiptOverviewViewHolder, position: Int) {
         val dateOfReceipt = receiptList.get(position).date
         val dateFormat = SimpleDateFormat("dd/MM/yyyy")

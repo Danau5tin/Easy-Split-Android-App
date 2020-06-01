@@ -14,25 +14,30 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.splitreceipt.myapplication.data.DbHelper
 import com.splitreceipt.myapplication.data.ParticipantData
 import com.splitreceipt.myapplication.databinding.FragmentSplitReceiptManuallyBinding
-import java.text.DecimalFormat
 
-class SplitReceiptManuallyFragment : Fragment() {
+class SplitReceiptManuallyFragment : Fragment(), NewManualReceiptRecyclerAdapter.onRecyRowCheked {
 
     private lateinit var binding: FragmentSplitReceiptManuallyBinding
     private lateinit var newParticipantList: ArrayList<ParticipantData>
     private lateinit var adapter: NewManualReceiptRecyclerAdapter
     private lateinit var dbHelper: DbHelper
     private lateinit var contxt: Context
-    var sqlId: String? = "-1"
+    private var everybodyEqual: Boolean = true
+    private var transactionTotal: String = zeroCurrency
+
+    companion object{
+        private const val zeroCurrency: String = "0.00"
+    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         binding = FragmentSplitReceiptManuallyBinding.inflate(inflater, container, false)
         newParticipantList = ArrayList()
         retrieveParticipants()
 
-        binding.currencySpinner.adapter = ArrayAdapter(contxt, R.layout.support_simple_spinner_dropdown_item, resources.getStringArray(R.array.new_recipt_currency))
+        binding.currencySpinner.adapter = ArrayAdapter(contxt, R.layout.
+            support_simple_spinner_dropdown_item, resources.getStringArray(R.array.new_recipt_currency))
 
-        adapter = NewManualReceiptRecyclerAdapter(newParticipantList)
+        adapter = NewManualReceiptRecyclerAdapter(newParticipantList, this)
         binding.fragManualRecy.layoutManager = LinearLayoutManager(activity)
         binding.fragManualRecy.adapter = adapter
 
@@ -41,7 +46,6 @@ class SplitReceiptManuallyFragment : Fragment() {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(text: CharSequence?, start: Int, before: Int, count: Int) {
                 val correctNumber: CharSequence
-                Log.i("TEST", start.toString())
                 if (!text.isNullOrBlank()){
                     val allText = text.toString()
                     if (allText.contains(".")){
@@ -54,35 +58,46 @@ class SplitReceiptManuallyFragment : Fragment() {
                         correctNumber = text.subSequence(0, dotIndex + 3)
                             binding.currencyAmount.setText(correctNumber.toString())
                             binding.currencyAmount.text?.length?.let {binding.currencyAmount.setSelection(it)}
-                        } else correctNumber = text
-                        Log.i("TEST", correctNumber.toString())
+                        }}
+                    transactionTotal = text.toString()
+                    setContributions()
                 }
-                setContributions(text.toString()) }
                 else{
-                    setContributions("0.00")
-                } } })
+                    transactionTotal = zeroCurrency
+                    setContributions()}}})
 
         return binding.root
     }
 
-    fun setContributions(total: String){
-        var everybodyEqual = true
-        val totalOfReceipt = total.toFloat()
-        var contribution: String
+    fun setContributions(handlerRequired: Boolean = false){
+        val totalOfReceipt = transactionTotal.toFloat()
         if (everybodyEqual) {
-            val roundOff = Math.round((totalOfReceipt / newParticipantList.size) * 100.0) / 100.0
-            contribution = roundOff.toString()
-            if (contribution.contains(".")) {
-                if (contribution.length - contribution.indexOf(".") == 2) {
-                    contribution += "0"
+            setParticipantContribution(totalOfReceipt, newParticipantList)
+        }
+        else {
+            val contributingParticipants: ArrayList<ParticipantData> = ArrayList()
+            for (participant in newParticipantList){
+                if (participant.contributing){
+                    contributingParticipants.add(participant)
                 }
             }
-            for (participant in newParticipantList){
-                participant.contribution = contribution
-            }
-            adapter.notifyDataSetChanged()
-        } else {
-            contribution = (totalOfReceipt / newParticipantList.size).toString() // TODO: Edit
+            setParticipantContribution(totalOfReceipt, contributingParticipants)
+        }
+        if (!handlerRequired){
+            // handler will only be required when a participant is checked or unchecked in the UI.
+            adapter.notifyDataSetChanged()}
+    }
+
+    private fun setParticipantContribution(total: Float, activeParticipants: ArrayList<ParticipantData>){
+        var contribution: String
+        val roundOff = Math.round((total / activeParticipants.size) * 100.0) / 100.0
+        contribution = roundOff.toString()
+        if (contribution.contains(".")) {
+            if (contribution.length - contribution.indexOf(".") == 2) {
+                contribution += "0"
+            }}
+        for (participant in activeParticipants){
+            participant.contributionValue = contribution
         }
     }
 
@@ -94,9 +109,21 @@ class SplitReceiptManuallyFragment : Fragment() {
 
     private fun retrieveParticipants() {
         for (participant in NewReceiptCreationActivity.participantList) {
-            newParticipantList.add(ParticipantData(participant, "0.00"))
+            newParticipantList.add(ParticipantData(participant, zeroCurrency, true))
         }
     }
 
+    override fun onRecyUnCheck(pos: Int) {
+        everybodyEqual = false
+        newParticipantList[pos].contributing = false
+        newParticipantList[pos].contributionValue = zeroCurrency
+        setContributions(true)
+        binding.fragManualRecy.post(Runnable { adapter.notifyDataSetChanged() })
+    }
 
+    override fun onRecyChecked(pos: Int) {
+        newParticipantList[pos].contributing = true
+        setContributions(true)
+        binding.fragManualRecy.post(Runnable { adapter.notifyDataSetChanged() })
+    }
 }

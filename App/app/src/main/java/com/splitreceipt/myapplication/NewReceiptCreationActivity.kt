@@ -1,16 +1,15 @@
 package com.splitreceipt.myapplication
 
-import android.app.DatePickerDialog
-import android.app.DatePickerDialog.OnDateSetListener
+import android.annotation.SuppressLint
 import android.content.ContentValues
 import android.database.Cursor
 import android.os.Bundle
+import android.util.Log
 import android.view.View
-import android.widget.AdapterView
 import android.widget.ArrayAdapter
+import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.recyclerview.widget.LinearLayoutManager
 import com.splitreceipt.myapplication.data.DatabaseManager
 import com.splitreceipt.myapplication.data.DatabaseManager.ReceiptTable.RECEIPT_COL_DATE
 import com.splitreceipt.myapplication.data.DatabaseManager.ReceiptTable.RECEIPT_COL_FK_ACCOUNT_ID
@@ -21,6 +20,9 @@ import com.splitreceipt.myapplication.data.DatabaseManager.ReceiptTable.RECEIPT_
 import com.splitreceipt.myapplication.data.DatabaseManager.ReceiptTable.RECEIPT_TABLE_NAME
 import com.splitreceipt.myapplication.data.DbHelper
 import com.splitreceipt.myapplication.databinding.ActivityNewReceiptCreationBinding
+import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -82,14 +84,41 @@ class NewReceiptCreationActivity : AppCompatActivity() {
 
     fun addNewItemizedReceiptButton(view: View) {
         //TODO: Attach this to the relevant next/continue button
-        val receiptFirebaseID = "rec00001"
-        val date = "31/05/2020"// TODO: Get the correct spinner result
+
+        val receiptFirebaseID = "rec0001"
+        val date = getDate()
         val title =  binding.receiptTitleEditText.text.toString()
-        val total = 1.44F
-        val paidBy = "Dan" // TODO: Get the correct spinner result
-        // TODO: Take all the itemized results
-        val sqlRow = updateSql(receiptFirebaseID, date, title, total, paidBy)
-        Toast.makeText(this, sqlRow.toString(), Toast.LENGTH_SHORT).show()
+        val total = findViewById<EditText>(R.id.currencyAmount).text.toString()
+//        val paidBy = "Dan" // TODO: Get the correct spinner result
+//        // TODO: Take all the itemized results
+//        val sqlRow = updateSql(receiptFirebaseID, date, title, total, paidBy)
+        Toast.makeText(this, date, Toast.LENGTH_SHORT).show()
+    }
+
+    private fun getDate(): String{
+        val spinnerSelection = binding.dateSpinner.selectedItem.toString()
+        if (spinnerSelection == getString(R.string.when_today)) {
+           return retrieveTodaysDate()
+        } else if (spinnerSelection == getString(R.string.when_yesterday)){
+            return retrieveYesterdaysDate()
+        } else {
+            //TODO: Get the other date selected as a string.
+            Log.i("TEST", "Another date")
+        }
+        return spinnerSelection
+    }
+
+    private fun retrieveYesterdaysDate(): String {
+        val cal = Calendar.getInstance()
+        cal.add(Calendar.DAY_OF_YEAR, -1)
+        val yesterday = cal.time
+        val dateFormat = SimpleDateFormat(getString(R.string.date_format_dd_MM_yyyy))
+        return dateFormat.format(yesterday)
+    }
+
+    private fun retrieveTodaysDate(): String {
+        val date = LocalDate.now()
+        return date.format(DateTimeFormatter.ofPattern(getString(R.string.date_format_dd_MM_yyyy))).toString()
     }
 
     private fun updateSql(recFirebaseId: String, date: String, title: String, total: Float, paidBy: String) : Int{
