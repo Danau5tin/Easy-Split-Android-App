@@ -8,14 +8,12 @@ import android.view.View
 import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.splitreceipt.myapplication.data.AccountData
-import com.splitreceipt.myapplication.data.DatabaseManager.AccountTable.ACCOUNT_COL_CATEGORY
-import com.splitreceipt.myapplication.data.DatabaseManager.AccountTable.ACCOUNT_COL_ID
-import com.splitreceipt.myapplication.data.DatabaseManager.AccountTable.ACCOUNT_COL_NAME
-import com.splitreceipt.myapplication.data.DatabaseManager.AccountTable.ACCOUNT_COL_UNIQUE_ID
-import com.splitreceipt.myapplication.data.DatabaseManager.AccountTable.ACCOUNT_TABLE_NAME
+import com.splitreceipt.myapplication.data.DbManager.AccountTable.ACCOUNT_COL_ID
+import com.splitreceipt.myapplication.data.DbManager.AccountTable.ACCOUNT_COL_NAME
+import com.splitreceipt.myapplication.data.DbManager.AccountTable.ACCOUNT_COL_UNIQUE_ID
+import com.splitreceipt.myapplication.data.DbManager.AccountTable.ACCOUNT_TABLE_NAME
 import com.splitreceipt.myapplication.data.DbHelper
 import com.splitreceipt.myapplication.databinding.ActivityAccountScreenBinding
-import java.lang.IllegalArgumentException
 
 class AccountScreenActivity : AppCompatActivity() {
     /*

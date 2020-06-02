@@ -39,4 +39,16 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <TextView
+        android:id="@+id/symbolText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="£"
+        android:textColor="#000000"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="@+id/participantCheckbox"
+        app:layout_constraintEnd_toStartOf="@+id/participantContribution"
+        app:layout_constraintTop_toTopOf="@+id/participantCheckbox" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

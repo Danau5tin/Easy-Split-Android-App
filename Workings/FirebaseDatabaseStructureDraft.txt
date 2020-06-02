@@ -26,6 +26,8 @@ AccountId
 |				|
 |				--- PaidBy : "xxxxx"
 |				|
+|				--- Contributions : "xxx,£x.xx/xxx,£x.xx"
+|				|
 |				--- items
 |					|
 |					--- Strawberries

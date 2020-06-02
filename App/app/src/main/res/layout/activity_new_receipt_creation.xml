@@ -18,8 +18,9 @@
         android:id="@+id/textTitleInputLayout"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginEnd="32dp"
         app:layout_constraintBottom_toBottomOf="@+id/imageButton"
-        app:layout_constraintEnd_toStartOf="@+id/rightGuideline"
+        app:layout_constraintEnd_toStartOf="@+id/imageButton2"
         app:layout_constraintStart_toEndOf="@+id/imageButton"
         app:layout_constraintTop_toTopOf="@+id/imageButton">
 
@@ -54,16 +55,6 @@
         app:layout_constraintStart_toEndOf="@+id/imageButton3"
         app:layout_constraintTop_toTopOf="@+id/imageButton3" />
 
-    <View
-        android:id="@+id/paidByUnderline"
-        android:layout_width="0dp"
-        android:layout_height="1dp"
-        android:layout_marginStart="3dp"
-        android:background="@color/harshGrey"
-        app:layout_constraintEnd_toEndOf="@+id/paidBySpinner"
-        app:layout_constraintStart_toStartOf="@+id/paidBySpinner"
-        app:layout_constraintTop_toBottomOf="@+id/paidBySpinner" />
-
     <TextView
         android:id="@+id/paidByHintText"
         android:layout_width="wrap_content"
@@ -72,23 +63,6 @@
         android:text="@string/item_paidby_hint"
         app:layout_constraintBottom_toTopOf="@+id/paidBySpinner"
         app:layout_constraintStart_toStartOf="@+id/paidBySpinner" />
-
-    <Spinner
-        android:id="@+id/dateSpinner"
-        android:layout_width="120dp"
-        android:layout_height="wrap_content"
-        app:layout_constraintBottom_toBottomOf="@+id/paidBySpinner"
-        app:layout_constraintEnd_toStartOf="@+id/rightGuideline"
-        app:layout_constraintTop_toTopOf="@+id/paidBySpinner" />
-
-    <View
-        android:id="@+id/dateUnderline"
-        android:layout_width="0dp"
-        android:layout_height="1dp"
-        android:background="@color/harshGrey"
-        app:layout_constraintEnd_toEndOf="@+id/dateSpinner"
-        app:layout_constraintStart_toStartOf="@+id/dateSpinner"
-        app:layout_constraintTop_toBottomOf="@+id/dateSpinner" />
 
     <View
         android:id="@+id/tabLayoutOverline"
@@ -142,19 +116,19 @@
         android:id="@+id/imageButton2"
         android:layout_width="24dp"
         android:layout_height="24dp"
-        android:layout_marginTop="14dp"
+        android:layout_marginTop="16dp"
         android:background="@null"
+        android:onClick="datePicker"
         android:scaleType="center"
-        app:layout_constraintBottom_toBottomOf="@+id/dateSpinner"
-        app:layout_constraintEnd_toStartOf="@+id/dateSpinner"
-        app:layout_constraintTop_toTopOf="@+id/dateSpinner"
+        app:layout_constraintEnd_toStartOf="@+id/dateButton"
+        app:layout_constraintTop_toBottomOf="@+id/toolbar"
         app:srcCompat="@drawable/vector_calendar_blue" />
 
     <ImageButton
         android:id="@+id/imageButton3"
         android:layout_width="40dp"
         android:layout_height="40dp"
-        android:layout_marginTop="60dp"
+        android:layout_marginTop="40dp"
         android:background="@drawable/image_button_outline"
         android:scaleType="center"
         app:layout_constraintStart_toStartOf="@+id/leftGuideline"
@@ -162,12 +136,18 @@
         app:srcCompat="@drawable/vector_person_green" />
 
     <Button
-        android:id="@+id/button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:onClick="addNewItemizedReceiptButton"
-        android:text="Button"
+        android:id="@+id/dateButton"
+        android:layout_width="80dp"
+        android:layout_height="0dp"
+        android:background="@null"
+        android:gravity="left|center_vertical"
+        android:onClick="datePicker"
+        android:paddingLeft="5dp"
+        android:text="@string/when_today"
+        android:textAllCaps="false"
+        android:textSize="14sp"
+        app:layout_constraintBottom_toBottomOf="@+id/imageButton2"
         app:layout_constraintEnd_toStartOf="@+id/rightGuideline"
-        app:layout_constraintTop_toBottomOf="@+id/textTitleInputLayout" />
+        app:layout_constraintTop_toTopOf="@+id/imageButton2" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

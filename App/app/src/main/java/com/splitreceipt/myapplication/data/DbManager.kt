@@ -2,7 +2,7 @@ package com.splitreceipt.myapplication.data
 
 import android.provider.BaseColumns
 
-object DatabaseManager {
+object DbManager {
 
     object AccountTable : BaseColumns {
         const val ACCOUNT_TABLE_NAME = "user_accounts"
@@ -22,6 +22,7 @@ object DatabaseManager {
         const val RECEIPT_COL_TITLE = "title"
         const val RECEIPT_COL_TOTAL = "total_cost"
         const val RECEIPT_COL_PAID_BY = "paid_by"
+        const val RECEIPT_COL_CONTRIBUTIONS = "contributions"
         const val RECEIPT_COL_FK_ACCOUNT_ID = "account_id"
     }
 

@@ -3,27 +3,28 @@ package com.splitreceipt.myapplication.data
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
-import com.splitreceipt.myapplication.data.DatabaseManager.AccountTable.ACCOUNT_COL_BALANCES
-import com.splitreceipt.myapplication.data.DatabaseManager.AccountTable.ACCOUNT_COL_CATEGORY
-import com.splitreceipt.myapplication.data.DatabaseManager.AccountTable.ACCOUNT_COL_NAME
-import com.splitreceipt.myapplication.data.DatabaseManager.AccountTable.ACCOUNT_COL_ID
-import com.splitreceipt.myapplication.data.DatabaseManager.AccountTable.ACCOUNT_COL_PARTICIPANTS
-import com.splitreceipt.myapplication.data.DatabaseManager.AccountTable.ACCOUNT_COL_UNIQUE_ID
-import com.splitreceipt.myapplication.data.DatabaseManager.AccountTable.ACCOUNT_TABLE_NAME
-import com.splitreceipt.myapplication.data.DatabaseManager.ReceiptItemsTable.ITEMS_COL_FK_RECEIPT_ID
-import com.splitreceipt.myapplication.data.DatabaseManager.ReceiptItemsTable.ITEMS_COL_ID
-import com.splitreceipt.myapplication.data.DatabaseManager.ReceiptItemsTable.ITEMS_COL_NAME
-import com.splitreceipt.myapplication.data.DatabaseManager.ReceiptItemsTable.ITEMS_COL_VALUE
-import com.splitreceipt.myapplication.data.DatabaseManager.ReceiptItemsTable.ITEMS_COL_WHOME
-import com.splitreceipt.myapplication.data.DatabaseManager.ReceiptItemsTable.ITEMS_TABLE_NAME
-import com.splitreceipt.myapplication.data.DatabaseManager.ReceiptTable.RECEIPT_COL_DATE
-import com.splitreceipt.myapplication.data.DatabaseManager.ReceiptTable.RECEIPT_COL_FK_ACCOUNT_ID
-import com.splitreceipt.myapplication.data.DatabaseManager.ReceiptTable.RECEIPT_COL_ID
-import com.splitreceipt.myapplication.data.DatabaseManager.ReceiptTable.RECEIPT_COL_PAID_BY
-import com.splitreceipt.myapplication.data.DatabaseManager.ReceiptTable.RECEIPT_COL_TITLE
-import com.splitreceipt.myapplication.data.DatabaseManager.ReceiptTable.RECEIPT_COL_TOTAL
-import com.splitreceipt.myapplication.data.DatabaseManager.ReceiptTable.RECEIPT_COL_UNIQUE_ID
-import com.splitreceipt.myapplication.data.DatabaseManager.ReceiptTable.RECEIPT_TABLE_NAME
+import com.splitreceipt.myapplication.data.DbManager.AccountTable.ACCOUNT_COL_BALANCES
+import com.splitreceipt.myapplication.data.DbManager.AccountTable.ACCOUNT_COL_CATEGORY
+import com.splitreceipt.myapplication.data.DbManager.AccountTable.ACCOUNT_COL_NAME
+import com.splitreceipt.myapplication.data.DbManager.AccountTable.ACCOUNT_COL_ID
+import com.splitreceipt.myapplication.data.DbManager.AccountTable.ACCOUNT_COL_PARTICIPANTS
+import com.splitreceipt.myapplication.data.DbManager.AccountTable.ACCOUNT_COL_UNIQUE_ID
+import com.splitreceipt.myapplication.data.DbManager.AccountTable.ACCOUNT_TABLE_NAME
+import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_COL_FK_RECEIPT_ID
+import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_COL_ID
+import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_COL_NAME
+import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_COL_VALUE
+import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_COL_WHOME
+import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_TABLE_NAME
+import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_CONTRIBUTIONS
+import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_DATE
+import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_FK_ACCOUNT_ID
+import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_ID
+import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_PAID_BY
+import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_TITLE
+import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_TOTAL
+import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_UNIQUE_ID
+import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_TABLE_NAME
 
 class DbHelper(context: Context) : SQLiteOpenHelper(context,
     DATABASE_NAME, null,
@@ -51,6 +52,7 @@ class DbHelper(context: Context) : SQLiteOpenHelper(context,
                 "$RECEIPT_COL_TOTAL REAL, " +
                 "$RECEIPT_COL_PAID_BY TEXT, " +
                 "$RECEIPT_COL_FK_ACCOUNT_ID INTEGER, " +
+                "$RECEIPT_COL_CONTRIBUTIONS TEXT, " +
                 "FOREIGN KEY ($RECEIPT_COL_FK_ACCOUNT_ID) REFERENCES $ACCOUNT_TABLE_NAME" +
                 "($ACCOUNT_COL_ID) ON DELETE CASCADE)"
         private const val DELETE_RECEIPT_ENTRIES = "DROP TABLE IF EXISTS $RECEIPT_TABLE_NAME"

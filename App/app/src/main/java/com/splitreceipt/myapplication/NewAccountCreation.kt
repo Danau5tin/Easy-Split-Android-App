@@ -6,12 +6,12 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
-import com.splitreceipt.myapplication.data.DatabaseManager.AccountTable.ACCOUNT_COL_BALANCES
-import com.splitreceipt.myapplication.data.DatabaseManager.AccountTable.ACCOUNT_COL_CATEGORY
-import com.splitreceipt.myapplication.data.DatabaseManager.AccountTable.ACCOUNT_COL_NAME
-import com.splitreceipt.myapplication.data.DatabaseManager.AccountTable.ACCOUNT_COL_PARTICIPANTS
-import com.splitreceipt.myapplication.data.DatabaseManager.AccountTable.ACCOUNT_COL_UNIQUE_ID
-import com.splitreceipt.myapplication.data.DatabaseManager.AccountTable.ACCOUNT_TABLE_NAME
+import com.splitreceipt.myapplication.data.DbManager.AccountTable.ACCOUNT_COL_BALANCES
+import com.splitreceipt.myapplication.data.DbManager.AccountTable.ACCOUNT_COL_CATEGORY
+import com.splitreceipt.myapplication.data.DbManager.AccountTable.ACCOUNT_COL_NAME
+import com.splitreceipt.myapplication.data.DbManager.AccountTable.ACCOUNT_COL_PARTICIPANTS
+import com.splitreceipt.myapplication.data.DbManager.AccountTable.ACCOUNT_COL_UNIQUE_ID
+import com.splitreceipt.myapplication.data.DbManager.AccountTable.ACCOUNT_TABLE_NAME
 import com.splitreceipt.myapplication.data.DbHelper
 import com.splitreceipt.myapplication.databinding.ActivityNewAccountCreationBinding
 

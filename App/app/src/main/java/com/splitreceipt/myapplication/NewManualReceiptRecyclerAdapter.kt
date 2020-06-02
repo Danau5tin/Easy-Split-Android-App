@@ -39,6 +39,7 @@ class NewManualReceiptRecyclerAdapter(var participantList: ArrayList<Participant
         if (participantList[position].contributing){
             holder.participantCheckBox.isChecked = true
         }
+        holder.currencySymbol.text = SplitReceiptManuallyFragment.currencySymbol
         holder.particpantContribution.text = participantList[position].contributionValue
     }
 
@@ -46,6 +47,7 @@ class NewManualReceiptRecyclerAdapter(var participantList: ArrayList<Participant
 
         val participantCheckBox: CheckBox = itemView.findViewById(R.id.participantCheckbox)
         val particpantContribution: TextView = itemView.findViewById(R.id.participantContribution)
+        val currencySymbol: TextView = itemView.findViewById(R.id.symbolText)
         val onRec = onRecyInt
     }
 
