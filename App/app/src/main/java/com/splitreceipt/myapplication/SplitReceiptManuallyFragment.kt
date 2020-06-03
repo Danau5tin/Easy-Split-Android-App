@@ -35,10 +35,17 @@ class SplitReceiptManuallyFragment : Fragment(), NewManualReceiptRecyclerAdapter
         private const val SHARED_PREF_ACCOUNT_CURRENCY_SYMBOL = "currency_symbol"
         private const val SHARED_PREF_ACCOUNT_CURRENCY_CODE = "currency_code"
         private const val CURRENCY_INTENT = 2
-        var participantList: ArrayList<ParticipantData> = ArrayList()
+        var fragmentManualParticipantList: ArrayList<ParticipantData> = ArrayList()
 
         var currencyCode = ""
         var currencySymbol = ""
+
+        fun fixDecimalPlace(value: String): String {
+            var fixedValue = ""
+            return if (value.contains(".")) {
+                if (value.length - value.indexOf(".") == 2) {
+                    fixedValue = value + "0"
+                    fixedValue } else { value } } else { value }}
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -48,7 +55,7 @@ class SplitReceiptManuallyFragment : Fragment(), NewManualReceiptRecyclerAdapter
         retrieveParticipants()
         updateUICurrency()
 
-        adapter = NewManualReceiptRecyclerAdapter(participantList, this)
+        adapter = NewManualReceiptRecyclerAdapter(fragmentManualParticipantList, this)
         binding.fragManualRecy.layoutManager = LinearLayoutManager(activity)
         binding.fragManualRecy.adapter = adapter
 
@@ -117,11 +124,11 @@ class SplitReceiptManuallyFragment : Fragment(), NewManualReceiptRecyclerAdapter
     fun setContributionStatus(handlerRequired: Boolean = false){
         val totalOfReceipt = transactionTotal.toFloat()
         if (everybodyEqual) {
-            setContributionValues(totalOfReceipt, participantList)
+            setContributionValues(totalOfReceipt, fragmentManualParticipantList)
         }
         else {
             val contributingParticipants: ArrayList<ParticipantData> = ArrayList()
-            for (participant in participantList){
+            for (participant in fragmentManualParticipantList){
                 if (participant.contributing){
                     contributingParticipants.add(participant)
                 }
@@ -134,15 +141,12 @@ class SplitReceiptManuallyFragment : Fragment(), NewManualReceiptRecyclerAdapter
     }
 
     private fun setContributionValues(total: Float, activeParticipants: ArrayList<ParticipantData>){
-        var contribution: String
+        val contribution: String
         val roundOff = Math.round((total / activeParticipants.size) * 100.0) / 100.0
         contribution = roundOff.toString()
-        if (contribution.contains(".")) {
-            if (contribution.length - contribution.indexOf(".") == 2) {
-                contribution += "0"
-            }}
+        val fixedContribution = fixDecimalPlace(contribution)
         for (participant in activeParticipants){
-            participant.contributionValue = contribution
+            participant.contributionValue = fixedContribution
         }
     }
 
@@ -153,21 +157,22 @@ class SplitReceiptManuallyFragment : Fragment(), NewManualReceiptRecyclerAdapter
     }
 
     private fun retrieveParticipants() {
+        fragmentManualParticipantList.clear()
         for (participant in NewReceiptCreationActivity.participantList) {
-            participantList.add(ParticipantData(participant, zeroCurrency, true))
+            fragmentManualParticipantList.add(ParticipantData(participant, zeroCurrency, true))
         }
     }
 
     override fun onRecyUnCheck(pos: Int) {
         everybodyEqual = false
-        participantList[pos].contributing = false
-        participantList[pos].contributionValue = zeroCurrency
+        fragmentManualParticipantList[pos].contributing = false
+        fragmentManualParticipantList[pos].contributionValue = zeroCurrency
         setContributionStatus(true)
         binding.fragManualRecy.post(Runnable { adapter.notifyDataSetChanged() })
     }
 
     override fun onRecyChecked(pos: Int) {
-        participantList[pos].contributing = true
+        fragmentManualParticipantList[pos].contributing = true
         setContributionStatus(true)
         binding.fragManualRecy.post(Runnable { adapter.notifyDataSetChanged() })
     }

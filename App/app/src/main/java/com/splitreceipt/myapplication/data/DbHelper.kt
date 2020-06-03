@@ -32,7 +32,7 @@ class DbHelper(context: Context) : SQLiteOpenHelper(context,
 ) {
 
     companion object {
-        private const val DATABASE_NAME = "receiptSplit.db"
+        private const val DATABASE_NAME = "newdata.db"
         private const val DATABASE_VERSION = 1
 
         private const val CREATE_ACCOUNT_TABLE = "CREATE TABLE $ACCOUNT_TABLE_NAME (" +

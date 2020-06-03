@@ -23,6 +23,10 @@ class AccountScreenActivity : AppCompatActivity() {
     lateinit var binding: ActivityAccountScreenBinding
     lateinit var accountList: ArrayList<AccountData>
 
+    companion object {
+        var sqlIntentString = "sqlID"
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityAccountScreenBinding.inflate(layoutInflater)
@@ -63,5 +67,6 @@ class AccountScreenActivity : AppCompatActivity() {
         val intent = Intent(this, NewAccountCreation::class.java)
         startActivity(intent)
     }
+
 
 }

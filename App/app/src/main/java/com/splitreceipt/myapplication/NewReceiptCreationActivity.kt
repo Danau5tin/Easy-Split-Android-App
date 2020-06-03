@@ -1,5 +1,6 @@
 package com.splitreceipt.myapplication
 
+import android.app.Activity
 import android.app.DatePickerDialog
 import android.content.ContentValues
 import android.content.Intent
@@ -26,7 +27,6 @@ import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_CO
 import com.splitreceipt.myapplication.data.ParticipantData
 import com.splitreceipt.myapplication.databinding.ActivityNewReceiptCreationBinding
 import java.lang.StringBuilder
-import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.*
@@ -45,6 +45,7 @@ class NewReceiptCreationActivity : AppCompatActivity() {
     companion object {
         var sqlAccountId: String? = "-1"
         lateinit var participantList: ArrayList<String>
+        const val CONTRIBUTION_INTENT_DATA = "contribution"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -89,12 +90,15 @@ class NewReceiptCreationActivity : AppCompatActivity() {
                     val paidBy = binding.paidBySpinner.selectedItem.toString()
                     // TODO: Take all the itemized results
 
-                    val updatedContribList = SplitReceiptManuallyFragment.participantList
-                    val contributionsString = creatContribString(updatedContribList)
+                    val updatedContribList = SplitReceiptManuallyFragment.fragmentManualParticipantList
+                    val contributionsString = creatContribString(updatedContribList, paidBy)
                     Log.i("TEST", contributionsString)
 
                     val sqlRow = updateSql(receiptFirebaseID, date, title, total, paidBy, contributionsString)
                     Toast.makeText(this, sqlRow.toString(), Toast.LENGTH_SHORT).show()
+                    intent.putExtra(CONTRIBUTION_INTENT_DATA, contributionsString)
+                    setResult(Activity.RESULT_OK, intent)
+                    finish()
                     return true
                 } else
                 {return false}
@@ -103,16 +107,19 @@ class NewReceiptCreationActivity : AppCompatActivity() {
         }
     }
 
-    private fun creatContribString(updatedContribList: ArrayList<ParticipantData>): String {
+    private fun creatContribString(updatedContribList: ArrayList<ParticipantData>, paidBy: String): String {
         var sb = StringBuilder()
         for (participant in updatedContribList) {
             val name = participant.name
             val nameString = "$name,"
             sb.append(nameString)
             val value = participant.contributionValue
-            val valString = "$value/"
+            val valString = "$value,"
             sb.append(valString)
+            val paidByString = "$paidBy/"
+            sb.append(paidByString)
         }
+        sb.deleteCharAt(sb.lastIndex)
         return sb.toString()
     }
 
@@ -141,7 +148,7 @@ class NewReceiptCreationActivity : AppCompatActivity() {
             DatePickerDialog.OnDateSetListener { view, year, monthOfYear, dayOfMonth ->
                 val dayString = cleanDay(dayOfMonth)
                 val monthString = cleanMonth(monthOfYear)
-                val yearString = cleanYear(year)
+                val yearString: String = year.toString()
 
                 val string = "$dayString/$monthString/$yearString"
                 binding.dateButton.setText(string)
@@ -151,6 +158,7 @@ class NewReceiptCreationActivity : AppCompatActivity() {
     }
 
     private fun retrieveParticipants() {
+        participantList.clear()
         val dbHelper = DbHelper(this)
         sqlAccountId = ReceiptOverviewActivity.getSqlAccountId
         val reader = dbHelper.readableDatabase
@@ -208,11 +216,6 @@ class NewReceiptCreationActivity : AppCompatActivity() {
         return sqlId.toInt()
     }
 
-    private fun cleanYear(year: Int): Any {
-        val yearString = year.toString().substring(2)
-        return yearString
-    }
-
     private fun cleanDay(dayOfMonth: Int): String {
         var dayString = ""
         val day = dayOfMonth.toString()
@@ -236,7 +239,6 @@ class NewReceiptCreationActivity : AppCompatActivity() {
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        Log.i("TEST", "OnActivityResult Activity Called")
         super.onActivityResult(requestCode, resultCode, data)
     }
 }

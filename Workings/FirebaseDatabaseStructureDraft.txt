@@ -26,7 +26,7 @@ AccountId
 |				|
 |				--- PaidBy : "xxxxx"
 |				|
-|				--- Contributions : "xxx,£x.xx/xxx,£x.xx"
+|				--- Contributions : "xxx,£x.xx,xxx/xxx,£x.xx,xxx"
 |				|
 |				--- items
 |					|

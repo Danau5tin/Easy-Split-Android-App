@@ -45,7 +45,8 @@ class ReceiptOverViewAdapter(var receiptList: ArrayList<ReceiptData>, var todays
         holder.receiptTitleTextView.text = receiptList.get(position).title
 
         val totalToString = receiptList.get(position).total.toString()
-        val totalString = "£$totalToString"
+        val totalFixedString = SplitReceiptManuallyFragment.fixDecimalPlace(totalToString)
+        val totalString = "£$totalFixedString" //TODO: Ensure the correct currency symbol used here is the users preference
         holder.receiptTotalTextView.text = totalString
 
         val paidBy = receiptList.get(position).paidBy

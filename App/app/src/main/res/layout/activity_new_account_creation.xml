@@ -14,10 +14,12 @@
         android:id="@+id/accountTitleText"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
+        android:layout_marginStart="16dp"
+        app:layout_constraintBottom_toBottomOf="@+id/imageButton5"
         app:layout_constraintEnd_toStartOf="@+id/rightGuideline"
-        app:layout_constraintStart_toStartOf="@+id/leftGuideline"
-        app:layout_constraintTop_toBottomOf="@+id/toolbar">
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toEndOf="@+id/imageButton5"
+        app:layout_constraintTop_toTopOf="@+id/imageButton5">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/accountTitleEditText"
@@ -44,7 +46,7 @@
     <View
         android:id="@+id/view3"
         android:layout_width="0dp"
-        android:layout_height="100dp"
+        android:layout_height="50dp"
         android:layout_marginTop="16dp"
         android:background="@color/backgroundGrey"
         app:layout_constraintEnd_toEndOf="parent"
@@ -85,30 +87,6 @@
             android:hint="@string/account_yourname_hint" />
     </com.google.android.material.textfield.TextInputLayout>
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/addParticipantButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="82dp"
-        android:clickable="true"
-        android:src="@android:drawable/ic_input_add"
-        app:fabSize="mini"
-        app:layout_constraintBottom_toBottomOf="@+id/view3"
-        app:layout_constraintStart_toEndOf="@+id/participantsText"
-        app:layout_constraintTop_toBottomOf="@+id/view4" />
-
-    <TextView
-        android:id="@+id/addParticipantText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:text="@string/account_addparticipant_hint"
-        android:textSize="15sp"
-        app:layout_constraintBottom_toBottomOf="@+id/addParticipantButton"
-        app:layout_constraintStart_toEndOf="@+id/addParticipantButton"
-        app:layout_constraintTop_toTopOf="@+id/addParticipantButton"
-        app:layout_constraintVertical_bias="0.55" />
-
     <Button
         android:id="@+id/button2"
         android:layout_width="wrap_content"
@@ -127,8 +105,8 @@
         android:layout_marginTop="16dp"
         android:text="ToggleButton"
         android:textOff="Apartment"
-        app:layout_constraintTop_toBottomOf="@+id/accountTitleText"
-        tools:layout_editor_absoluteX="18dp" />
+        app:layout_constraintStart_toStartOf="@+id/leftGuideline"
+        app:layout_constraintTop_toBottomOf="@+id/accountTitleText" />
 
     <ToggleButton
         android:id="@+id/toggleButton6"
@@ -156,5 +134,49 @@
         android:textOff="Other"
         app:layout_constraintBaseline_toBaselineOf="@+id/toggleButton7"
         app:layout_constraintStart_toEndOf="@+id/toggleButton7" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/newParticipantRecy"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="1dp"
+        app:layout_constraintEnd_toStartOf="@+id/rightGuideline"
+        app:layout_constraintStart_toStartOf="@+id/leftGuideline"
+        app:layout_constraintTop_toBottomOf="@+id/yourNameText" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/textInputLayout2"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toStartOf="@+id/addParticipantButton"
+        app:layout_constraintStart_toStartOf="@+id/leftGuideline"
+        app:layout_constraintTop_toBottomOf="@+id/newParticipantRecy">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/newParticipantName"
+            android:hint="Add participant" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <Button
+        android:id="@+id/addParticipantButton"
+        android:layout_width="71dp"
+        android:layout_height="34dp"
+        android:background="@drawable/image_button_outline_white_solid"
+        android:text="ADD"
+        android:onClick="addNewParticipantButton"
+        app:layout_constraintBottom_toBottomOf="@+id/textInputLayout2"
+        app:layout_constraintEnd_toStartOf="@+id/rightGuideline"
+        app:layout_constraintTop_toTopOf="@+id/textInputLayout2" />
+
+    <ImageButton
+        android:id="@+id/imageButton5"
+        android:layout_width="55dp"
+        android:layout_height="62dp"
+        android:layout_marginTop="24dp"
+        app:layout_constraintStart_toStartOf="@+id/leftGuideline"
+        app:layout_constraintTop_toBottomOf="@+id/toolbar"
+        app:srcCompat="@drawable/vector_person_green" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

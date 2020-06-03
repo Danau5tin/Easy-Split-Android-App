@@ -39,7 +39,7 @@ class AccountScreenAdapter(val accountNameList: ArrayList<AccountData>) : Recycl
 
         override fun onClick(v: View?) {
             val intent = Intent(context, ReceiptOverviewActivity::class.java)
-            intent.putExtra("sqlID", sqlId)
+            intent.putExtra(AccountScreenActivity.sqlIntentString, sqlId)
             intent.putExtra("FirebaseID", sqlId)
             context.startActivity(intent)
         }
