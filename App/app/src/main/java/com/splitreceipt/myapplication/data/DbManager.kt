@@ -12,6 +12,7 @@ object DbManager {
         const val ACCOUNT_COL_CATEGORY = "category"
         const val ACCOUNT_COL_PARTICIPANTS = "items"
         const val ACCOUNT_COL_BALANCES = "balances_string"
+        const val ACCOUNT_COL_WHO_OWES_WHO = "who_owes_who"
     }
 
     object ReceiptTable: BaseColumns {

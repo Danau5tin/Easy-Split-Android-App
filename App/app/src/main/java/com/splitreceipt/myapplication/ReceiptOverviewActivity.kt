@@ -20,15 +20,17 @@ import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_TABLE_
 import com.splitreceipt.myapplication.data.DbHelper
 import com.splitreceipt.myapplication.data.DbManager.AccountTable.ACCOUNT_COL_BALANCES
 import com.splitreceipt.myapplication.data.DbManager.AccountTable.ACCOUNT_COL_ID
+import com.splitreceipt.myapplication.data.DbManager.AccountTable.ACCOUNT_COL_WHO_OWES_WHO
 import com.splitreceipt.myapplication.data.DbManager.AccountTable.ACCOUNT_TABLE_NAME
 import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_ID
 import com.splitreceipt.myapplication.data.ParticpantBalanceData
 import com.splitreceipt.myapplication.data.ReceiptData
 import com.splitreceipt.myapplication.databinding.ActivityMainBinding
-import java.lang.StringBuilder
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
+import kotlin.math.abs
+import kotlin.text.StringBuilder
 
 class ReceiptOverviewActivity : AppCompatActivity() {
     /*
@@ -101,6 +103,8 @@ class ReceiptOverviewActivity : AppCompatActivity() {
         startActivityForResult(intent, ADD_EXPENSE_RESULT)
     }
 
+
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == ADD_EXPENSE_RESULT){
@@ -120,27 +124,141 @@ class ReceiptOverviewActivity : AppCompatActivity() {
         /*
         Step 1: Convert prior balance string in SQL to data class objects.
         Step 2: Use the contribution string from the returned intent to update the objects balance values.
-        Step 3: Convert those objects back to a balance string. Step 4: Update SQL.
+        Step 3: Convert those objects back to a balance string.
+        Step 4: Workout who owes who via the algorithm.
+        Step 5: Update SQL with new balances and whoOwesWho
          */
         val prevBalanceObjects = loadPreviousBalanceToObjects()
         val newBalanceObjects = updateBalancesWithContributions(prevBalanceObjects, newContributions)
         val newBalanceString = parseObjectsToString(newBalanceObjects)
-        updateSqlWithBalances(newBalanceString)
+        val newWhoOwesWhoString = whoOwesWhoAlgorithm(newBalanceString)
+        updateSqlBalAndWhoStrings(newBalanceString, newWhoOwesWhoString)
         //TODO: Update the balances adapter
 
     }
 
-    private fun updateSqlWithBalances(balString: String) {
+    private fun whoOwesWhoAlgorithm(upToDateBalanceString: String): String{
+        val finalOwesWhoStringBuilder = StringBuilder()
+        val particpantBalanceDataList: ArrayList<ParticpantBalanceData> = stringToParticData(upToDateBalanceString)
+        var balanced = false
+
+        while (!balanced) {
+            //TODO: I can probably speed the process up by removing the 0.0F participants from the next iteration somehow, however currently It has been throwing errors.
+
+            val positiveParticipantList: ArrayList<ParticpantBalanceData> = ArrayList() // People who borrowed money
+            val negativeParticipantList: ArrayList<ParticpantBalanceData> = ArrayList() // People who lent money
+            var largestNegative = ParticpantBalanceData("dummy", 0.0F)
+            var largestPositive = ParticpantBalanceData("dummy", 0.0F)
+
+            //Step 1: Sort the participants into positive or negative groups
+            //Step 2: Identify the participants with the largest negative balance & largest positive balance
+            for (participant in particpantBalanceDataList) {
+                val participantBalance = participant.balance
+                if (participantBalance <= 0) {
+                    negativeParticipantList.add(participant)
+                    if (abs(participantBalance) > abs(largestNegative.balance))
+                        largestNegative = participant
+                } else {
+                    positiveParticipantList.add(participant)
+                    if (participantBalance > largestPositive.balance) {
+                        largestPositive = participant
+                    } }
+            }
+            //Step 3: Confirm if the largest negative balance is less than largest positive balance
+            val absIsLess: Boolean = abs(largestNegative.balance) < largestPositive.balance
+            val largestPosName = largestPositive.name
+            val largestNegName = largestNegative.name
+            finalOwesWhoStringBuilder.append("$largestPosName,")
+
+            var negativeCompleted = false
+            var positiveCompleted = false
+
+            if (absIsLess) {
+                //Step 4: ABS IS LESS -> take the abs of the largest negative from the largest positive and put it into the largest negatives balance
+                val absOfLargestNegative = abs(largestNegative.balance)
+                finalOwesWhoStringBuilder.append("$absOfLargestNegative,")
+                finalOwesWhoStringBuilder.append("$largestNegName/")
+
+                for (participant in particpantBalanceDataList) {
+                    if (participant.name == largestNegName) {
+                        participant.balance = 0.0F
+                        negativeCompleted = true
+                        if (negativeCompleted && positiveCompleted) {
+                            break
+                        }
+                    } else if (participant.name == largestPosName) {
+                        participant.balance -= absOfLargestNegative
+                        positiveCompleted = true
+                        if (negativeCompleted && positiveCompleted) {
+                            break
+                        }
+                    } } }
+            else {
+                //Step 4: ABS IS NOT LESS -> take the largest positive balance and put it into the largest negatives balance
+                val largestPositiveBalance = largestPositive.balance
+                finalOwesWhoStringBuilder.append("$largestPositiveBalance,")
+                finalOwesWhoStringBuilder.append("$largestNegName/")
+
+                for (participant in particpantBalanceDataList) {
+
+                    if (participant.name == largestNegative.name) {
+                        participant.balance += largestPositiveBalance
+                        negativeCompleted = true
+                        if (negativeCompleted && positiveCompleted) {
+                            break
+                        }
+                    } else if (participant.name == largestPositive.name) {
+                        participant.balance = 0.0F
+                        positiveCompleted = true
+                        if (negativeCompleted && positiveCompleted) {
+                            break
+                        } }
+                } }
+            //Step 5: Check if the accounts are balanced
+            balanced = checkIfBalanced(particpantBalanceDataList)
+            if (balanced) {
+                finalOwesWhoStringBuilder.deleteCharAt(finalOwesWhoStringBuilder.lastIndex)
+            }
+        }
+        return finalOwesWhoStringBuilder.toString()
+    }
+
+    private fun checkIfBalanced(particpantBalanceDataList: ArrayList<ParticpantBalanceData>): Boolean {
+        var allBalanced = true
+        for (participant in particpantBalanceDataList) {
+            if(!allBalanced) {
+                return false
+            }
+            if (participant.balance != 0.0F) {
+                allBalanced = false
+            }
+        }
+        return true
+    }
+
+    private fun stringToParticData(testBalanceString: String): ArrayList<ParticpantBalanceData> {
+        // Deconstructs the solid balance string into individual participant data classes
+        val participantBalanceDataList: ArrayList<ParticpantBalanceData> = ArrayList()
+        val splitParticipants = testBalanceString.split("/")
+        for (participant in splitParticipants){
+            val nameBalSplit = participant.split(",")
+            participantBalanceDataList.add(ParticpantBalanceData(nameBalSplit[0], nameBalSplit[1].toFloat()))
+        }
+        return participantBalanceDataList
+    }
+
+    private fun updateSqlBalAndWhoStrings(balString: String, whoOwesWho: String) {
         val dbHelper = DbHelper(this)
         val writer = dbHelper.writableDatabase
         val values = ContentValues().apply {
             put(ACCOUNT_COL_BALANCES, balString)
+            put(ACCOUNT_COL_WHO_OWES_WHO, whoOwesWho)
         }
         val where = "$ACCOUNT_COL_ID = ?"
         val whereargs = arrayOf("$getSqlAccountId")
         val id = writer.update(ACCOUNT_TABLE_NAME, values, where, whereargs)
         if (id != -1) {
-            Log.i("TEST", "Successful upload of new balance string")
+            Log.i("TEST", "Successful upload of new balance string & whoOwesWho string")
         }
         dbHelper.close()
     }

@@ -9,6 +9,7 @@ import com.splitreceipt.myapplication.data.DbManager.AccountTable.ACCOUNT_COL_NA
 import com.splitreceipt.myapplication.data.DbManager.AccountTable.ACCOUNT_COL_ID
 import com.splitreceipt.myapplication.data.DbManager.AccountTable.ACCOUNT_COL_PARTICIPANTS
 import com.splitreceipt.myapplication.data.DbManager.AccountTable.ACCOUNT_COL_UNIQUE_ID
+import com.splitreceipt.myapplication.data.DbManager.AccountTable.ACCOUNT_COL_WHO_OWES_WHO
 import com.splitreceipt.myapplication.data.DbManager.AccountTable.ACCOUNT_TABLE_NAME
 import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_COL_FK_RECEIPT_ID
 import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_COL_ID
@@ -41,7 +42,8 @@ class DbHelper(context: Context) : SQLiteOpenHelper(context,
                 "$ACCOUNT_COL_NAME TEXT, " +
                 "$ACCOUNT_COL_CATEGORY TEXT, " +
                 "$ACCOUNT_COL_PARTICIPANTS TEXT, " +
-                "$ACCOUNT_COL_BALANCES TEXT)"
+                "$ACCOUNT_COL_BALANCES TEXT, " +
+                "$ACCOUNT_COL_WHO_OWES_WHO TEXT)"
         private const val DELETE_ACCOUNT_ENTRIES = "DROP TABLE IF EXISTS $ACCOUNT_TABLE_NAME"
 
         private const val CREATE_RECEIPT_TABLE = "CREATE TABLE $RECEIPT_TABLE_NAME (" +

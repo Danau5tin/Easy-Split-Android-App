@@ -44,7 +44,7 @@
     <string name="row_overview_title_example">Receipt Title</string>
     <string name="row_overview_price_example">£21.37</string>
     <string name="row_overview_days_example">1 day ago</string>
-    <string name="row_overview_paidby_example">Paid by Dan</string>
+    <string name="row_overview_paidby_example">Dan paid £10.00</string>
 
     <string name="row_item_example_item">Strawberries</string>
     <string name="row_item_example_price">£2.99</string>

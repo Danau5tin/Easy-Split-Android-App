@@ -50,7 +50,7 @@ class ReceiptOverViewAdapter(var receiptList: ArrayList<ReceiptData>, var todays
         holder.receiptTotalTextView.text = totalString
 
         val paidBy = receiptList.get(position).paidBy
-        val paidByString = "Paid by $paidBy"
+        val paidByString = "$paidBy paid $totalString"
         holder.receiptPaidByTextView.text = paidByString
     }
 
