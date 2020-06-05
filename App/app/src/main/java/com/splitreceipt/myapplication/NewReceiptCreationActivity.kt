@@ -40,7 +40,6 @@ class NewReceiptCreationActivity : AppCompatActivity() {
      */
 
     private lateinit var binding: ActivityNewReceiptCreationBinding
-    private lateinit var sqlId: String
 
     companion object {
         var sqlAccountId: String? = "-1"
@@ -56,8 +55,9 @@ class NewReceiptCreationActivity : AppCompatActivity() {
         participantList = ArrayList()
         retrieveParticipants()
 
-        setSupportActionBar(findViewById(R.id.toolbar))
+
         val actionBar : androidx.appcompat.app.ActionBar? = supportActionBar
+        setSupportActionBar(findViewById(R.id.toolbar))
         actionBar?.title = "Add expense"
         actionBar?.apply {
             setDisplayHomeAsUpEnabled(true)

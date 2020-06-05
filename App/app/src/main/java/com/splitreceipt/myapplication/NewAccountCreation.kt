@@ -5,8 +5,11 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
+import androidx.appcompat.app.ActionBar
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.splitreceipt.myapplication.data.DbManager.AccountTable.ACCOUNT_COL_BALANCES
 import com.splitreceipt.myapplication.data.DbManager.AccountTable.ACCOUNT_COL_CATEGORY
@@ -31,7 +34,6 @@ class NewAccountCreation : AppCompatActivity(), NewAccountParticipantAdapter.onP
     private lateinit var adapter: NewAccountParticipantAdapter
     private lateinit var participantList: ArrayList<String>
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityNewAccountCreationBinding.inflate(layoutInflater)
@@ -40,49 +42,21 @@ class NewAccountCreation : AppCompatActivity(), NewAccountParticipantAdapter.onP
         adapter = NewAccountParticipantAdapter(participantList, this)
         binding.newParticipantRecy.layoutManager = LinearLayoutManager(this)
         binding.newParticipantRecy.adapter = adapter
+
+        val actionBar: ActionBar? = supportActionBar
+        setSupportActionBar(findViewById(R.id.toolbar))
+        actionBar?.title = "Add account"
+        actionBar?.apply {
+            setDisplayHomeAsUpEnabled(true)
+            setDisplayShowHomeEnabled(true)
+            setHomeAsUpIndicator(R.drawable.vector_back_arrow_white)
+        }
     }
 
-    fun saveNewAccount(view: View) {
-        // TODO: Save the below results to Firebase and to an SQL db
-        // TODO: Redirect the user
-        val title: String = binding.accountTitleEditText.text.toString()
-        val accountUniqueId = "Pbhbdy46218" // TODO: Create an effective & secure way to create a Unique identifier
-        val category = "House" // TODO: Get the toggle buttons value
-
-
-        val sqlUser: String = binding.yourNameEditText.text.toString()
-        val participantData: ParticipantNewAccountData = getNewParticipantData(sqlUser)
-        val participants: String = participantData.participantString
-        val balances: String = participantData.balanceString
-        val settlementString = "balanced"
-
-
-        Log.i("TEST", "Participants: $participants")
-        Log.i("TEST", "Balances: $balances")
-
-
-        val dbHelper = DbHelper(this)
-        val values: ContentValues = ContentValues().apply {
-            put(ACCOUNT_COL_UNIQUE_ID, accountUniqueId)
-            put(ACCOUNT_COL_NAME, title)
-            put(ACCOUNT_COL_CATEGORY, category)
-            put(ACCOUNT_COL_PARTICIPANTS, participants)
-            put(ACCOUNT_COL_BALANCES, balances)
-            put(ACCOUNT_COL_SETTLEMENTS, settlementString)
-            put(ACCOUNT_COL_USER, sqlUser)
-        }
-        val write = dbHelper.writableDatabase
-        val sqlRes = write.insert(ACCOUNT_TABLE_NAME, null, values)
-        if (sqlRes.toInt() == -1) {
-            Toast.makeText(this, "Error #INSQ01. Contact Us", Toast.LENGTH_LONG).show()
-        } else {
-            val intent = Intent(this, ReceiptOverviewActivity::class.java)
-            intent.putExtra(AccountScreenActivity.sqlIntentString, sqlRes.toString())
-            intent.putExtra(AccountScreenActivity.userIntentString, sqlUser)
-            intent.putExtra(AccountScreenActivity.accountNameIntentString, title)
-            startActivity(intent)
-            finish()
-        }
+    private fun checkIfUserForgotToAddPartic() {
+        //This function will add any name left in the add recipient text box presuming the user wanted to add them.
+        val newPart = binding.newParticipantName.text.toString()
+        participantList.add(newPart)
     }
 
     private fun getNewParticipantData(creator: String): ParticipantNewAccountData {
@@ -110,7 +84,6 @@ class NewAccountCreation : AppCompatActivity(), NewAccountParticipantAdapter.onP
         return ParticipantNewAccountData(stringBuilderParticipant.toString(), stringBuilderBalance.toString())
     }
 
-
     fun addNewParticipantButton(view: View) {
         val participantName = binding.newParticipantName.text.toString()
         participantList.add(participantName)
@@ -121,5 +94,58 @@ class NewAccountCreation : AppCompatActivity(), NewAccountParticipantAdapter.onP
     override fun onRowclick(position: Int) {
         participantList.removeAt(position)
         adapter.notifyDataSetChanged()
+    }
+
+    override fun onSupportNavigateUp(): Boolean {
+        Toast.makeText(this, "Account cancelled", Toast.LENGTH_SHORT).show()
+        return super.onSupportNavigateUp()
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.add_account_menu, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.addAccountSave -> {
+                // TODO: Save the below results to Firebase and to an SQL db
+                val title: String = binding.accountTitleEditText.text.toString()
+                val accountUniqueId = "Pbhbdy46218" // TODO: Create an effective & secure way to create a Unique identifier
+                val category = "House" // TODO: Get the toggle buttons value
+
+                val sqlUser: String = binding.yourNameEditText.text.toString()
+                checkIfUserForgotToAddPartic()
+                val participantData: ParticipantNewAccountData = getNewParticipantData(sqlUser)
+                val participants: String = participantData.participantString
+                val balances: String = participantData.balanceString
+                val settlementString = "balanced"
+
+                val dbHelper = DbHelper(this)
+                val values: ContentValues = ContentValues().apply {
+                    put(ACCOUNT_COL_UNIQUE_ID, accountUniqueId)
+                    put(ACCOUNT_COL_NAME, title)
+                    put(ACCOUNT_COL_CATEGORY, category)
+                    put(ACCOUNT_COL_PARTICIPANTS, participants)
+                    put(ACCOUNT_COL_BALANCES, balances)
+                    put(ACCOUNT_COL_SETTLEMENTS, settlementString)
+                    put(ACCOUNT_COL_USER, sqlUser)
+                }
+                val write = dbHelper.writableDatabase
+                val sqlRes = write.insert(ACCOUNT_TABLE_NAME, null, values)
+                if (sqlRes.toInt() == -1) {
+                    Toast.makeText(this, "Error #INSQ01. Contact Us", Toast.LENGTH_LONG).show()
+                } else {
+                    val intent = Intent(this, ReceiptOverviewActivity::class.java)
+                    intent.putExtra(AccountScreenActivity.sqlIntentString, sqlRes.toString())
+                    intent.putExtra(AccountScreenActivity.userIntentString, sqlUser)
+                    intent.putExtra(AccountScreenActivity.accountNameIntentString, title)
+                    startActivity(intent)
+                    finish()
+                }
+            }
+            else -> return false
+        }
+        return super.onOptionsItemSelected(item)
     }
 }

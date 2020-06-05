@@ -18,11 +18,11 @@
         android:id="@+id/textTitleInputLayout"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
         android:layout_marginEnd="32dp"
-        app:layout_constraintBottom_toBottomOf="@+id/imageButton"
         app:layout_constraintEnd_toStartOf="@+id/imageButton2"
-        app:layout_constraintStart_toEndOf="@+id/imageButton"
-        app:layout_constraintTop_toTopOf="@+id/imageButton">
+        app:layout_constraintStart_toStartOf="@+id/leftGuideline"
+        app:layout_constraintTop_toBottomOf="@+id/toolbar">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/receiptTitleEditText"
@@ -50,19 +50,17 @@
         android:id="@+id/paidBySpinner"
         android:layout_width="120dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="3dp"
-        app:layout_constraintBottom_toBottomOf="@+id/imageButton3"
-        app:layout_constraintStart_toEndOf="@+id/imageButton3"
-        app:layout_constraintTop_toTopOf="@+id/imageButton3" />
+        app:layout_constraintStart_toStartOf="@+id/leftGuideline"
+        app:layout_constraintTop_toBottomOf="@+id/paidByHintText" />
 
     <TextView
         android:id="@+id/paidByHintText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="1dp"
+        android:layout_marginTop="16dp"
         android:text="@string/item_paidby_hint"
-        app:layout_constraintBottom_toTopOf="@+id/paidBySpinner"
-        app:layout_constraintStart_toStartOf="@+id/paidBySpinner" />
+        app:layout_constraintStart_toStartOf="@+id/paidBySpinner"
+        app:layout_constraintTop_toBottomOf="@+id/textTitleInputLayout" />
 
     <View
         android:id="@+id/tabLayoutOverline"
@@ -103,16 +101,6 @@
         app:layout_constraintTop_toBottomOf="@+id/receiptTabLayout" />
 
     <ImageButton
-        android:id="@+id/imageButton"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:layout_marginTop="16dp"
-        android:background="@drawable/image_button_outline"
-        app:layout_constraintStart_toStartOf="@+id/leftGuideline"
-        app:layout_constraintTop_toBottomOf="@+id/toolbar"
-        app:srcCompat="@drawable/vector_tag_grey" />
-
-    <ImageButton
         android:id="@+id/imageButton2"
         android:layout_width="24dp"
         android:layout_height="24dp"
@@ -123,17 +111,6 @@
         app:layout_constraintEnd_toStartOf="@+id/dateButton"
         app:layout_constraintTop_toBottomOf="@+id/toolbar"
         app:srcCompat="@drawable/vector_calendar_blue" />
-
-    <ImageButton
-        android:id="@+id/imageButton3"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:layout_marginTop="40dp"
-        android:background="@drawable/image_button_outline"
-        android:scaleType="center"
-        app:layout_constraintStart_toStartOf="@+id/leftGuideline"
-        app:layout_constraintTop_toBottomOf="@+id/imageButton"
-        app:srcCompat="@drawable/vector_person_green" />
 
     <Button
         android:id="@+id/dateButton"

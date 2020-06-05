@@ -7,7 +7,6 @@ import android.content.SharedPreferences
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -42,10 +41,13 @@ class SplitReceiptManuallyFragment : Fragment(), NewManualReceiptRecyclerAdapter
 
         fun fixDecimalPlace(value: String): String {
             var fixedValue = ""
-            return if (value.contains(".")) {
+            if (value.contains(".")) {
                 if (value.length - value.indexOf(".") == 2) {
                     fixedValue = value + "0"
-                    fixedValue } else { value } } else { value }}
+                    return fixedValue }
+                else { return value } }
+            else { return "$value.00"
+            }}
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -95,13 +97,8 @@ class SplitReceiptManuallyFragment : Fragment(), NewManualReceiptRecyclerAdapter
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-
-        Log.i("TEST", "OnActivityResultFragmentCalled")
-
         if (requestCode == CURRENCY_INTENT) {
             if (resultCode == Activity.RESULT_OK) {
-                Log.i("TEST", "OnActivityResultFragmentCalled")
-
                 val editSharedPref = sharedPreferences.edit()
                 editSharedPref.putString(SHARED_PREF_ACCOUNT_CURRENCY_CODE, currencyCode)
                 editSharedPref.putString(SHARED_PREF_ACCOUNT_CURRENCY_SYMBOL, currencySymbol)
@@ -142,8 +139,8 @@ class SplitReceiptManuallyFragment : Fragment(), NewManualReceiptRecyclerAdapter
 
     private fun setContributionValues(total: Float, activeParticipants: ArrayList<ParticipantData>){
         val contribution: String
-        val roundOff = Math.round((total / activeParticipants.size) * 100.0) / 100.0
-        contribution = roundOff.toString()
+        val num = total / activeParticipants.size
+        contribution = ReceiptOverviewActivity.roundToTwoDecimalPlace(num).toString()
         val fixedContribution = fixDecimalPlace(contribution)
         for (participant in activeParticipants){
             participant.contributionValue = fixedContribution

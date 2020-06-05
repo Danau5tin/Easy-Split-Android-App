@@ -25,6 +25,8 @@ import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_ID
 import com.splitreceipt.myapplication.data.ParticpantBalanceData
 import com.splitreceipt.myapplication.data.ReceiptData
 import com.splitreceipt.myapplication.databinding.ActivityMainBinding
+import java.math.RoundingMode
+import java.text.DecimalFormat
 import kotlin.collections.ArrayList
 import kotlin.math.abs
 import kotlin.text.StringBuilder
@@ -59,6 +61,12 @@ class ReceiptOverviewActivity : AppCompatActivity() {
                 } else {
                     participantName
                 } } }
+
+        fun roundToTwoDecimalPlace(number: Float): Float {
+            val df = DecimalFormat("#.##")
+            df.roundingMode = RoundingMode.FLOOR
+            return df.format(number).toFloat()
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -84,10 +92,31 @@ class ReceiptOverviewActivity : AppCompatActivity() {
         binding.mainActivityRecycler.adapter = adapter
     }
 
+    private fun recalculateBalances(newContributions: String) {
+        /*
+        Step 1: Convert prior balance string in SQL to data class objects.
+        Step 2: Use the contribution string from the returned intent to update the objects balance values.
+        Step 3: Convert those objects back to a balance string.
+        Step 4: Workout who owes who via the algorithm.
+        Step 5: Update SQL with new balances and whoOwesWho
+        Step 6: .........................
+         */
+        val prevBalanceObjects = loadPreviousBalanceToObjects()
+        val newBalanceObjects = updateBalancesWithContributions(prevBalanceObjects, newContributions)
+        val newBalanceString = parseObjectsToString(newBalanceObjects)
+        Log.i("Algorithm", "Balance string after contributions have been added: $newBalanceString \n\n")
+        val newSettlementString = settlementAlgorithm(newBalanceString)
+        Log.i("Algorithm", "Settlement string created after the algorithm has balanced everyones balances: $newSettlementString \n\n")
+        updateSqlBalAndSettlementStrings(newBalanceString, newSettlementString)
+        deconstructAndSetSettlementString(newSettlementString)
+        //TODO: Update the balance string in UI and class variable
+
+    }
+
     private fun deconstructAndSetSettlementString(settlementString: String){
         // This function will deconstruct a string taken from sql and produce an ArrayList of individual settlement strings
         settlementArray.clear()
-        var sb: StringBuilder = java.lang.StringBuilder()
+        val sb: StringBuilder = java.lang.StringBuilder()
         val userDirectedSettlementIndexes: ArrayList<Int> =  ArrayList()
         var indexCount = 0
         if (settlementString == "balanced") {
@@ -145,7 +174,8 @@ class ReceiptOverviewActivity : AppCompatActivity() {
         val selectClause = "$RECEIPT_COL_FK_ACCOUNT_ID = ?"
         val selectArgs = arrayOf("$sqlId")
         val cursor: Cursor = reader.query(RECEIPT_TABLE_NAME, columns, selectClause, selectArgs,
-                            null, null, RECEIPT_COL_ID + " DESC") //TODO: Try to sort all expenses in date order. Maybe do this before passing to the adapter?
+                            null, null, "$RECEIPT_COL_ID DESC"
+        ) //TODO: Try to sort all expenses in date order. Maybe do this before passing to the adapter?
         val dateColIndex = cursor.getColumnIndexOrThrow(RECEIPT_COL_DATE)
         val titleColIndex = cursor.getColumnIndexOrThrow(RECEIPT_COL_TITLE)
         val totalColIndex = cursor.getColumnIndexOrThrow(RECEIPT_COL_TOTAL)
@@ -169,8 +199,6 @@ class ReceiptOverviewActivity : AppCompatActivity() {
         startActivityForResult(intent, ADD_EXPENSE_RESULT)
     }
 
-
-
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == ADD_EXPENSE_RESULT){
@@ -178,6 +206,7 @@ class ReceiptOverviewActivity : AppCompatActivity() {
                 //TODO: Add functionality
                 val contributions = data?.getStringExtra(NewReceiptCreationActivity.
                                                             CONTRIBUTION_INTENT_DATA)
+                Log.i("Algorithm", "Contribution string returned from the recent transaction: $contributions \n\n")
                 recalculateBalances(contributions!!)
                 receiptList.clear()
                 loadPreviousReceipts(getSqlAccountId)
@@ -187,24 +216,7 @@ class ReceiptOverviewActivity : AppCompatActivity() {
         }
     }
 
-    private fun recalculateBalances(newContributions: String) {
-        /*
-        Step 1: Convert prior balance string in SQL to data class objects.
-        Step 2: Use the contribution string from the returned intent to update the objects balance values.
-        Step 3: Convert those objects back to a balance string.
-        Step 4: Workout who owes who via the algorithm.
-        Step 5: Update SQL with new balances and whoOwesWho
-        Step 6: .........................
-         */
-        val prevBalanceObjects = loadPreviousBalanceToObjects()
-        val newBalanceObjects = updateBalancesWithContributions(prevBalanceObjects, newContributions)
-        val newBalanceString = parseObjectsToString(newBalanceObjects)
-        val newSettlementString = settlementAlgorithm(newBalanceString)
-        updateSqlBalAndSettlementStrings(newBalanceString, newSettlementString)
-        deconstructAndSetSettlementString(newSettlementString)
-        //TODO: Update the balance string in UI and class variable
 
-    }
 
     private fun settlementAlgorithm(upToDateBalanceString: String): String{
         val settlementStringBuilder = StringBuilder()
@@ -212,13 +224,14 @@ class ReceiptOverviewActivity : AppCompatActivity() {
         var balanced = false
 
         while (!balanced) {
-            //TODO: I can probably speed the process up by removing the 0.0F participants from the next iteration somehow, however currently It has been throwing errors.
-
             var largestNegative = ParticpantBalanceData("dummy", 0.0F)
             var largestPositive = ParticpantBalanceData("dummy", 0.0F)
 
             //Step 1: Identify the participants with the largest negative balance & largest positive balance
             for (participant in particpantBalanceDataList) {
+
+                participant.balance = roundToTwoDecimalPlace(participant.balance)
+
                 val participantBalance = participant.balance
                 if (participantBalance <= 0) {
                     if (abs(participantBalance) > abs(largestNegative.balance))
@@ -228,7 +241,7 @@ class ReceiptOverviewActivity : AppCompatActivity() {
                         largestPositive = participant
                     } }
             }
-            //Step 3: Confirm if the largest negative balance is less than largest positive balance
+            //Step 2: Confirm if the largest negative balance is less than largest positive balance
             val absIsLess: Boolean = abs(largestNegative.balance) < largestPositive.balance
             val largestPosName = largestPositive.name
             val largestNegName = largestNegative.name
@@ -238,8 +251,9 @@ class ReceiptOverviewActivity : AppCompatActivity() {
             var positiveCompleted = false
 
             if (absIsLess) {
-                //Step 4: ABS IS LESS -> take the abs of the largest negative from the largest positive and put it into the largest negatives balance
+                //Step 3: ABS IS LESS -> take the abs of the largest negative from the largest positive and put it into the largest negatives balance
                 val absOfLargestNegative = abs(largestNegative.balance)
+
                 settlementStringBuilder.append("$absOfLargestNegative,")
                 settlementStringBuilder.append("$largestNegName/")
 
@@ -258,8 +272,9 @@ class ReceiptOverviewActivity : AppCompatActivity() {
                         }
                     } } }
             else {
-                //Step 4: ABS IS NOT LESS -> take the largest positive balance and put it into the largest negatives balance
+                //Step 3: ABS IS NOT LESS -> take the largest positive balance and put it into the largest negatives balance
                 val largestPositiveBalance = largestPositive.balance
+
                 settlementStringBuilder.append("$largestPositiveBalance,")
                 settlementStringBuilder.append("$largestNegName/")
 
@@ -278,7 +293,7 @@ class ReceiptOverviewActivity : AppCompatActivity() {
                             break
                         } }
                 } }
-            //Step 5: Check if the accounts are balanced
+            //Step 4: Check if the accounts are balanced
             balanced = checkIfBalanced(particpantBalanceDataList)
             if (balanced) {
                 settlementStringBuilder.deleteCharAt(settlementStringBuilder.lastIndex)
@@ -290,6 +305,12 @@ class ReceiptOverviewActivity : AppCompatActivity() {
     private fun checkIfBalanced(particpantBalanceDataList: ArrayList<ParticpantBalanceData>): Boolean {
         var allBalanced = true
         for (participant in particpantBalanceDataList) {
+
+            if (participant.balance in -0.04..0.04){
+                // £0.04/$0.04 error rate allowed. Likely only to ever reach 0.02 error rate.
+                participant.balance = 0.0F
+            }
+
             if(!allBalanced) {
                 return false
             }
@@ -322,7 +343,7 @@ class ReceiptOverviewActivity : AppCompatActivity() {
         val whereargs = arrayOf("$getSqlAccountId")
         val id = writer.update(ACCOUNT_TABLE_NAME, values, where, whereargs)
         if (id != -1) {
-            Log.i("TEST", "Successful upload of new balance string & whoOwesWho string")
+            Log.i("TEST", "Successful upload of new balance string & settlement string")
         }
         dbHelper.close()
     }
@@ -343,7 +364,9 @@ class ReceiptOverviewActivity : AppCompatActivity() {
     }
 
     private fun updateBalancesWithContributions(prevBalances: ArrayList<ParticpantBalanceData>, newContributions: String): ArrayList<ParticpantBalanceData> {
+        //TODO: If the contribution balance is 0.0 then continue
         // Deconstructs each contribution from a solid string and updates the values of the relevant data class objects depending on if they have lent or borrowed.
+        //TODO: (2/2) Change the rounding to the one completed in the algorithm as these lines of code can potentially be the ones that're giving the algorithm an up to 5p error rate
         val splitContributions = newContributions.split("/") // ["Dan,£1.00,Marie", "Marie,£1.00,Marie"]
         for (contribution in splitContributions) {
             val contribDetails = contribution.split(",") // ["Dan", "1.00", "Marie"]
@@ -354,9 +377,11 @@ class ReceiptOverviewActivity : AppCompatActivity() {
                 for (participantBalanceItem in prevBalances) {
                     if (contributor == participantBalanceItem.name) {
                         participantBalanceItem.balance += contribValue
+                        participantBalanceItem.balance = roundToTwoDecimalPlace(participantBalanceItem.balance)
                     }
                     else if (contributee == participantBalanceItem.name) {
                         participantBalanceItem.balance -= contribValue
+                        participantBalanceItem.balance = roundToTwoDecimalPlace(participantBalanceItem.balance)
                     }
                 }
             }
@@ -380,6 +405,7 @@ class ReceiptOverviewActivity : AppCompatActivity() {
         }
         cursor.close()
         dbHelper.close()
+        Log.i("Algorithm", "Balance string retrieved from the sql table: $previousBalString \n\n")
 
         val particBalDataList : ArrayList<ParticpantBalanceData> = ArrayList()
         val participants = previousBalString.split("/") //  ["Dan,3.00", "Marie,-3.00"]
