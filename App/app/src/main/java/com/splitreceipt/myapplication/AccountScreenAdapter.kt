@@ -22,9 +22,10 @@ class AccountScreenAdapter(val accountNameList: ArrayList<AccountData>) : Recycl
     }
 
     override fun onBindViewHolder(holder: AccountViewHolder, position: Int) {
-        holder.titleText.text = accountNameList.get(position).name
-        holder.sqlId = accountNameList.get(position).sqlId
-        holder.firebaseId = accountNameList.get(position).firebaseId
+        holder.titleText.text = accountNameList[position].name
+        holder.sqlId = accountNameList[position].sqlId
+        holder.firebaseId = accountNameList[position].firebaseId
+        holder.sqlUser = accountNameList[position].sqlUser
     }
 
     class AccountViewHolder(var context: Context, itemView: View) : RecyclerView.ViewHolder(itemView), View.OnClickListener {
@@ -32,6 +33,7 @@ class AccountScreenAdapter(val accountNameList: ArrayList<AccountData>) : Recycl
         val titleText: TextView = itemView.findViewById(R.id.titleText)
         var sqlId: String = "0"
         var firebaseId: String = "0"
+        var sqlUser: String = "unknown"
 
         init {
             itemView.setOnClickListener(this)
@@ -39,8 +41,11 @@ class AccountScreenAdapter(val accountNameList: ArrayList<AccountData>) : Recycl
 
         override fun onClick(v: View?) {
             val intent = Intent(context, ReceiptOverviewActivity::class.java)
+            //TODO: Ensure the firebase ID Is relevant and a static variable
             intent.putExtra(AccountScreenActivity.sqlIntentString, sqlId)
             intent.putExtra("FirebaseID", sqlId)
+            intent.putExtra(AccountScreenActivity.userIntentString, sqlUser)
+            intent.putExtra(AccountScreenActivity.accountNameIntentString, titleText.text.toString())
             context.startActivity(intent)
         }
     }

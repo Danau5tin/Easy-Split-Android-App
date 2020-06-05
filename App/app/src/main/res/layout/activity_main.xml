@@ -65,7 +65,7 @@
         app:layout_constraintTop_toBottomOf="@+id/mainActivityRecycler" />
 
     <TextView
-        android:id="@+id/textView4"
+        android:id="@+id/accountNameTitleText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
@@ -78,14 +78,14 @@
         app:layout_constraintTop_toBottomOf="@+id/toolbar" />
 
     <TextView
-        android:id="@+id/textView5"
+        android:id="@+id/receiptOverBalanceString"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:text="You owe Marie £20.00"
-        app:layout_constraintEnd_toEndOf="@+id/textView4"
-        app:layout_constraintStart_toStartOf="@+id/textView4"
-        app:layout_constraintTop_toBottomOf="@+id/textView4" />
+        app:layout_constraintEnd_toEndOf="@+id/accountNameTitleText"
+        app:layout_constraintStart_toStartOf="@+id/accountNameTitleText"
+        app:layout_constraintTop_toBottomOf="@+id/accountNameTitleText" />
 
     <Button
         android:id="@+id/button4"
@@ -93,10 +93,11 @@
         android:layout_height="35dp"
         android:layout_marginTop="8dp"
         android:background="@drawable/image_button_outline_white_solid"
+        android:onClick="balancesButtonPressed"
         android:text="Balances"
-        app:layout_constraintEnd_toEndOf="@+id/textView4"
-        app:layout_constraintStart_toStartOf="@+id/textView4"
-        app:layout_constraintTop_toBottomOf="@+id/textView5" />
+        app:layout_constraintEnd_toEndOf="@+id/accountNameTitleText"
+        app:layout_constraintStart_toStartOf="@+id/accountNameTitleText"
+        app:layout_constraintTop_toBottomOf="@+id/receiptOverBalanceString" />
 
     <ImageView
         android:id="@+id/imageView"
@@ -105,10 +106,10 @@
         android:layout_marginStart="24dp"
         android:layout_marginEnd="42dp"
         android:background="@drawable/image_button_outline_white_solid"
-        app:layout_constraintBottom_toBottomOf="@+id/textView5"
-        app:layout_constraintEnd_toStartOf="@+id/textView5"
+        app:layout_constraintBottom_toBottomOf="@+id/receiptOverBalanceString"
+        app:layout_constraintEnd_toStartOf="@+id/receiptOverBalanceString"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/textView4"
+        app:layout_constraintTop_toTopOf="@+id/accountNameTitleText"
         app:srcCompat="@drawable/vector_person_green" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

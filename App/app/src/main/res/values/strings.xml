@@ -18,6 +18,12 @@
     <string name="account_yourname_hint">Your name</string>
     <string name="account_addparticipant_hint">Add participant</string>
 
+    <!-- Receipt overview -->
+    <string name="balanced">This account is balanced</string>
+
+    <!-- Expense View -->
+    <string name="expense_details">Split details</string>
+
     <!-- New Receipt Creation -->
     <string name="when_today">Today</string>
     <string name="when_yesterday">Yesterday</string>

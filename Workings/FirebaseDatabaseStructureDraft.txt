@@ -8,7 +8,7 @@ AccountId
 |	|
 |	--- Balance : "xxx,£xx.xx,xxxx/xxxxxx,£x,xxxx"
 |	|
-|	--- WhoOwesWho: "xxx,£xx.xxxx/xxxx,£x.xx,xxx"
+|	--- Settlements: "xxx,£xx.xxxx/xxxx,£x.xx,xxx"
 |	|
 |	--- Participants
 |	|		|

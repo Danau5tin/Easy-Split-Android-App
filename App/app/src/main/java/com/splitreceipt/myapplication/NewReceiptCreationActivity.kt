@@ -91,7 +91,7 @@ class NewReceiptCreationActivity : AppCompatActivity() {
                     // TODO: Take all the itemized results
 
                     val updatedContribList = SplitReceiptManuallyFragment.fragmentManualParticipantList
-                    val contributionsString = creatContribString(updatedContribList, paidBy)
+                    val contributionsString = createContribString(updatedContribList, paidBy)
                     Log.i("TEST", contributionsString)
 
                     val sqlRow = updateSql(receiptFirebaseID, date, title, total, paidBy, contributionsString)
@@ -107,8 +107,8 @@ class NewReceiptCreationActivity : AppCompatActivity() {
         }
     }
 
-    private fun creatContribString(updatedContribList: ArrayList<ParticipantData>, paidBy: String): String {
-        var sb = StringBuilder()
+    private fun createContribString(updatedContribList: ArrayList<ParticipantData>, paidBy: String): String {
+        val sb = StringBuilder()
         for (participant in updatedContribList) {
             val name = participant.name
             val nameString = "$name,"

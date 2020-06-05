@@ -13,6 +13,7 @@ import com.splitreceipt.myapplication.data.DbManager.AccountTable.ACCOUNT_COL_NA
 import com.splitreceipt.myapplication.data.DbManager.AccountTable.ACCOUNT_COL_UNIQUE_ID
 import com.splitreceipt.myapplication.data.DbManager.AccountTable.ACCOUNT_TABLE_NAME
 import com.splitreceipt.myapplication.data.DbHelper
+import com.splitreceipt.myapplication.data.DbManager.AccountTable.ACCOUNT_COL_USER
 import com.splitreceipt.myapplication.databinding.ActivityAccountScreenBinding
 
 class AccountScreenActivity : AppCompatActivity() {
@@ -24,7 +25,9 @@ class AccountScreenActivity : AppCompatActivity() {
     lateinit var accountList: ArrayList<AccountData>
 
     companion object {
-        var sqlIntentString = "sqlID"
+        var sqlIntentString: String = "sqlID"
+        var userIntentString: String = "user"
+        var accountNameIntentString: String = "accountName"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -46,17 +49,19 @@ class AccountScreenActivity : AppCompatActivity() {
         var accountsFound = false
         val dbHelper = DbHelper(this)
         val reader = dbHelper.readableDatabase
-        val columns = arrayOf(ACCOUNT_COL_ID, ACCOUNT_COL_NAME, ACCOUNT_COL_UNIQUE_ID)
+        val columns = arrayOf(ACCOUNT_COL_ID, ACCOUNT_COL_NAME, ACCOUNT_COL_UNIQUE_ID, ACCOUNT_COL_USER)
         val cursor: Cursor = reader.query(ACCOUNT_TABLE_NAME, columns, null, null, null, null, null)
-        val accountNameCol = cursor.getColumnIndexOrThrow(ACCOUNT_COL_NAME)
-        val accountSqlId = cursor.getColumnIndexOrThrow(ACCOUNT_COL_ID)
-        val accountFirebaseId = cursor.getColumnIndexOrThrow(ACCOUNT_COL_UNIQUE_ID)
+        val accountNameColIndex = cursor.getColumnIndexOrThrow(ACCOUNT_COL_NAME)
+        val accountSqlIdIndex = cursor.getColumnIndexOrThrow(ACCOUNT_COL_ID)
+        val accountFirebaseIdIndex = cursor.getColumnIndexOrThrow(ACCOUNT_COL_UNIQUE_ID)
+        val accountSqlUserIndex = cursor.getColumnIndexOrThrow(ACCOUNT_COL_USER)
         while (cursor.moveToNext()) {
             accountsFound = true
-            val accountName = cursor.getString(accountNameCol)
-            val accountSqlID = cursor.getString(accountSqlId)
-            val accountFirebaseID = cursor.getString(accountFirebaseId)
-            accountList.add(AccountData(accountName, accountSqlID, accountFirebaseID))
+            val accountName = cursor.getString(accountNameColIndex)
+            val accountSqlID = cursor.getString(accountSqlIdIndex)
+            val accountFirebaseID = cursor.getString(accountFirebaseIdIndex)
+            val accountSqlUser = cursor.getString(accountSqlUserIndex)
+            accountList.add(AccountData(accountName, accountSqlID, accountFirebaseID, accountSqlUser))
         }
         cursor.close()
         if (accountsFound) {return true} else {return false}

@@ -15,6 +15,8 @@ import com.splitreceipt.myapplication.data.DbManager.AccountTable.ACCOUNT_COL_PA
 import com.splitreceipt.myapplication.data.DbManager.AccountTable.ACCOUNT_COL_UNIQUE_ID
 import com.splitreceipt.myapplication.data.DbManager.AccountTable.ACCOUNT_TABLE_NAME
 import com.splitreceipt.myapplication.data.DbHelper
+import com.splitreceipt.myapplication.data.DbManager.AccountTable.ACCOUNT_COL_SETTLEMENTS
+import com.splitreceipt.myapplication.data.DbManager.AccountTable.ACCOUNT_COL_USER
 import com.splitreceipt.myapplication.data.ParticipantNewAccountData
 import com.splitreceipt.myapplication.databinding.ActivityNewAccountCreationBinding
 import java.lang.StringBuilder
@@ -48,10 +50,11 @@ class NewAccountCreation : AppCompatActivity(), NewAccountParticipantAdapter.onP
         val category = "House" // TODO: Get the toggle buttons value
 
 
-        val creator: String = binding.yourNameEditText.text.toString()
-        val participantData: ParticipantNewAccountData = getNewParticipantData(creator)
+        val sqlUser: String = binding.yourNameEditText.text.toString()
+        val participantData: ParticipantNewAccountData = getNewParticipantData(sqlUser)
         val participants: String = participantData.participantString
         val balances: String = participantData.balanceString
+        val settlementString = "balanced"
 
 
         Log.i("TEST", "Participants: $participants")
@@ -65,6 +68,8 @@ class NewAccountCreation : AppCompatActivity(), NewAccountParticipantAdapter.onP
             put(ACCOUNT_COL_CATEGORY, category)
             put(ACCOUNT_COL_PARTICIPANTS, participants)
             put(ACCOUNT_COL_BALANCES, balances)
+            put(ACCOUNT_COL_SETTLEMENTS, settlementString)
+            put(ACCOUNT_COL_USER, sqlUser)
         }
         val write = dbHelper.writableDatabase
         val sqlRes = write.insert(ACCOUNT_TABLE_NAME, null, values)
@@ -73,6 +78,8 @@ class NewAccountCreation : AppCompatActivity(), NewAccountParticipantAdapter.onP
         } else {
             val intent = Intent(this, ReceiptOverviewActivity::class.java)
             intent.putExtra(AccountScreenActivity.sqlIntentString, sqlRes.toString())
+            intent.putExtra(AccountScreenActivity.userIntentString, sqlUser)
+            intent.putExtra(AccountScreenActivity.accountNameIntentString, title)
             startActivity(intent)
             finish()
         }
@@ -84,11 +91,11 @@ class NewAccountCreation : AppCompatActivity(), NewAccountParticipantAdapter.onP
         val stringBuilderBalance = StringBuilder()
         val originalBalance = "0.00"
 
-        val creatorNameString = "$creator,"
-        stringBuilderParticipant.append(creatorNameString)
-        stringBuilderBalance.append(creatorNameString)
-        val creatorBalanceString = "$originalBalance/"
-        stringBuilderBalance.append(creatorBalanceString)
+        val sqlUserNameString = "$creator,"
+        stringBuilderParticipant.append(sqlUserNameString)
+        stringBuilderBalance.append(sqlUserNameString)
+        val sqlUserBalanceString = "$originalBalance/"
+        stringBuilderBalance.append(sqlUserBalanceString)
 
         for (participant in participantList) {
             val nameString = "$participant,"

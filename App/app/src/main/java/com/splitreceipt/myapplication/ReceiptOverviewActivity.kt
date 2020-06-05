@@ -1,6 +1,5 @@
 package com.splitreceipt.myapplication
 
-import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.ContentValues
 import android.content.Intent
@@ -20,14 +19,12 @@ import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_TABLE_
 import com.splitreceipt.myapplication.data.DbHelper
 import com.splitreceipt.myapplication.data.DbManager.AccountTable.ACCOUNT_COL_BALANCES
 import com.splitreceipt.myapplication.data.DbManager.AccountTable.ACCOUNT_COL_ID
-import com.splitreceipt.myapplication.data.DbManager.AccountTable.ACCOUNT_COL_WHO_OWES_WHO
+import com.splitreceipt.myapplication.data.DbManager.AccountTable.ACCOUNT_COL_SETTLEMENTS
 import com.splitreceipt.myapplication.data.DbManager.AccountTable.ACCOUNT_TABLE_NAME
 import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_ID
 import com.splitreceipt.myapplication.data.ParticpantBalanceData
 import com.splitreceipt.myapplication.data.ReceiptData
 import com.splitreceipt.myapplication.databinding.ActivityMainBinding
-import java.text.SimpleDateFormat
-import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.math.abs
 import kotlin.text.StringBuilder
@@ -42,9 +39,26 @@ class ReceiptOverviewActivity : AppCompatActivity() {
     lateinit var receiptList: ArrayList<ReceiptData>
     private lateinit var adapter: ReceiptOverViewAdapter
     private val ADD_EXPENSE_RESULT = 20
+    private var userSettlementString = ""
 
     companion object {
+        var getSqlUser: String? = "unknown"
         var getSqlAccountId: String? = "-1"
+        var settlementString: String  = ""
+        var settlementArray: ArrayList<String> = ArrayList()
+
+        fun changeNameToYou(participantName: String, capitalize: Boolean): String {
+            return if (participantName == getSqlUser) {
+                if (capitalize){
+                    "You"
+                } else{
+                    "you"
+                } } else {
+                if (capitalize){
+                    participantName.capitalize()
+                } else {
+                    participantName
+                } } }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -55,30 +69,79 @@ class ReceiptOverviewActivity : AppCompatActivity() {
 
         // TODO: Ensure these are static like variables to avoid errors
         getSqlAccountId = intent.getStringExtra(AccountScreenActivity.sqlIntentString)
+        getSqlUser = intent.getStringExtra(AccountScreenActivity.userIntentString)
+        val getAccountName = intent.getStringExtra(AccountScreenActivity.accountNameIntentString)
+        binding.accountNameTitleText.text = getAccountName
         val getFirebaseId = intent.getStringExtra("FirebaseID")
         Toast.makeText(this, getSqlAccountId, Toast.LENGTH_SHORT).show()
 
         loadPreviousReceipts(getSqlAccountId)
-        val todaysDate = getTodaysDate()
-        adapter = ReceiptOverViewAdapter(receiptList, todaysDate)
+        settlementString = loadSqlSettlementString(getSqlAccountId)
+        deconstructAndSetSettlementString(settlementString)
+
+        adapter = ReceiptOverViewAdapter(receiptList)
         binding.mainActivityRecycler.layoutManager = LinearLayoutManager(this)
         binding.mainActivityRecycler.adapter = adapter
     }
 
-    @SuppressLint("SimpleDateFormat")
-    fun getTodaysDate(): Date? {
-        val currentTime = Calendar.getInstance().time
-        val date: Date?
-        val dateFormat = SimpleDateFormat(getString(R.string.date_format_dd_MM_yyyy))
-        val todaysDate = dateFormat.format(currentTime)
-        date = dateFormat.parse(todaysDate)
-        return date
+    private fun deconstructAndSetSettlementString(settlementString: String){
+        // This function will deconstruct a string taken from sql and produce an ArrayList of individual settlement strings
+        settlementArray.clear()
+        var sb: StringBuilder = java.lang.StringBuilder()
+        val userDirectedSettlementIndexes: ArrayList<Int> =  ArrayList()
+        var indexCount = 0
+        if (settlementString == "balanced") {
+            settlementArray.add(getString(R.string.balanced))
+            userDirectedSettlementIndexes.add(indexCount)
+        }
+        else {
+            val splitIndividual = settlementString.split("/")
+            for (settlement in splitIndividual) {
+                val splitSettlement = settlement.split(",")
+                val debtor = changeNameToYou(splitSettlement[0], true)
+                val value = splitSettlement[1]
+                val receiver = changeNameToYou(splitSettlement[2], false)
+                val finalSettlementString = "$debtor owes $value to $receiver."
+                settlementArray.add(finalSettlementString)
+                if ("you" in finalSettlementString.toLowerCase()) {
+                    userDirectedSettlementIndexes.add(indexCount)
+                }
+                indexCount ++
+            }
+        }
+        for (index in userDirectedSettlementIndexes) {
+            sb.append(settlementArray[index]).append("\n")
+        }
+        sb.deleteCharAt(sb.lastIndex)
+        val newString = sb.toString()
+        binding.receiptOverBalanceString.text = newString
+        userSettlementString = newString
+    }
+
+
+
+    private fun loadSqlSettlementString(sqlAccountId: String?): String {
+        var settlementString: String = ""
+        val dbHelper = DbHelper(this)
+        val reader = dbHelper.readableDatabase
+        val columns = arrayOf(ACCOUNT_COL_SETTLEMENTS)
+        val selectClause = "$ACCOUNT_COL_ID = ?"
+        val selectArgs = arrayOf(sqlAccountId)
+        val cursor: Cursor = reader.query(ACCOUNT_TABLE_NAME, columns, selectClause, selectArgs,
+                        null, null, null)
+        val settlemnetIndex = cursor.getColumnIndexOrThrow(ACCOUNT_COL_SETTLEMENTS)
+        while (cursor.moveToNext()) {
+            settlementString = cursor.getString(settlemnetIndex)
+        }
+        cursor.close()
+        dbHelper.close()
+        return settlementString
     }
 
     private fun loadPreviousReceipts(sqlId: String?) {
         val dbHelper = DbHelper(this)
         val reader = dbHelper.readableDatabase
-        val columns = arrayOf(RECEIPT_COL_DATE, RECEIPT_COL_TITLE, RECEIPT_COL_TOTAL, RECEIPT_COL_PAID_BY)
+        val columns = arrayOf(RECEIPT_COL_DATE, RECEIPT_COL_TITLE, RECEIPT_COL_TOTAL, RECEIPT_COL_PAID_BY, RECEIPT_COL_ID)
         val selectClause = "$RECEIPT_COL_FK_ACCOUNT_ID = ?"
         val selectArgs = arrayOf("$sqlId")
         val cursor: Cursor = reader.query(RECEIPT_TABLE_NAME, columns, selectClause, selectArgs,
@@ -87,14 +150,17 @@ class ReceiptOverviewActivity : AppCompatActivity() {
         val titleColIndex = cursor.getColumnIndexOrThrow(RECEIPT_COL_TITLE)
         val totalColIndex = cursor.getColumnIndexOrThrow(RECEIPT_COL_TOTAL)
         val paidByColIndex = cursor.getColumnIndexOrThrow(RECEIPT_COL_PAID_BY)
+        val idColIndex = cursor.getColumnIndexOrThrow(RECEIPT_COL_ID)
         while (cursor.moveToNext()) {
             val receiptDate = cursor.getString(dateColIndex)
             val receiptTitle = cursor.getString(titleColIndex)
             val receiptTotal = cursor.getFloat(totalColIndex)
             val receiptPaidBy = cursor.getString(paidByColIndex)
-            receiptList.add(ReceiptData(receiptDate, receiptTitle, receiptTotal, receiptPaidBy))
+            val receiptSqlId =  cursor.getInt(idColIndex).toString()
+            receiptList.add(ReceiptData(receiptDate, receiptTitle, receiptTotal, receiptPaidBy, receiptSqlId))
         }
         cursor.close()
+        dbHelper.close()
     }
 
     fun addNewReceiptButton(view: View) {
@@ -115,6 +181,7 @@ class ReceiptOverviewActivity : AppCompatActivity() {
                 recalculateBalances(contributions!!)
                 receiptList.clear()
                 loadPreviousReceipts(getSqlAccountId)
+                binding.receiptOverBalanceString.text = userSettlementString
                 adapter.notifyDataSetChanged()
             }
         }
@@ -127,39 +194,36 @@ class ReceiptOverviewActivity : AppCompatActivity() {
         Step 3: Convert those objects back to a balance string.
         Step 4: Workout who owes who via the algorithm.
         Step 5: Update SQL with new balances and whoOwesWho
+        Step 6: .........................
          */
         val prevBalanceObjects = loadPreviousBalanceToObjects()
         val newBalanceObjects = updateBalancesWithContributions(prevBalanceObjects, newContributions)
         val newBalanceString = parseObjectsToString(newBalanceObjects)
-        val newWhoOwesWhoString = whoOwesWhoAlgorithm(newBalanceString)
-        updateSqlBalAndWhoStrings(newBalanceString, newWhoOwesWhoString)
-        //TODO: Update the balances adapter
+        val newSettlementString = settlementAlgorithm(newBalanceString)
+        updateSqlBalAndSettlementStrings(newBalanceString, newSettlementString)
+        deconstructAndSetSettlementString(newSettlementString)
+        //TODO: Update the balance string in UI and class variable
 
     }
 
-    private fun whoOwesWhoAlgorithm(upToDateBalanceString: String): String{
-        val finalOwesWhoStringBuilder = StringBuilder()
+    private fun settlementAlgorithm(upToDateBalanceString: String): String{
+        val settlementStringBuilder = StringBuilder()
         val particpantBalanceDataList: ArrayList<ParticpantBalanceData> = stringToParticData(upToDateBalanceString)
         var balanced = false
 
         while (!balanced) {
             //TODO: I can probably speed the process up by removing the 0.0F participants from the next iteration somehow, however currently It has been throwing errors.
 
-            val positiveParticipantList: ArrayList<ParticpantBalanceData> = ArrayList() // People who borrowed money
-            val negativeParticipantList: ArrayList<ParticpantBalanceData> = ArrayList() // People who lent money
             var largestNegative = ParticpantBalanceData("dummy", 0.0F)
             var largestPositive = ParticpantBalanceData("dummy", 0.0F)
 
-            //Step 1: Sort the participants into positive or negative groups
-            //Step 2: Identify the participants with the largest negative balance & largest positive balance
+            //Step 1: Identify the participants with the largest negative balance & largest positive balance
             for (participant in particpantBalanceDataList) {
                 val participantBalance = participant.balance
                 if (participantBalance <= 0) {
-                    negativeParticipantList.add(participant)
                     if (abs(participantBalance) > abs(largestNegative.balance))
                         largestNegative = participant
                 } else {
-                    positiveParticipantList.add(participant)
                     if (participantBalance > largestPositive.balance) {
                         largestPositive = participant
                     } }
@@ -168,7 +232,7 @@ class ReceiptOverviewActivity : AppCompatActivity() {
             val absIsLess: Boolean = abs(largestNegative.balance) < largestPositive.balance
             val largestPosName = largestPositive.name
             val largestNegName = largestNegative.name
-            finalOwesWhoStringBuilder.append("$largestPosName,")
+            settlementStringBuilder.append("$largestPosName,")
 
             var negativeCompleted = false
             var positiveCompleted = false
@@ -176,8 +240,8 @@ class ReceiptOverviewActivity : AppCompatActivity() {
             if (absIsLess) {
                 //Step 4: ABS IS LESS -> take the abs of the largest negative from the largest positive and put it into the largest negatives balance
                 val absOfLargestNegative = abs(largestNegative.balance)
-                finalOwesWhoStringBuilder.append("$absOfLargestNegative,")
-                finalOwesWhoStringBuilder.append("$largestNegName/")
+                settlementStringBuilder.append("$absOfLargestNegative,")
+                settlementStringBuilder.append("$largestNegName/")
 
                 for (participant in particpantBalanceDataList) {
                     if (participant.name == largestNegName) {
@@ -196,8 +260,8 @@ class ReceiptOverviewActivity : AppCompatActivity() {
             else {
                 //Step 4: ABS IS NOT LESS -> take the largest positive balance and put it into the largest negatives balance
                 val largestPositiveBalance = largestPositive.balance
-                finalOwesWhoStringBuilder.append("$largestPositiveBalance,")
-                finalOwesWhoStringBuilder.append("$largestNegName/")
+                settlementStringBuilder.append("$largestPositiveBalance,")
+                settlementStringBuilder.append("$largestNegName/")
 
                 for (participant in particpantBalanceDataList) {
 
@@ -217,10 +281,10 @@ class ReceiptOverviewActivity : AppCompatActivity() {
             //Step 5: Check if the accounts are balanced
             balanced = checkIfBalanced(particpantBalanceDataList)
             if (balanced) {
-                finalOwesWhoStringBuilder.deleteCharAt(finalOwesWhoStringBuilder.lastIndex)
+                settlementStringBuilder.deleteCharAt(settlementStringBuilder.lastIndex)
             }
         }
-        return finalOwesWhoStringBuilder.toString()
+        return settlementStringBuilder.toString()
     }
 
     private fun checkIfBalanced(particpantBalanceDataList: ArrayList<ParticpantBalanceData>): Boolean {
@@ -247,12 +311,12 @@ class ReceiptOverviewActivity : AppCompatActivity() {
         return participantBalanceDataList
     }
 
-    private fun updateSqlBalAndWhoStrings(balString: String, whoOwesWho: String) {
+    private fun updateSqlBalAndSettlementStrings(balString: String, whoOwesWho: String) {
         val dbHelper = DbHelper(this)
         val writer = dbHelper.writableDatabase
         val values = ContentValues().apply {
             put(ACCOUNT_COL_BALANCES, balString)
-            put(ACCOUNT_COL_WHO_OWES_WHO, whoOwesWho)
+            put(ACCOUNT_COL_SETTLEMENTS, whoOwesWho)
         }
         val where = "$ACCOUNT_COL_ID = ?"
         val whereargs = arrayOf("$getSqlAccountId")
@@ -289,10 +353,10 @@ class ReceiptOverviewActivity : AppCompatActivity() {
                 val contribValue = contribDetails[1].toFloat()  // 1.00
                 for (participantBalanceItem in prevBalances) {
                     if (contributor == participantBalanceItem.name) {
-                        participantBalanceItem.balance -= contribValue
+                        participantBalanceItem.balance += contribValue
                     }
                     else if (contributee == participantBalanceItem.name) {
-                        participantBalanceItem.balance += contribValue
+                        participantBalanceItem.balance -= contribValue
                     }
                 }
             }
@@ -326,6 +390,11 @@ class ReceiptOverviewActivity : AppCompatActivity() {
             particBalDataList.add(ParticpantBalanceData(name, balance.toFloat()))
         }
         return particBalDataList
+    }
+
+    fun balancesButtonPressed(view: View) {
+        val intent = Intent(this, BalanceOverviewActivity::class.java)
+        startActivity(intent)
     }
 
 }
