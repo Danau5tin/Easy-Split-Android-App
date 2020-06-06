@@ -56,7 +56,9 @@ class NewAccountCreation : AppCompatActivity(), NewAccountParticipantAdapter.onP
     private fun checkIfUserForgotToAddPartic() {
         //This function will add any name left in the add recipient text box presuming the user wanted to add them.
         val newPart = binding.newParticipantName.text.toString()
-        participantList.add(newPart)
+        if (newPart.length >= 1){
+            participantList.add(newPart)
+        }
     }
 
     private fun getNewParticipantData(creator: String): ParticipantNewAccountData {

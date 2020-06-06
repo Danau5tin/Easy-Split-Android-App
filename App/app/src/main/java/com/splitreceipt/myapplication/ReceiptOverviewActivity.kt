@@ -48,6 +48,7 @@ class ReceiptOverviewActivity : AppCompatActivity() {
         var getSqlAccountId: String? = "-1"
         var settlementString: String  = ""
         var settlementArray: ArrayList<String> = ArrayList()
+        const val balanced_string: String = "balanced"
 
         fun changeNameToYou(participantName: String, capitalize: Boolean): String {
             return if (participantName == getSqlUser) {
@@ -66,6 +67,14 @@ class ReceiptOverviewActivity : AppCompatActivity() {
             val df = DecimalFormat("#.##")
             df.roundingMode = RoundingMode.FLOOR
             return df.format(number).toFloat()
+        }
+
+        fun errorRate(balance: Float) : Float {
+            if (balance in -0.04..0.04){
+                // £0.04/$0.04 error rate allowed. Likely only to ever reach 0.02 error rate.
+                return 0.0F
+            }
+            return balance
         }
     }
 
@@ -101,11 +110,20 @@ class ReceiptOverviewActivity : AppCompatActivity() {
         Step 5: Update SQL with new balances and whoOwesWho
         Step 6: .........................
          */
+        var newSettlementString: String
+
         val prevBalanceObjects = loadPreviousBalanceToObjects()
         val newBalanceObjects = updateBalancesWithContributions(prevBalanceObjects, newContributions)
         val newBalanceString = parseObjectsToString(newBalanceObjects)
         Log.i("Algorithm", "Balance string after contributions have been added: $newBalanceString \n\n")
-        val newSettlementString = settlementAlgorithm(newBalanceString)
+
+        val isBalanced = checkIfBalanced(newBalanceObjects)
+        if (!isBalanced){
+            newSettlementString = settlementAlgorithm(newBalanceString)
+        }
+        else {
+            newSettlementString = balanced_string
+        }
         Log.i("Algorithm", "Settlement string created after the algorithm has balanced everyones balances: $newSettlementString \n\n")
         updateSqlBalAndSettlementStrings(newBalanceString, newSettlementString)
         deconstructAndSetSettlementString(newSettlementString)
@@ -119,7 +137,7 @@ class ReceiptOverviewActivity : AppCompatActivity() {
         val sb: StringBuilder = java.lang.StringBuilder()
         val userDirectedSettlementIndexes: ArrayList<Int> =  ArrayList()
         var indexCount = 0
-        if (settlementString == "balanced") {
+        if (settlementString == balanced_string) {
             settlementArray.add(getString(R.string.balanced))
             userDirectedSettlementIndexes.add(indexCount)
         }
@@ -303,19 +321,10 @@ class ReceiptOverviewActivity : AppCompatActivity() {
     }
 
     private fun checkIfBalanced(particpantBalanceDataList: ArrayList<ParticpantBalanceData>): Boolean {
-        var allBalanced = true
         for (participant in particpantBalanceDataList) {
-
-            if (participant.balance in -0.04..0.04){
-                // £0.04/$0.04 error rate allowed. Likely only to ever reach 0.02 error rate.
-                participant.balance = 0.0F
-            }
-
-            if(!allBalanced) {
-                return false
-            }
+            participant.balance = errorRate(participant.balance)
             if (participant.balance != 0.0F) {
-                allBalanced = false
+                return false
             }
         }
         return true
@@ -383,6 +392,7 @@ class ReceiptOverviewActivity : AppCompatActivity() {
                         participantBalanceItem.balance -= contribValue
                         participantBalanceItem.balance = roundToTwoDecimalPlace(participantBalanceItem.balance)
                     }
+                    participantBalanceItem.balance = errorRate(participantBalanceItem.balance)
                 }
             }
         }

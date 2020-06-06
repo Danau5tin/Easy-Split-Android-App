@@ -139,9 +139,14 @@ class SplitReceiptManuallyFragment : Fragment(), NewManualReceiptRecyclerAdapter
 
     private fun setContributionValues(total: Float, activeParticipants: ArrayList<ParticipantData>){
         val contribution: String
-        val num = total / activeParticipants.size
-        contribution = ReceiptOverviewActivity.roundToTwoDecimalPlace(num).toString()
-        val fixedContribution = fixDecimalPlace(contribution)
+        val fixedContribution: String
+        if (!activeParticipants.isEmpty()){
+            val num = total / activeParticipants.size
+            contribution = ReceiptOverviewActivity.roundToTwoDecimalPlace(num).toString()
+            fixedContribution = fixDecimalPlace(contribution)
+        } else {
+            fixedContribution = "0.00"
+        }
         for (participant in activeParticipants){
             participant.contributionValue = fixedContribution
         }
