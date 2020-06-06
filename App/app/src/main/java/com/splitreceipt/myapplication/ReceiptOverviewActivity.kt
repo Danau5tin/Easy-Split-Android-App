@@ -31,7 +31,7 @@ import kotlin.collections.ArrayList
 import kotlin.math.abs
 import kotlin.text.StringBuilder
 
-class ReceiptOverviewActivity : AppCompatActivity() {
+class ReceiptOverviewActivity : AppCompatActivity(), ReceiptOverViewAdapter.onReceRowClick {
     /*
     Activity shows the interior of a user account. Listing all prior expenses and
     offering the user to create a new expense.
@@ -41,6 +41,7 @@ class ReceiptOverviewActivity : AppCompatActivity() {
     lateinit var receiptList: ArrayList<ReceiptData>
     private lateinit var adapter: ReceiptOverViewAdapter
     private val ADD_EXPENSE_RESULT = 20
+    private val SEE_EXPENSE_RESULT = 10
     private var userSettlementString = ""
 
     companion object {
@@ -96,7 +97,7 @@ class ReceiptOverviewActivity : AppCompatActivity() {
         settlementString = loadSqlSettlementString(getSqlAccountId)
         deconstructAndSetSettlementString(settlementString)
 
-        adapter = ReceiptOverViewAdapter(receiptList)
+        adapter = ReceiptOverViewAdapter(receiptList, this)
         binding.mainActivityRecycler.layoutManager = LinearLayoutManager(this)
         binding.mainActivityRecycler.adapter = adapter
     }
@@ -108,15 +109,13 @@ class ReceiptOverviewActivity : AppCompatActivity() {
         Step 3: Convert those objects back to a balance string.
         Step 4: Workout who owes who via the algorithm.
         Step 5: Update SQL with new balances and whoOwesWho
-        Step 6: .........................
+        Step 6: Update the settlements strings for view in the UI.
          */
-        var newSettlementString: String
-
+        val newSettlementString: String
         val prevBalanceObjects = loadPreviousBalanceToObjects()
         val newBalanceObjects = updateBalancesWithContributions(prevBalanceObjects, newContributions)
         val newBalanceString = parseObjectsToString(newBalanceObjects)
         Log.i("Algorithm", "Balance string after contributions have been added: $newBalanceString \n\n")
-
         val isBalanced = checkIfBalanced(newBalanceObjects)
         if (!isBalanced){
             newSettlementString = settlementAlgorithm(newBalanceString)
@@ -127,8 +126,6 @@ class ReceiptOverviewActivity : AppCompatActivity() {
         Log.i("Algorithm", "Settlement string created after the algorithm has balanced everyones balances: $newSettlementString \n\n")
         updateSqlBalAndSettlementStrings(newBalanceString, newSettlementString)
         deconstructAndSetSettlementString(newSettlementString)
-        //TODO: Update the balance string in UI and class variable
-
     }
 
     private fun deconstructAndSetSettlementString(settlementString: String){
@@ -213,7 +210,7 @@ class ReceiptOverviewActivity : AppCompatActivity() {
 
     fun addNewReceiptButton(view: View) {
         val intent = Intent(this, NewReceiptCreationActivity::class.java)
-        intent.putExtra("sqlID", getSqlAccountId)
+        intent.putExtra(NewReceiptCreationActivity.intentSqlIdString, getSqlAccountId)
         startActivityForResult(intent, ADD_EXPENSE_RESULT)
     }
 
@@ -221,20 +218,29 @@ class ReceiptOverviewActivity : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == ADD_EXPENSE_RESULT){
             if (resultCode == Activity.RESULT_OK){
-                //TODO: Add functionality
                 val contributions = data?.getStringExtra(NewReceiptCreationActivity.
                                                             CONTRIBUTION_INTENT_DATA)
                 Log.i("Algorithm", "Contribution string returned from the recent transaction: $contributions \n\n")
-                recalculateBalances(contributions!!)
-                receiptList.clear()
-                loadPreviousReceipts(getSqlAccountId)
-                binding.receiptOverBalanceString.text = userSettlementString
-                adapter.notifyDataSetChanged()
+                newContributionUpdates(contributions!!)
+            }
+        }
+        else if (requestCode == SEE_EXPENSE_RESULT){
+            if (resultCode == Activity.RESULT_OK) {
+                val reversedContributions = data?.getStringExtra(ExpenseViewActivity
+                                                                    .expenseReturnNewContributions)
+                Log.i("Algorithm", "Reversed contribution string returned from the recent deletion: $reversedContributions \n\n")
+                newContributionUpdates(reversedContributions!!)
             }
         }
     }
 
-
+    private fun newContributionUpdates(newContributions: String){
+        recalculateBalances(newContributions)
+        receiptList.clear()
+        loadPreviousReceipts(getSqlAccountId)
+        binding.receiptOverBalanceString.text = userSettlementString
+        adapter.notifyDataSetChanged()
+    }
 
     private fun settlementAlgorithm(upToDateBalanceString: String): String{
         val settlementStringBuilder = StringBuilder()
@@ -373,16 +379,17 @@ class ReceiptOverviewActivity : AppCompatActivity() {
     }
 
     private fun updateBalancesWithContributions(prevBalances: ArrayList<ParticpantBalanceData>, newContributions: String): ArrayList<ParticpantBalanceData> {
-        //TODO: If the contribution balance is 0.0 then continue
         // Deconstructs each contribution from a solid string and updates the values of the relevant data class objects depending on if they have lent or borrowed.
-        //TODO: (2/2) Change the rounding to the one completed in the algorithm as these lines of code can potentially be the ones that're giving the algorithm an up to 5p error rate
         val splitContributions = newContributions.split("/") // ["Dan,£1.00,Marie", "Marie,£1.00,Marie"]
         for (contribution in splitContributions) {
             val contribDetails = contribution.split(",") // ["Dan", "1.00", "Marie"]
+            val contribValue = contribDetails[1].toFloat()  // 1.00
+            if (contribValue == 0.0F){
+                continue
+            }
             val contributor = contribDetails[0] // ["Dan"]
             val contributee = contribDetails[2] // ["Marie"]
             if (contributor != contributee) {
-                val contribValue = contribDetails[1].toFloat()  // 1.00
                 for (participantBalanceItem in prevBalances) {
                     if (contributor == participantBalanceItem.name) {
                         participantBalanceItem.balance += contribValue
@@ -402,7 +409,6 @@ class ReceiptOverviewActivity : AppCompatActivity() {
     private fun loadPreviousBalanceToObjects(): ArrayList<ParticpantBalanceData> {
         // Loads the previous balance string from SQL and constructs each participant into an individual data class object.
         var previousBalString = ""
-//        var previousBalString = "Dan,3.00/Marie,-3.00"
         val dbHelper = DbHelper(this)
         val reader = dbHelper.readableDatabase
         val columns = arrayOf(ACCOUNT_COL_BALANCES)
@@ -431,6 +437,15 @@ class ReceiptOverviewActivity : AppCompatActivity() {
     fun balancesButtonPressed(view: View) {
         val intent = Intent(this, BalanceOverviewActivity::class.java)
         startActivity(intent)
+    }
+
+    override fun onRowClick(pos: Int, title:String, total:String, sqlId: String, paidBy:String) {
+        val intent = Intent(this, ExpenseViewActivity::class.java)
+        intent.putExtra(ExpenseViewActivity.expenseTitleIntentString, title)
+        intent.putExtra(ExpenseViewActivity.expenseTotalIntentString, total)
+        intent.putExtra(ExpenseViewActivity.expenseSqlIntentString, sqlId)
+        intent.putExtra(ExpenseViewActivity.expensePaidByIntentString, paidBy)
+        startActivityForResult(intent, SEE_EXPENSE_RESULT)
     }
 
 }

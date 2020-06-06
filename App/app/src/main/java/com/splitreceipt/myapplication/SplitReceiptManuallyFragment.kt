@@ -160,8 +160,14 @@ class SplitReceiptManuallyFragment : Fragment(), NewManualReceiptRecyclerAdapter
 
     private fun retrieveParticipants() {
         fragmentManualParticipantList.clear()
-        for (participant in NewReceiptCreationActivity.participantList) {
-            fragmentManualParticipantList.add(ParticipantData(participant, zeroCurrency, true))
+        if (!NewReceiptCreationActivity.isEdit) {
+            for (participant in NewReceiptCreationActivity.participantList) {
+                fragmentManualParticipantList.add(ParticipantData(participant, zeroCurrency, true))
+            }
+        } else {
+            for (participant in NewReceiptCreationActivity.participantDataEditList) {
+                fragmentManualParticipantList.add(participant)
+            }
         }
     }
 

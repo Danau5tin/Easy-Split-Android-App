@@ -23,10 +23,7 @@ class NewManualReceiptRecyclerAdapter(var participantList: ArrayList<Participant
         return participantList.size
     }
 
-    override fun onBindViewHolder(
-        holder: ItemizedViewholder,
-        position: Int
-    ) {
+    override fun onBindViewHolder(holder: ItemizedViewholder, position: Int) {
         holder.participantCheckBox.text = participantList[position].name
         holder.participantCheckBox.setOnCheckedChangeListener { buttonView, isChecked ->
             if (!isChecked){

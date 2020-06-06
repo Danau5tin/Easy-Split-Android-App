@@ -14,12 +14,12 @@ import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.math.abs
 
-class ReceiptOverViewAdapter(var receiptList: ArrayList<ReceiptData>) : RecyclerView.Adapter<ReceiptOverViewAdapter.ReceiptOverviewViewHolder>(){
+class ReceiptOverViewAdapter(var receiptList: ArrayList<ReceiptData>, var onRecRowClick: onReceRowClick) : RecyclerView.Adapter<ReceiptOverViewAdapter.ReceiptOverviewViewHolder>(){
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ReceiptOverviewViewHolder {
         val inflater: LayoutInflater = LayoutInflater.from(parent.context)
         val view = inflater.inflate(R.layout.receipt_overview_recy_row, parent, false)
-        return ReceiptOverviewViewHolder(parent.context, view)
+        return ReceiptOverviewViewHolder(parent.context, view, onRecRowClick)
     }
 
     override fun getItemCount(): Int {
@@ -43,7 +43,7 @@ class ReceiptOverViewAdapter(var receiptList: ArrayList<ReceiptData>) : Recycler
         holder.sqlId = receiptList[position].sqlRowId
     }
 
-    class ReceiptOverviewViewHolder(var context: Context, itemView: View) : RecyclerView.ViewHolder(itemView), View.OnClickListener {
+    class ReceiptOverviewViewHolder(var context: Context, itemView: View, var onRecRowClick: onReceRowClick) : RecyclerView.ViewHolder(itemView), View.OnClickListener {
 
         val receiptTitleTextView: TextView = itemView.findViewById(R.id.receiptTitle)
         val receiptTotalTextView: TextView = itemView.findViewById(R.id.receiptTotal)
@@ -57,13 +57,13 @@ class ReceiptOverViewAdapter(var receiptList: ArrayList<ReceiptData>) : Recycler
         }
 
         override fun onClick(v: View?) {
-            val intent = Intent(context, ExpenseViewActivity::class.java)
-            intent.putExtra(ExpenseViewActivity.expenseTitleIntentString, receiptTitleTextView.text.toString())
-            intent.putExtra(ExpenseViewActivity.expenseTotalIntentString, total)
-            intent.putExtra(ExpenseViewActivity.expenseSqlIntentString, sqlId)
-            intent.putExtra(ExpenseViewActivity.expensePaidByIntentString, paidBy)
-            context.startActivity(intent)
+            val title = receiptTitleTextView.text.toString()
+            onRecRowClick.onRowClick(adapterPosition, title, total, sqlId, paidBy)
         }
 
+    }
+
+    interface onReceRowClick{
+        fun onRowClick(pos: Int, title: String="", total: String="", sqlID: String="", paidBy: String="")
     }
 }

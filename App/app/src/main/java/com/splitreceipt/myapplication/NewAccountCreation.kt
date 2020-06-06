@@ -9,6 +9,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
+import android.widget.Toolbar
 import androidx.appcompat.app.ActionBar
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.splitreceipt.myapplication.data.DbManager.AccountTable.ACCOUNT_COL_BALANCES
@@ -43,14 +44,14 @@ class NewAccountCreation : AppCompatActivity(), NewAccountParticipantAdapter.onP
         binding.newParticipantRecy.layoutManager = LinearLayoutManager(this)
         binding.newParticipantRecy.adapter = adapter
 
-        val actionBar: ActionBar? = supportActionBar
         setSupportActionBar(findViewById(R.id.toolbar))
-        actionBar?.title = "Add account"
-        actionBar?.apply {
+        supportActionBar?.title = "Add account"
+        supportActionBar?.apply {
             setDisplayHomeAsUpEnabled(true)
             setDisplayShowHomeEnabled(true)
-            setHomeAsUpIndicator(R.drawable.vector_back_arrow_white)
+            setHomeAsUpIndicator(R.drawable.vector_x_white)
         }
+
     }
 
     private fun checkIfUserForgotToAddPartic() {
@@ -100,6 +101,8 @@ class NewAccountCreation : AppCompatActivity(), NewAccountParticipantAdapter.onP
 
     override fun onSupportNavigateUp(): Boolean {
         Toast.makeText(this, "Account cancelled", Toast.LENGTH_SHORT).show()
+        finish()
+        onBackPressed()
         return super.onSupportNavigateUp()
     }
 
