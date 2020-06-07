@@ -17,6 +17,7 @@ import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_DA
 import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_ID
 import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_TABLE_NAME
 import com.splitreceipt.myapplication.data.ExpenseAdapterData
+import com.splitreceipt.myapplication.data.ParticipantBalanceData
 import com.splitreceipt.myapplication.databinding.ActivityExpenseViewBinding
 
 class ExpenseViewActivity : AppCompatActivity() {
@@ -37,6 +38,7 @@ class ExpenseViewActivity : AppCompatActivity() {
         const val expenseTotalIntentString: String = "expense_total"
         const val expensePaidByIntentString: String = "expense_paid_by"
         const val expenseReturnNewContributions: String = "expense_return_contributions"
+        const val expenseReturnNewSettlements: String = "expense_return_settlements"
         const val expenseReturnEditSql: String = "expense_edit_sql"
         const val expenseReturnEditDate: String = "expense_edit_date"
         const val expenseReturnEditTitle: String = "expense_edit_title"
@@ -78,6 +80,7 @@ class ExpenseViewActivity : AppCompatActivity() {
     }
 
     private fun deconstructContributionString() {
+        // Turn the solid contributions string into individual items for the recyclerViewAdapter
         contributionList.clear()
         val contributionsSplit = contributionString.split("/")
         for (contribution in contributionsSplit) {
@@ -126,20 +129,79 @@ class ExpenseViewActivity : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == EDIT_EXPENSE_INTENT_CODE) {
             if (resultCode == Activity.RESULT_OK) {
-                val row = data?.getStringExtra(expenseReturnEditSql)
-                if (row == sqlRowId) {
-                    Toast.makeText(this, "Expense edited", Toast.LENGTH_SHORT).show()
-                    supportActionBar?.title = intent.getStringExtra(expenseReturnEditTitle)
-                    binding.expenseValue.text = data.getStringExtra(expenseReturnEditTotal)
-                    binding.paidByText.text = data.getStringExtra(expenseReturnEditPaidBy)
-                    binding.dateText.text = data.getStringExtra(expenseReturnEditDate)
-                    contributionString = data.getStringExtra(expenseReturnEditContributions).toString()
-                    deconstructContributionString()
-                    adapter.notifyDataSetChanged()
+                Toast.makeText(this, "Expense edited", Toast.LENGTH_SHORT).show()
+                supportActionBar?.title = data?.getStringExtra(expenseReturnEditTitle)
+                val total = SplitReceiptManuallyFragment.addStringZerosForDecimalPlace(data?.getStringExtra(expenseReturnEditTotal).toString())
+                val totalWithCurrency = "£$total" //TODO: Ensure correct user currency is displayed
+                binding.expenseValue.text = totalWithCurrency
+                val newPaidBy = data?.getStringExtra(expenseReturnEditPaidBy)
+                binding.paidByText.text = newPaidBy
+                binding.dateText.text = data?.getStringExtra(expenseReturnEditDate)
+                val newContribString = data?.getStringExtra(expenseReturnEditContributions).toString()
+                deconstructContributionString()
+                adapter.notifyDataSetChanged()
+
+                val prevContributionString: String = contributionString // For readability
+                val contributionsChanged: Boolean = prevContributionString != newContribString
+                var calculatedContributions: String = newContribString
+                val balSetHelper = BalanceSettlementHelper(this, ReceiptOverviewActivity.getSqlAccountId.toString())
+
+                if (contributionsChanged) {
+                    val paidByUnchanged: Boolean = newPaidBy == getPaidByIntent
+                    if (paidByUnchanged) {
+                        // Contributions have changed but paidBy is still the same
+                        val previous: ArrayList<ParticipantBalanceData> = contribsToParticBalData(prevContributionString)
+                        val new: ArrayList<ParticipantBalanceData> = contribsToParticBalData(newContribString)
+                        calculatedContributions = generateNewContributions(previous, new, getPaidByIntent)
+                    }
+                    else{
+                        // Contributions have changed. Paid by has changed also.
+                        val reverseContribs = reversePriorExpenseAfterDeletion(prevContributionString, edit = true)
+                        // Update balances after reversing the previous contributions.
+                        balSetHelper.recalculateBalancesAndSettlements(reverseContribs)
+                    }
+
                 }
+                // Set new contributions
+                val settlementString = balSetHelper.recalculateBalancesAndSettlements(calculatedContributions)
+                intent.putExtra(expenseReturnNewSettlements, settlementString)
+                setResult(Activity.RESULT_OK, intent)
             }
         }
     }
+
+    private fun contribsToParticBalData(prevContributionString: String): ArrayList<ParticipantBalanceData> {
+        val participantList: ArrayList<ParticipantBalanceData> = ArrayList()
+        val contributions = prevContributionString.split("/")
+        for (contrib in contributions) {
+            val splitContrib = contrib.split(",")
+            val name = splitContrib[0]
+            val value = splitContrib[1].toFloat()
+            participantList.add(ParticipantBalanceData(name, value))
+        }
+        return participantList
+    }
+
+    fun generateNewContributions(prevContrib: ArrayList<ParticipantBalanceData>,
+                                 newContrib: ArrayList<ParticipantBalanceData>, paidBy: String) : String{
+
+        val stringBuilder = StringBuilder()
+        for (prevParticipant in prevContrib) {
+            for (newParticipant in newContrib) {
+                val participantName = prevParticipant.name
+                if (participantName == newParticipant.name) {
+                    val change = newParticipant.balance - prevParticipant.balance
+                    val rounded = ReceiptOverviewActivity.roundToTwoDecimalPlace(change)
+                    stringBuilder.append("$participantName,")
+                    stringBuilder.append("$rounded,")
+                    stringBuilder.append("$paidBy/")
+                }
+            }
+        }
+        stringBuilder.deleteCharAt(stringBuilder.lastIndex)
+        return stringBuilder.toString()
+    }
+
 
     fun deleteExpense(view: View) {
         AlertDialog.Builder(this).apply {
@@ -150,7 +212,7 @@ class ExpenseViewActivity : AppCompatActivity() {
                 override fun onClick(dialog: DialogInterface?, which: Int) {
                     val dbHelper = DbHelper(context)
                     val write = dbHelper.writableDatabase
-                    val prevContrib: String = locatePriorContributions(write)
+                    val prevContributionString: String = locatePriorContributions(write)
 
                     val whereClause = "$RECEIPT_COL_ID = ?"
                     val whereArgs = arrayOf(sqlRowId)
@@ -158,7 +220,7 @@ class ExpenseViewActivity : AppCompatActivity() {
                     dbHelper.close()
 
                     Toast.makeText(context, "Deleted successfully", Toast.LENGTH_SHORT).show()
-                    reversePriorExpense(prevContrib)
+                    reversePriorExpenseAfterDeletion(prevContributionString)
                     onBackPressed()
                 }
             })
@@ -170,7 +232,7 @@ class ExpenseViewActivity : AppCompatActivity() {
         }.show()
     }
 
-    private fun reversePriorExpense(prevContribString: String) {
+    private fun reversePriorExpenseAfterDeletion(prevContribString: String, edit: Boolean=false) : String {
         // Reverse the expense contribution and add to the intent ready for
         val stringBuilder = StringBuilder()
         val spliPriorContrib = prevContribString.split("/")
@@ -185,9 +247,16 @@ class ExpenseViewActivity : AppCompatActivity() {
         }
         stringBuilder.deleteCharAt(stringBuilder.lastIndex)
         val newContribs = stringBuilder.toString()
-        intent.putExtra(expenseReturnNewContributions, newContribs)
-        setResult(Activity.RESULT_OK, intent)
-        this.finish()
+        if (!edit) {
+            // User selected delete button. Balances will be calculated back on Receipt Overview so finish this activity.
+            intent.putExtra(expenseReturnNewContributions, newContribs)
+            setResult(Activity.RESULT_OK, intent)
+            this.finish()
+            return ""
+        } else {
+            // User has edited the expense and also changed the person who paid so we must null the initial contributions.
+            return newContribs
+        }
     }
 
     private fun locatePriorContributions(readWriteDB: SQLiteDatabase?): String {

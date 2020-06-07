@@ -1,18 +1,13 @@
 package com.splitreceipt.myapplication
 
-import android.annotation.SuppressLint
 import android.content.Context
-import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.splitreceipt.myapplication.data.ReceiptData
-import java.text.SimpleDateFormat
-import java.util.*
 import kotlin.collections.ArrayList
-import kotlin.math.abs
 
 class ReceiptOverViewAdapter(var receiptList: ArrayList<ReceiptData>, var onRecRowClick: onReceRowClick) : RecyclerView.Adapter<ReceiptOverViewAdapter.ReceiptOverviewViewHolder>(){
 
@@ -30,7 +25,7 @@ class ReceiptOverViewAdapter(var receiptList: ArrayList<ReceiptData>, var onRecR
         holder.receiptTitleTextView.text = receiptList[position].title
 
         val totalToString = receiptList[position].total.toString()
-        val totalFixedString = SplitReceiptManuallyFragment.fixDecimalPlace(totalToString)
+        val totalFixedString = SplitReceiptManuallyFragment.addStringZerosForDecimalPlace(totalToString)
         val totalString = "£$totalFixedString" //TODO: Ensure the correct currency symbol used here is the users preference
         holder.receiptTotalTextView.text = totalString
 

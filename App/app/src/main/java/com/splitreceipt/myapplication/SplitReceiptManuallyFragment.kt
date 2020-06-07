@@ -39,7 +39,7 @@ class SplitReceiptManuallyFragment : Fragment(), NewManualReceiptRecyclerAdapter
         var currencyCode = ""
         var currencySymbol = ""
 
-        fun fixDecimalPlace(value: String): String {
+        fun addStringZerosForDecimalPlace(value: String): String {
             var fixedValue = ""
             if (value.contains(".")) {
                 if (value.length - value.indexOf(".") == 2) {
@@ -56,10 +56,6 @@ class SplitReceiptManuallyFragment : Fragment(), NewManualReceiptRecyclerAdapter
 
         retrieveParticipants()
         updateUICurrency()
-
-        adapter = NewManualReceiptRecyclerAdapter(fragmentManualParticipantList, this)
-        binding.fragManualRecy.layoutManager = LinearLayoutManager(activity)
-        binding.fragManualRecy.adapter = adapter
 
         binding.currencyAmount.addTextChangedListener(object: TextWatcher{
             override fun afterTextChanged(s: Editable?) {}
@@ -86,11 +82,17 @@ class SplitReceiptManuallyFragment : Fragment(), NewManualReceiptRecyclerAdapter
                     transactionTotal = zeroCurrency
                     setContributionStatus()}}})
 
+        adapter = NewManualReceiptRecyclerAdapter(fragmentManualParticipantList, this)
+        binding.fragManualRecy.layoutManager = LinearLayoutManager(activity)
+        binding.fragManualRecy.adapter = adapter
+
         binding.currencyButton.setOnClickListener{v ->
             Toast.makeText(contxt, binding.currencyButton.text.toString(), Toast.LENGTH_SHORT).show()
             val intent = Intent(activity, CurrencySelectorActivity::class.java)
             startActivityForResult(intent, CURRENCY_INTENT)
         }
+
+        binding.currencyAmount.setText(NewReceiptCreationActivity.editTotal)
 
         return binding.root
     }
@@ -143,7 +145,7 @@ class SplitReceiptManuallyFragment : Fragment(), NewManualReceiptRecyclerAdapter
         if (!activeParticipants.isEmpty()){
             val num = total / activeParticipants.size
             contribution = ReceiptOverviewActivity.roundToTwoDecimalPlace(num).toString()
-            fixedContribution = fixDecimalPlace(contribution)
+            fixedContribution = addStringZerosForDecimalPlace(contribution)
         } else {
             fixedContribution = "0.00"
         }

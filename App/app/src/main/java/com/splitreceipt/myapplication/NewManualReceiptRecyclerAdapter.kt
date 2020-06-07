@@ -37,13 +37,13 @@ class NewManualReceiptRecyclerAdapter(var participantList: ArrayList<Participant
             holder.participantCheckBox.isChecked = true
         }
         holder.currencySymbol.text = SplitReceiptManuallyFragment.currencySymbol
-        holder.particpantContribution.text = participantList[position].contributionValue
+        holder.participantContribution.text = participantList[position].contributionValue
     }
 
     class ItemizedViewholder(itemView: View, onRecyInt: onRecyRowCheked) : RecyclerView.ViewHolder(itemView){
 
         val participantCheckBox: CheckBox = itemView.findViewById(R.id.participantCheckbox)
-        val particpantContribution: TextView = itemView.findViewById(R.id.participantContribution)
+        val participantContribution: TextView = itemView.findViewById(R.id.participantContribution)
         val currencySymbol: TextView = itemView.findViewById(R.id.symbolText)
         val onRec = onRecyInt
     }

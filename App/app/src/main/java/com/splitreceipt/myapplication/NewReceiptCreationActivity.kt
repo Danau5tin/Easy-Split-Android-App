@@ -43,6 +43,7 @@ class NewReceiptCreationActivity : AppCompatActivity() {
     private lateinit var binding: ActivityNewReceiptCreationBinding
     private var editPaidBy: String = ""
 
+
     companion object {
         var sqlAccountId: String? = "-1"
         lateinit var participantList: ArrayList<String>
@@ -55,8 +56,9 @@ class NewReceiptCreationActivity : AppCompatActivity() {
         const val editIntentPaidByString = "edit_paid_by"
         const val editIntentDateString = "edit_date"
         const val editIntentContributionsString = "edit_contributions"
-        const val editIntentSqlRowIdString = "edit_contributions"
+        const val editIntentSqlRowIdString = "edit_sql_id"
         var isEdit: Boolean = false
+        var editTotal: String = ""
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -68,7 +70,7 @@ class NewReceiptCreationActivity : AppCompatActivity() {
         val editTitle = intent.getStringExtra(editIntentTitleString)
         if (editTitle != null) {
             isEdit = true
-            val editTotal = intent.getStringExtra(editIntentTotalString) //TODO: pass the total to the fragment
+            editTotal = intent.getStringExtra(editIntentTotalString) //TODO: pass the total to the fragment
             editPaidBy = intent.getStringExtra(editIntentPaidByString) //TODO: Not currently doing anything as not sure how to change spinner
             val editDate = intent.getStringExtra(editIntentDateString)
             val editContributions = intent.getStringExtra(editIntentContributionsString) //TODO: Update the recyclerview in the fragment
@@ -93,7 +95,7 @@ class NewReceiptCreationActivity : AppCompatActivity() {
             setDisplayShowHomeEnabled(true)
             setHomeAsUpIndicator(R.drawable.vector_x_white)
         }
-
+        //TODO: Currently if a user wasn't contributing before they are ticked anyway when the user edits. Fix this.
         binding.paidBySpinner.adapter = ArrayAdapter(this,
             R.layout.support_simple_spinner_dropdown_item, participantList)
 
@@ -113,7 +115,7 @@ class NewReceiptCreationActivity : AppCompatActivity() {
             }
             val contributingValue = individualContribution[1]
             var contributing: Boolean
-            contributing = contributingValue != "0.0"
+            contributing = contributingValue != "0.00"
             participantDataEditList.add(ParticipantData(participantName, contributingValue, contributing))
         }
     }
@@ -151,7 +153,7 @@ class NewReceiptCreationActivity : AppCompatActivity() {
                         val sqlRow = updateSql(date, title, total, paidBy, contributionsString)
                         intent.putExtra(ExpenseViewActivity.expenseReturnEditSql, sqlRow)
                         intent.putExtra(ExpenseViewActivity.expenseReturnEditDate, date)
-                        intent.putExtra(ExpenseViewActivity.expenseReturnEditTotal, total)
+                        intent.putExtra(ExpenseViewActivity.expenseReturnEditTotal, total.toString())
                         intent.putExtra(ExpenseViewActivity.expenseReturnEditTitle, title)
                         intent.putExtra(ExpenseViewActivity.expenseReturnEditPaidBy, paidBy)
                         intent.putExtra(ExpenseViewActivity.expenseReturnEditContributions, contributionsString)
