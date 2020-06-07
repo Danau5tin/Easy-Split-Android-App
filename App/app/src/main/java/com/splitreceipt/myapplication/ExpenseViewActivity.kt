@@ -138,8 +138,6 @@ class ExpenseViewActivity : AppCompatActivity() {
                 binding.paidByText.text = newPaidBy
                 binding.dateText.text = data?.getStringExtra(expenseReturnEditDate)
                 val newContribString = data?.getStringExtra(expenseReturnEditContributions).toString()
-                deconstructContributionString()
-                adapter.notifyDataSetChanged()
 
                 val prevContributionString: String = contributionString // For readability
                 val contributionsChanged: Boolean = prevContributionString != newContribString
@@ -164,8 +162,11 @@ class ExpenseViewActivity : AppCompatActivity() {
                 }
                 // Set new contributions
                 val settlementString = balSetHelper.recalculateBalancesAndSettlements(calculatedContributions)
+                contributionString = calculatedContributions
                 intent.putExtra(expenseReturnNewSettlements, settlementString)
                 setResult(Activity.RESULT_OK, intent)
+                deconstructContributionString()
+                adapter.notifyDataSetChanged()
             }
         }
     }

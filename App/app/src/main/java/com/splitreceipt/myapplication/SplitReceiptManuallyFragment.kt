@@ -169,6 +169,9 @@ class SplitReceiptManuallyFragment : Fragment(), NewManualReceiptRecyclerAdapter
         } else {
             for (participant in NewReceiptCreationActivity.participantDataEditList) {
                 fragmentManualParticipantList.add(participant)
+                if (!participant.contributing) {
+                    everybodyEqual = false
+                }
             }
         }
     }

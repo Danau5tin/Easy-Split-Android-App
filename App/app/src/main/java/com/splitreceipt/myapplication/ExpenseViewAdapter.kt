@@ -11,7 +11,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.splitreceipt.myapplication.data.ExpenseAdapterData
 
 class ExpenseViewAdapter(var contributionList: ArrayList<ExpenseAdapterData>): RecyclerView.Adapter<ExpenseViewAdapter.ExpenseViewHolder>() {
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ExpenseViewAdapter.ExpenseViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ExpenseViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         val view = inflater.inflate(R.layout.expense_recy_row, parent, false)
         return ExpenseViewHolder(parent.context, view)
@@ -21,11 +21,12 @@ class ExpenseViewAdapter(var contributionList: ArrayList<ExpenseAdapterData>): R
         return contributionList.size
     }
 
-    override fun onBindViewHolder(holder: ExpenseViewAdapter.ExpenseViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: ExpenseViewHolder, position: Int) {
         if (contributionList[position].value == "0.00"){
             holder.tickImageView.setImageDrawable(ContextCompat.getDrawable(holder.context, R.drawable.vector_cross_red))
-            holder.tickImageView.layoutParams.height = holder.tickImageView.layoutParams.height/2
-            holder.tickImageView.layoutParams.width = holder.tickImageView.layoutParams.width/2
+        }
+        else{
+            holder.tickImageView.setImageDrawable(ContextCompat.getDrawable(holder.context, R.drawable.vector_tick_green))
         }
         holder.expenseText.text = contributionList[position].contribString
     }

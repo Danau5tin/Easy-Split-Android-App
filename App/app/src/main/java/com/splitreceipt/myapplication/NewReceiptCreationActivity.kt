@@ -158,6 +158,7 @@ class NewReceiptCreationActivity : AppCompatActivity() {
                         intent.putExtra(ExpenseViewActivity.expenseReturnEditPaidBy, paidBy)
                         intent.putExtra(ExpenseViewActivity.expenseReturnEditContributions, contributionsString)
                         setResult(Activity.RESULT_OK, intent)
+                        isEdit = false
                         finish()
                         return true
                     }
