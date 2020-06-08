@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".NewAccountCreation">
+    tools:context=".NewGroupCreation">
 
     <include
         android:id="@+id/toolbar"
@@ -14,7 +14,7 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/accountTitleText"
+        android:id="@+id/groupTitleText"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
@@ -25,7 +25,7 @@
         app:layout_constraintTop_toTopOf="@+id/imageButton5">
 
         <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/accountTitleEditText"
+            android:id="@+id/groupTitleEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/item_title_hint" />
@@ -98,7 +98,7 @@
         android:text="ToggleButton"
         android:textOff="Apartment"
         app:layout_constraintStart_toStartOf="@+id/leftGuideline"
-        app:layout_constraintTop_toBottomOf="@+id/accountTitleText" />
+        app:layout_constraintTop_toBottomOf="@+id/groupTitleText" />
 
     <ToggleButton
         android:id="@+id/toggleButton6"

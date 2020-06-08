@@ -16,7 +16,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.splitreceipt.myapplication.data.DbManager
 import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_DATE
-import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_FK_ACCOUNT_ID
+import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_FK_GROUP_ID
 import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_PAID_BY
 import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_TITLE
 import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_TOTAL
@@ -225,15 +225,15 @@ class NewReceiptCreationActivity : AppCompatActivity() {
     private fun retrieveParticipants() {
         participantList.clear()
         val dbHelper = DbHelper(this)
-        sqlAccountId = ReceiptOverviewActivity.getSqlAccountId
+        sqlAccountId = ReceiptOverviewActivity.getSqlGroupId
         val reader = dbHelper.readableDatabase
-        val columns = arrayOf(DbManager.AccountTable.ACCOUNT_COL_PARTICIPANTS)
-        val selectClause = "${DbManager.AccountTable.ACCOUNT_COL_ID} = ?"
+        val columns = arrayOf(DbManager.GroupTable.GROUP_COL_PARTICIPANTS)
+        val selectClause = "${DbManager.GroupTable.GROUP_COL_ID} = ?"
         val selectArgs = arrayOf(sqlAccountId)
         val cursor: Cursor = reader.query(
-            DbManager.AccountTable.ACCOUNT_TABLE_NAME, columns, selectClause, selectArgs,
+            DbManager.GroupTable.GROUP_TABLE_NAME, columns, selectClause, selectArgs,
             null, null, null)
-        val particColIndex = cursor.getColumnIndexOrThrow(DbManager.AccountTable.ACCOUNT_COL_PARTICIPANTS)
+        val particColIndex = cursor.getColumnIndexOrThrow(DbManager.GroupTable.GROUP_COL_PARTICIPANTS)
         while (cursor.moveToNext()){
             val participantsString = cursor.getString(particColIndex)
             val splitParticipants = participantsString.split(",")
@@ -275,7 +275,7 @@ class NewReceiptCreationActivity : AppCompatActivity() {
             put(RECEIPT_COL_TOTAL, total)
             put(RECEIPT_COL_PAID_BY, paidBy)
             put(RECEIPT_COL_CONTRIBUTIONS, contributions)
-            put(RECEIPT_COL_FK_ACCOUNT_ID, sqlAccountId)
+            put(RECEIPT_COL_FK_GROUP_ID, sqlAccountId)
         }
         val sqlId = write.insert(RECEIPT_TABLE_NAME, null, values)
         dbHelper.close()

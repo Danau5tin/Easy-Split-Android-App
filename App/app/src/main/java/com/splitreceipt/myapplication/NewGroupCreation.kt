@@ -4,53 +4,51 @@ import android.content.ContentValues
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
-import android.widget.Toolbar
-import androidx.appcompat.app.ActionBar
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.splitreceipt.myapplication.data.DbManager.AccountTable.ACCOUNT_COL_BALANCES
-import com.splitreceipt.myapplication.data.DbManager.AccountTable.ACCOUNT_COL_CATEGORY
-import com.splitreceipt.myapplication.data.DbManager.AccountTable.ACCOUNT_COL_NAME
-import com.splitreceipt.myapplication.data.DbManager.AccountTable.ACCOUNT_COL_PARTICIPANTS
-import com.splitreceipt.myapplication.data.DbManager.AccountTable.ACCOUNT_COL_UNIQUE_ID
-import com.splitreceipt.myapplication.data.DbManager.AccountTable.ACCOUNT_TABLE_NAME
+import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_BALANCES
+import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_CATEGORY
+import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_NAME
+import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_PARTICIPANTS
+import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_UNIQUE_ID
+import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_TABLE_NAME
 import com.splitreceipt.myapplication.data.DbHelper
-import com.splitreceipt.myapplication.data.DbManager.AccountTable.ACCOUNT_COL_SETTLEMENTS
-import com.splitreceipt.myapplication.data.DbManager.AccountTable.ACCOUNT_COL_USER
-import com.splitreceipt.myapplication.data.ParticipantNewAccountData
-import com.splitreceipt.myapplication.databinding.ActivityNewAccountCreationBinding
+import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_SETTLEMENTS
+import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_USER
+import com.splitreceipt.myapplication.data.ParticipantNewGroupData
+import com.splitreceipt.myapplication.databinding.ActivityNewGroupCreationBinding
 import java.lang.StringBuilder
 
-class NewAccountCreation : AppCompatActivity(), NewAccountParticipantAdapter.onPartRowClick {
+class NewGroupCreation : AppCompatActivity(), NewGroupParticipantAdapter.onPartRowClick {
 
     /*
-    This activity allows the user to create a new account
+    This activity allows the user to create a new group
      */
 
-    private lateinit var binding: ActivityNewAccountCreationBinding
-    private lateinit var adapter: NewAccountParticipantAdapter
+    private lateinit var binding: ActivityNewGroupCreationBinding
+    private lateinit var adapter: NewGroupParticipantAdapter
     private lateinit var participantList: ArrayList<String>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityNewAccountCreationBinding.inflate(layoutInflater)
+        binding = ActivityNewGroupCreationBinding.inflate(layoutInflater)
         setContentView(binding.root)
         participantList = ArrayList()
-        adapter = NewAccountParticipantAdapter(participantList, this)
+        adapter = NewGroupParticipantAdapter(participantList, this)
         binding.newParticipantRecy.layoutManager = LinearLayoutManager(this)
         binding.newParticipantRecy.adapter = adapter
 
         setSupportActionBar(findViewById(R.id.toolbar))
-        supportActionBar?.title = "Add account"
+        supportActionBar?.title = "Add group"
         supportActionBar?.apply {
             setDisplayHomeAsUpEnabled(true)
             setDisplayShowHomeEnabled(true)
             setHomeAsUpIndicator(R.drawable.vector_x_white)
         }
+
 
     }
 
@@ -62,7 +60,7 @@ class NewAccountCreation : AppCompatActivity(), NewAccountParticipantAdapter.onP
         }
     }
 
-    private fun getNewParticipantData(creator: String): ParticipantNewAccountData {
+    private fun getNewParticipantData(creator: String): ParticipantNewGroupData {
         // Simple function is able to construct the strings required for SQL storage of both the participants and the original balances.
         val stringBuilderParticipant = StringBuilder()
         val stringBuilderBalance = StringBuilder()
@@ -84,7 +82,7 @@ class NewAccountCreation : AppCompatActivity(), NewAccountParticipantAdapter.onP
         }
         stringBuilderParticipant.deleteCharAt(stringBuilderParticipant.lastIndex)
         stringBuilderBalance.deleteCharAt(stringBuilderBalance.lastIndex)
-        return ParticipantNewAccountData(stringBuilderParticipant.toString(), stringBuilderBalance.toString())
+        return ParticipantNewGroupData(stringBuilderParticipant.toString(), stringBuilderBalance.toString())
     }
 
     fun addNewParticipantButton(view: View) {
@@ -100,51 +98,51 @@ class NewAccountCreation : AppCompatActivity(), NewAccountParticipantAdapter.onP
     }
 
     override fun onSupportNavigateUp(): Boolean {
-        Toast.makeText(this, "Account cancelled", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, "Group cancelled", Toast.LENGTH_SHORT).show()
         finish()
         onBackPressed()
         return super.onSupportNavigateUp()
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.add_account_menu, menu)
+        menuInflater.inflate(R.menu.add_group_menu, menu)
         return true
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
-            R.id.addAccountSave -> {
+            R.id.addGroupSave -> {
                 // TODO: Save the below results to Firebase and to an SQL db
-                val title: String = binding.accountTitleEditText.text.toString()
-                val accountUniqueId = "Pbhbdy46218" // TODO: Create an effective & secure way to create a Unique identifier
+                val title: String = binding.groupTitleEditText.text.toString()
+                val groupUniqueId = "Pbhbdy46218" // TODO: Create an effective & secure way to create a Unique identifier
                 val category = "House" // TODO: Get the toggle buttons value
 
                 val sqlUser: String = binding.yourNameEditText.text.toString()
                 checkIfUserForgotToAddPartic()
-                val participantData: ParticipantNewAccountData = getNewParticipantData(sqlUser)
+                val participantData: ParticipantNewGroupData = getNewParticipantData(sqlUser)
                 val participants: String = participantData.participantString
                 val balances: String = participantData.balanceString
                 val settlementString = "balanced"
 
                 val dbHelper = DbHelper(this)
                 val values: ContentValues = ContentValues().apply {
-                    put(ACCOUNT_COL_UNIQUE_ID, accountUniqueId)
-                    put(ACCOUNT_COL_NAME, title)
-                    put(ACCOUNT_COL_CATEGORY, category)
-                    put(ACCOUNT_COL_PARTICIPANTS, participants)
-                    put(ACCOUNT_COL_BALANCES, balances)
-                    put(ACCOUNT_COL_SETTLEMENTS, settlementString)
-                    put(ACCOUNT_COL_USER, sqlUser)
+                    put(GROUP_COL_UNIQUE_ID, groupUniqueId)
+                    put(GROUP_COL_NAME, title)
+                    put(GROUP_COL_CATEGORY, category)
+                    put(GROUP_COL_PARTICIPANTS, participants)
+                    put(GROUP_COL_BALANCES, balances)
+                    put(GROUP_COL_SETTLEMENTS, settlementString)
+                    put(GROUP_COL_USER, sqlUser)
                 }
                 val write = dbHelper.writableDatabase
-                val sqlRes = write.insert(ACCOUNT_TABLE_NAME, null, values)
+                val sqlRes = write.insert(GROUP_TABLE_NAME, null, values)
                 if (sqlRes.toInt() == -1) {
                     Toast.makeText(this, "Error #INSQ01. Contact Us", Toast.LENGTH_LONG).show()
                 } else {
                     val intent = Intent(this, ReceiptOverviewActivity::class.java)
-                    intent.putExtra(AccountScreenActivity.sqlIntentString, sqlRes.toString())
-                    intent.putExtra(AccountScreenActivity.userIntentString, sqlUser)
-                    intent.putExtra(AccountScreenActivity.accountNameIntentString, title)
+                    intent.putExtra(GroupScreenActivity.sqlIntentString, sqlRes.toString())
+                    intent.putExtra(GroupScreenActivity.userIntentString, sqlUser)
+                    intent.putExtra(GroupScreenActivity.groupNameIntentString, title)
                     startActivity(intent)
                     finish()
                 }

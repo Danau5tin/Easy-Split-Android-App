@@ -5,20 +5,22 @@ import android.content.Intent
 import android.database.Cursor
 import android.os.Bundle
 import android.util.Log
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_DATE
-import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_FK_ACCOUNT_ID
+import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_FK_GROUP_ID
 import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_PAID_BY
 import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_TITLE
 import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_TOTAL
 import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_TABLE_NAME
 import com.splitreceipt.myapplication.data.DbHelper
-import com.splitreceipt.myapplication.data.DbManager.AccountTable.ACCOUNT_COL_ID
-import com.splitreceipt.myapplication.data.DbManager.AccountTable.ACCOUNT_COL_SETTLEMENTS
-import com.splitreceipt.myapplication.data.DbManager.AccountTable.ACCOUNT_TABLE_NAME
+import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_ID
+import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_SETTLEMENTS
+import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_TABLE_NAME
 import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_ID
 import com.splitreceipt.myapplication.data.ReceiptData
 import com.splitreceipt.myapplication.databinding.ActivityMainBinding
@@ -29,20 +31,21 @@ import kotlin.text.StringBuilder
 
 class ReceiptOverviewActivity : AppCompatActivity(), ReceiptOverViewAdapter.onReceRowClick {
     /*
-    Activity shows the interior of a user account. Listing all prior expenses and
+    Activity shows the interior of a group. Listing all prior expenses and
     offering the user to create a new expense.
      */
 
     lateinit var binding: ActivityMainBinding
     lateinit var receiptList: ArrayList<ReceiptData>
     private lateinit var adapter: ReceiptOverViewAdapter
-    private val ADD_EXPENSE_RESULT = 20
     private val SEE_EXPENSE_RESULT = 10
+    private val ADD_EXPENSE_RESULT = 20
+    private val GROUP_SETTINGS_RESULT = 30
     private var userSettlementString = ""
 
     companion object {
         var getSqlUser: String? = "unknown"
-        var getSqlAccountId: String? = "-1"
+        var getSqlGroupId: String? = "-1"
         var settlementString: String  = ""
         var settlementArray: ArrayList<String> = ArrayList()
         const val balanced_string: String = "balanced"
@@ -82,32 +85,40 @@ class ReceiptOverviewActivity : AppCompatActivity(), ReceiptOverViewAdapter.onRe
         receiptList = ArrayList()
 
         // TODO: Ensure these are static like variables to avoid errors
-        getSqlAccountId = intent.getStringExtra(AccountScreenActivity.sqlIntentString)
-        getSqlUser = intent.getStringExtra(AccountScreenActivity.userIntentString)
-        val getAccountName = intent.getStringExtra(AccountScreenActivity.accountNameIntentString)
+        getSqlGroupId = intent.getStringExtra(GroupScreenActivity.sqlIntentString)
+        getSqlUser = intent.getStringExtra(GroupScreenActivity.userIntentString)
+        val getAccountName = intent.getStringExtra(GroupScreenActivity.groupNameIntentString)
         binding.accountNameTitleText.text = getAccountName
         val getFirebaseId = intent.getStringExtra("FirebaseID")
-        Toast.makeText(this, getSqlAccountId, Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, getSqlGroupId, Toast.LENGTH_SHORT).show()
 
-        loadPreviousReceipts(getSqlAccountId)
-        settlementString = loadSqlSettlementString(getSqlAccountId)
+        loadPreviousReceipts(getSqlGroupId)
+        settlementString = loadSqlSettlementString(getSqlGroupId)
         deconstructAndSetSettlementString(settlementString)
 
         adapter = ReceiptOverViewAdapter(receiptList, this)
         binding.mainActivityRecycler.layoutManager = LinearLayoutManager(this)
         binding.mainActivityRecycler.adapter = adapter
+
+        setSupportActionBar(findViewById(R.id.toolbar))
+        supportActionBar?.title = "Your group"
+        supportActionBar?.apply {
+            setDisplayHomeAsUpEnabled(true)
+            setDisplayShowHomeEnabled(true)
+            setHomeAsUpIndicator(R.drawable.vector_back_arrow_white)
+        }
     }
 
     private fun loadSqlSettlementString(sqlAccountId: String?): String {
         var settlementString: String = ""
         val dbHelper = DbHelper(this)
         val reader = dbHelper.readableDatabase
-        val columns = arrayOf(ACCOUNT_COL_SETTLEMENTS)
-        val selectClause = "$ACCOUNT_COL_ID = ?"
+        val columns = arrayOf(GROUP_COL_SETTLEMENTS)
+        val selectClause = "$GROUP_COL_ID = ?"
         val selectArgs = arrayOf(sqlAccountId)
-        val cursor: Cursor = reader.query(ACCOUNT_TABLE_NAME, columns, selectClause, selectArgs,
+        val cursor: Cursor = reader.query(GROUP_TABLE_NAME, columns, selectClause, selectArgs,
                         null, null, null)
-        val settlemnetIndex = cursor.getColumnIndexOrThrow(ACCOUNT_COL_SETTLEMENTS)
+        val settlemnetIndex = cursor.getColumnIndexOrThrow(GROUP_COL_SETTLEMENTS)
         while (cursor.moveToNext()) {
             settlementString = cursor.getString(settlemnetIndex)
         }
@@ -120,7 +131,7 @@ class ReceiptOverviewActivity : AppCompatActivity(), ReceiptOverViewAdapter.onRe
         val dbHelper = DbHelper(this)
         val reader = dbHelper.readableDatabase
         val columns = arrayOf(RECEIPT_COL_DATE, RECEIPT_COL_TITLE, RECEIPT_COL_TOTAL, RECEIPT_COL_PAID_BY, RECEIPT_COL_ID)
-        val selectClause = "$RECEIPT_COL_FK_ACCOUNT_ID = ?"
+        val selectClause = "$RECEIPT_COL_FK_GROUP_ID = ?"
         val selectArgs = arrayOf("$sqlId")
         val cursor: Cursor = reader.query(RECEIPT_TABLE_NAME, columns, selectClause, selectArgs,
                             null, null, "$RECEIPT_COL_ID DESC"
@@ -144,7 +155,7 @@ class ReceiptOverviewActivity : AppCompatActivity(), ReceiptOverViewAdapter.onRe
 
     fun addNewReceiptButton(view: View) {
         val intent = Intent(this, NewReceiptCreationActivity::class.java)
-        intent.putExtra(NewReceiptCreationActivity.intentSqlIdString, getSqlAccountId)
+        intent.putExtra(NewReceiptCreationActivity.intentSqlIdString, getSqlGroupId)
         startActivityForResult(intent, ADD_EXPENSE_RESULT)
     }
 
@@ -174,12 +185,16 @@ class ReceiptOverviewActivity : AppCompatActivity(), ReceiptOverViewAdapter.onRe
                 }
                 else {
                     // This scenario means the user edited the expense and re-balancing is already completed
-                    newSettlementString = data?.getStringExtra(ExpenseViewActivity
-                                                    .expenseReturnNewSettlements).toString()
+                    newSettlementString = data?.getStringExtra(ExpenseViewActivity.expenseReturnNewSettlements).toString()
                     reloadRecycler()
                 }
                 deconstructAndSetSettlementString(newSettlementString)
 
+            }
+        }
+        else if (requestCode == GROUP_SETTINGS_RESULT) {
+            if (resultCode == Activity.RESULT_OK) {
+                //TODO: Create functionality to handle group settings changes.
             }
         }
     }
@@ -219,7 +234,7 @@ class ReceiptOverviewActivity : AppCompatActivity(), ReceiptOverViewAdapter.onRe
     }
 
     fun newContributionUpdates(newContributions: String) : String {
-        val balanceSettlementHelper = BalanceSettlementHelper(this, getSqlAccountId.toString())
+        val balanceSettlementHelper = BalanceSettlementHelper(this, getSqlGroupId.toString())
         val settlementString = balanceSettlementHelper.recalculateBalancesAndSettlements(newContributions)
         reloadRecycler()
         return settlementString
@@ -228,7 +243,7 @@ class ReceiptOverviewActivity : AppCompatActivity(), ReceiptOverViewAdapter.onRe
     fun reloadRecycler(){
         // Clears the list and refreshes receipts from SQL db back into it.
         receiptList.clear()
-        loadPreviousReceipts(getSqlAccountId)
+        loadPreviousReceipts(getSqlGroupId)
         adapter.notifyDataSetChanged()
     }
 
@@ -237,13 +252,38 @@ class ReceiptOverviewActivity : AppCompatActivity(), ReceiptOverViewAdapter.onRe
         startActivity(intent)
     }
 
-    override fun onRowClick(pos: Int, title:String, total:String, sqlId: String, paidBy:String) {
+    override fun onRowClick(pos: Int, title:String, total:String, sqlRowId: String, paidBy:String) {
         val intent = Intent(this, ExpenseViewActivity::class.java)
         intent.putExtra(ExpenseViewActivity.expenseTitleIntentString, title)
         intent.putExtra(ExpenseViewActivity.expenseTotalIntentString, total)
-        intent.putExtra(ExpenseViewActivity.expenseSqlIntentString, sqlId)
+        intent.putExtra(ExpenseViewActivity.expenseSqlIntentString, sqlRowId)
         intent.putExtra(ExpenseViewActivity.expensePaidByIntentString, paidBy)
         startActivityForResult(intent, SEE_EXPENSE_RESULT)
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.group_options_menu, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.groupSettings -> {
+                val intent = Intent(this, GroupSettingsActivity::class.java)
+                startActivityForResult(intent, GROUP_SETTINGS_RESULT)
+                return true
+            }
+            R.id.groupBalances -> {
+                val intent = Intent(this, BalanceOverviewActivity::class.java)
+                startActivity(intent)
+                return true
+            }
+            R.id.export -> {
+                //TODO: Create export functionality.
+                return true
+            }
+            else -> return false
+        }
     }
 
 }

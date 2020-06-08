@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:title="Group Settings"
+        android:id="@+id/groupSettings"/>
+
+    <item android:title="View Group Totals"
+        android:id="@+id/groupBalances"/>
+
+    <item android:title="Export"
+        android:id="@+id/export"/>
+</menu>

@@ -7,7 +7,7 @@ import android.widget.ImageButton
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
-class NewAccountParticipantAdapter(var participantList: ArrayList<String>, var onPartRowClickInter: onPartRowClick) : RecyclerView.Adapter<NewAccountParticipantAdapter.ParticpantViewHolder>() {
+class NewGroupParticipantAdapter(var participantList: ArrayList<String>, var onPartRowClickInter: onPartRowClick) : RecyclerView.Adapter<NewGroupParticipantAdapter.ParticpantViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ParticpantViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         val view = inflater.inflate(R.layout.new_participant_recy_row, parent, false)

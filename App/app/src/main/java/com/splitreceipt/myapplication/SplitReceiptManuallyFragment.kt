@@ -167,6 +167,7 @@ class SplitReceiptManuallyFragment : Fragment(), NewManualReceiptRecyclerAdapter
                 fragmentManualParticipantList.add(ParticipantData(participant, zeroCurrency, true))
             }
         } else {
+            binding.currencyAmount.setText("") // Resets the amount to nothing so that if the user adds expense after editing the old edit amount will not show.
             for (participant in NewReceiptCreationActivity.participantDataEditList) {
                 fragmentManualParticipantList.add(participant)
                 if (!participant.contributing) {

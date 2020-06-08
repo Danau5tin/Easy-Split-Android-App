@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.splitreceipt.myapplication" >
+    package="com.splitreceipt.myapplication">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.CAMERA" />
@@ -11,13 +11,13 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme" >
-        <activity android:name=".ExpenseViewActivity" >
-        </activity>
+        android:theme="@style/AppTheme">
+        <activity android:name=".GroupSettingsActivity"></activity>
+        <activity android:name=".ExpenseViewActivity"></activity>
         <activity android:name=".BalanceOverviewActivity" />
         <activity android:name=".CurrencySelectorActivity" />
-        <activity android:name=".NewAccountCreation" />
-        <activity android:name=".AccountScreenActivity" >
+        <activity android:name=".NewGroupCreation" />
+        <activity android:name=".GroupScreenActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

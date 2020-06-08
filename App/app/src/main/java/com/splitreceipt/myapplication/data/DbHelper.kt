@@ -3,15 +3,15 @@ package com.splitreceipt.myapplication.data
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
-import com.splitreceipt.myapplication.data.DbManager.AccountTable.ACCOUNT_COL_BALANCES
-import com.splitreceipt.myapplication.data.DbManager.AccountTable.ACCOUNT_COL_CATEGORY
-import com.splitreceipt.myapplication.data.DbManager.AccountTable.ACCOUNT_COL_NAME
-import com.splitreceipt.myapplication.data.DbManager.AccountTable.ACCOUNT_COL_ID
-import com.splitreceipt.myapplication.data.DbManager.AccountTable.ACCOUNT_COL_PARTICIPANTS
-import com.splitreceipt.myapplication.data.DbManager.AccountTable.ACCOUNT_COL_UNIQUE_ID
-import com.splitreceipt.myapplication.data.DbManager.AccountTable.ACCOUNT_COL_SETTLEMENTS
-import com.splitreceipt.myapplication.data.DbManager.AccountTable.ACCOUNT_COL_USER
-import com.splitreceipt.myapplication.data.DbManager.AccountTable.ACCOUNT_TABLE_NAME
+import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_BALANCES
+import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_CATEGORY
+import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_NAME
+import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_ID
+import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_PARTICIPANTS
+import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_UNIQUE_ID
+import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_SETTLEMENTS
+import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_USER
+import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_TABLE_NAME
 import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_COL_FK_RECEIPT_ID
 import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_COL_ID
 import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_COL_NAME
@@ -20,7 +20,7 @@ import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_COL
 import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_TABLE_NAME
 import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_CONTRIBUTIONS
 import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_DATE
-import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_FK_ACCOUNT_ID
+import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_FK_GROUP_ID
 import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_ID
 import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_PAID_BY
 import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_TITLE
@@ -37,16 +37,16 @@ class DbHelper(context: Context) : SQLiteOpenHelper(context,
         private const val DATABASE_NAME = "newdata.db"
         private const val DATABASE_VERSION = 1
 
-        private const val CREATE_ACCOUNT_TABLE = "CREATE TABLE $ACCOUNT_TABLE_NAME (" +
-                "$ACCOUNT_COL_ID INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                "$ACCOUNT_COL_UNIQUE_ID TEXT, " +
-                "$ACCOUNT_COL_NAME TEXT, " +
-                "$ACCOUNT_COL_CATEGORY TEXT, " +
-                "$ACCOUNT_COL_PARTICIPANTS TEXT, " +
-                "$ACCOUNT_COL_BALANCES TEXT, " +
-                "$ACCOUNT_COL_SETTLEMENTS TEXT," +
-                "$ACCOUNT_COL_USER TEXT)"
-        private const val DELETE_ACCOUNT_ENTRIES = "DROP TABLE IF EXISTS $ACCOUNT_TABLE_NAME"
+        private const val CREATE_GROUP_TABLE = "CREATE TABLE $GROUP_TABLE_NAME (" +
+                "$GROUP_COL_ID INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "$GROUP_COL_UNIQUE_ID TEXT, " +
+                "$GROUP_COL_NAME TEXT, " +
+                "$GROUP_COL_CATEGORY TEXT, " +
+                "$GROUP_COL_PARTICIPANTS TEXT, " +
+                "$GROUP_COL_BALANCES TEXT, " +
+                "$GROUP_COL_SETTLEMENTS TEXT," +
+                "$GROUP_COL_USER TEXT)"
+        private const val DELETE_GROUP_ENTRIES = "DROP TABLE IF EXISTS $GROUP_TABLE_NAME"
 
         private const val CREATE_RECEIPT_TABLE = "CREATE TABLE $RECEIPT_TABLE_NAME (" +
                 "$RECEIPT_COL_ID INTEGER PRIMARY KEY AUTOINCREMENT, " +
@@ -55,10 +55,10 @@ class DbHelper(context: Context) : SQLiteOpenHelper(context,
                 "$RECEIPT_COL_TITLE TEXT, " +
                 "$RECEIPT_COL_TOTAL REAL, " +
                 "$RECEIPT_COL_PAID_BY TEXT, " +
-                "$RECEIPT_COL_FK_ACCOUNT_ID INTEGER, " +
+                "$RECEIPT_COL_FK_GROUP_ID INTEGER, " +
                 "$RECEIPT_COL_CONTRIBUTIONS TEXT, " +
-                "FOREIGN KEY ($RECEIPT_COL_FK_ACCOUNT_ID) REFERENCES $ACCOUNT_TABLE_NAME" +
-                "($ACCOUNT_COL_ID) ON DELETE CASCADE)"
+                "FOREIGN KEY ($RECEIPT_COL_FK_GROUP_ID) REFERENCES $GROUP_TABLE_NAME" +
+                "($GROUP_COL_ID) ON DELETE CASCADE)"
         private const val DELETE_RECEIPT_ENTRIES = "DROP TABLE IF EXISTS $RECEIPT_TABLE_NAME"
 
         private const val CREATE_RECEIPT_ITEMS_TABLE = "CREATE TABLE $ITEMS_TABLE_NAME (" +
@@ -78,14 +78,14 @@ class DbHelper(context: Context) : SQLiteOpenHelper(context,
     }
 
     override fun onCreate(db: SQLiteDatabase?) {
-        db!!.execSQL(CREATE_ACCOUNT_TABLE)
+        db!!.execSQL(CREATE_GROUP_TABLE)
         db.execSQL(CREATE_RECEIPT_TABLE)
         db.execSQL(CREATE_RECEIPT_ITEMS_TABLE)
 
     }
 
     override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
-        db!!.execSQL(DELETE_ACCOUNT_ENTRIES)
+        db!!.execSQL(DELETE_GROUP_ENTRIES)
         db.execSQL(DELETE_RECEIPT_ENTRIES)
         db.execSQL(DELETE_RECEIPT_ITEMS_ENTRIES)
     }

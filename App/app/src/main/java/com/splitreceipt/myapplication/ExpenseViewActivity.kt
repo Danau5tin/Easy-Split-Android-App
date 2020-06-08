@@ -142,7 +142,7 @@ class ExpenseViewActivity : AppCompatActivity() {
                 val prevContributionString: String = contributionString // For readability
                 val contributionsChanged: Boolean = prevContributionString != newContribString
                 var calculatedContributions: String = newContribString
-                val balSetHelper = BalanceSettlementHelper(this, ReceiptOverviewActivity.getSqlAccountId.toString())
+                val balSetHelper = BalanceSettlementHelper(this, ReceiptOverviewActivity.getSqlGroupId.toString())
 
                 if (contributionsChanged) {
                     val paidByUnchanged: Boolean = newPaidBy == getPaidByIntent

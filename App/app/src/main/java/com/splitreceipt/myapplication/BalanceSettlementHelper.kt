@@ -44,11 +44,11 @@ class BalanceSettlementHelper(var context: Context, var accountSqlRow: String) {
         var previousBalString = ""
         val dbHelper = DbHelper(context)
         val reader = dbHelper.readableDatabase
-        val columns = arrayOf(DbManager.AccountTable.ACCOUNT_COL_BALANCES)
-        val selectClause = "${DbManager.AccountTable.ACCOUNT_COL_ID} = ?"
+        val columns = arrayOf(DbManager.GroupTable.GROUP_COL_BALANCES)
+        val selectClause = "${DbManager.GroupTable.GROUP_COL_ID} = ?"
         val selectArgs = arrayOf(accountSqlRow)
-        val cursor: Cursor = reader.query(DbManager.AccountTable.ACCOUNT_TABLE_NAME, columns, selectClause, selectArgs, null, null, null)
-        val balColInd = cursor.getColumnIndexOrThrow(DbManager.AccountTable.ACCOUNT_COL_BALANCES)
+        val cursor: Cursor = reader.query(DbManager.GroupTable.GROUP_TABLE_NAME, columns, selectClause, selectArgs, null, null, null)
+        val balColInd = cursor.getColumnIndexOrThrow(DbManager.GroupTable.GROUP_COL_BALANCES)
         while (cursor.moveToNext()) {
             previousBalString = cursor.getString(balColInd)
         }
@@ -223,12 +223,12 @@ class BalanceSettlementHelper(var context: Context, var accountSqlRow: String) {
         val dbHelper = DbHelper(context)
         val writer = dbHelper.writableDatabase
         val values = ContentValues().apply {
-            put(DbManager.AccountTable.ACCOUNT_COL_BALANCES, balString)
-            put(DbManager.AccountTable.ACCOUNT_COL_SETTLEMENTS, whoOwesWho)
+            put(DbManager.GroupTable.GROUP_COL_BALANCES, balString)
+            put(DbManager.GroupTable.GROUP_COL_SETTLEMENTS, whoOwesWho)
         }
-        val where = "${DbManager.AccountTable.ACCOUNT_COL_ID} = ?"
+        val where = "${DbManager.GroupTable.GROUP_COL_ID} = ?"
         val whereargs = arrayOf(accountSqlRow)
-        val id = writer.update(DbManager.AccountTable.ACCOUNT_TABLE_NAME, values, where, whereargs)
+        val id = writer.update(DbManager.GroupTable.GROUP_TABLE_NAME, values, where, whereargs)
         if (id != -1) {
             Log.i("TEST", "Successful upload of new balance string & settlement string")
         }

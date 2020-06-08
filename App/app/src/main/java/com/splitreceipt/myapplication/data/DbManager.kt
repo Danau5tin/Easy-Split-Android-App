@@ -4,16 +4,16 @@ import android.provider.BaseColumns
 
 object DbManager {
 
-    object AccountTable : BaseColumns {
-        const val ACCOUNT_TABLE_NAME = "user_accounts"
-        const val ACCOUNT_COL_ID = BaseColumns._ID
-        const val ACCOUNT_COL_UNIQUE_ID = "account_unique_id"
-        const val ACCOUNT_COL_NAME = "account_name"
-        const val ACCOUNT_COL_CATEGORY = "category"
-        const val ACCOUNT_COL_PARTICIPANTS = "items"
-        const val ACCOUNT_COL_BALANCES = "balances_string"
-        const val ACCOUNT_COL_SETTLEMENTS = "settlements"
-        const val ACCOUNT_COL_USER = "sql_user"
+    object GroupTable : BaseColumns {
+        const val GROUP_TABLE_NAME = "user_groups"
+        const val GROUP_COL_ID = BaseColumns._ID
+        const val GROUP_COL_UNIQUE_ID = "group_unique_id"
+        const val GROUP_COL_NAME = "group_name"
+        const val GROUP_COL_CATEGORY = "category"
+        const val GROUP_COL_PARTICIPANTS = "items"
+        const val GROUP_COL_BALANCES = "balances_string"
+        const val GROUP_COL_SETTLEMENTS = "settlements"
+        const val GROUP_COL_USER = "sql_user"
     }
 
     object ReceiptTable: BaseColumns {
@@ -25,7 +25,7 @@ object DbManager {
         const val RECEIPT_COL_TOTAL = "total_cost"
         const val RECEIPT_COL_PAID_BY = "paid_by"
         const val RECEIPT_COL_CONTRIBUTIONS = "contributions"
-        const val RECEIPT_COL_FK_ACCOUNT_ID = "account_id"
+        const val RECEIPT_COL_FK_GROUP_ID = "group_id"
     }
 
     object ReceiptItemsTable: BaseColumns {

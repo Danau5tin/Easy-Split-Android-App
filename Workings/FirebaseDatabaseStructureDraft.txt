@@ -1,4 +1,4 @@
-AccountId
+GroupId
 |	|
 |	--- Info
 |	|	|
@@ -48,7 +48,7 @@ Users
 
 
 Rules:
-AccountId == accountID(given by user) then read and write access is allowed.
+GroupId == groupID(given by user) then read and write access is allowed.
 
 Spec:
 	- Users do not have to sign up to the use the app so no authid should be considered 
