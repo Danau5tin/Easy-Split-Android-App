@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "361660001652",
+    "firebase_url": "https://splitreceiptproject.firebaseio.com",
+    "project_id": "splitreceiptproject",
+    "storage_bucket": "splitreceiptproject.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:361660001652:android:984bf32ffc69a0e49b5021",
+        "android_client_info": {
+          "package_name": "com.splitreceipt.myapplication"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "361660001652-u1rtt1ut3uluh37j3ivn4mbrrkblnldv.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.splitreceipt.myapplication",
+            "certificate_hash": "b760f662d2601d935411c73de27692fcd2e95681"
+          }
+        },
+        {
+          "client_id": "361660001652-p4oo32lnsql4no7u28f4tsl7s91aff3u.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBzO_IGphc-VJsFLCinG0lYeADVOsgGKy8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "361660001652-p4oo32lnsql4no7u28f4tsl7s91aff3u.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

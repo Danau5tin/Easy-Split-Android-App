@@ -3,6 +3,8 @@ package com.splitreceipt.myapplication
 import android.app.Activity
 import android.content.Intent
 import android.database.Cursor
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
@@ -11,23 +13,30 @@ import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_DATE
-import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_FK_GROUP_ID
-import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_PAID_BY
-import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_TITLE
-import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_TOTAL
-import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_TABLE_NAME
+import com.google.android.gms.tasks.OnFailureListener
+import com.google.android.gms.tasks.OnSuccessListener
+import com.google.firebase.storage.FileDownloadTask
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.StorageReference
 import com.splitreceipt.myapplication.data.DbHelper
 import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_ID
 import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_SETTLEMENTS
 import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_TABLE_NAME
+import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_DATE
+import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_FK_GROUP_ID
 import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_ID
+import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_PAID_BY
+import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_TITLE
+import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_TOTAL
+import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_TABLE_NAME
 import com.splitreceipt.myapplication.data.ReceiptData
 import com.splitreceipt.myapplication.databinding.ActivityMainBinding
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileNotFoundException
 import java.math.RoundingMode
 import java.text.DecimalFormat
-import kotlin.collections.ArrayList
-import kotlin.text.StringBuilder
+
 
 class ReceiptOverviewActivity : AppCompatActivity(), ReceiptOverViewAdapter.onReceRowClick {
     /*
@@ -37,6 +46,7 @@ class ReceiptOverviewActivity : AppCompatActivity(), ReceiptOverViewAdapter.onRe
 
     lateinit var binding: ActivityMainBinding
     lateinit var receiptList: ArrayList<ReceiptData>
+    private lateinit var storageRef: StorageReference
     private lateinit var adapter: ReceiptOverViewAdapter
     private val SEE_EXPENSE_RESULT = 10
     private val ADD_EXPENSE_RESULT = 20
@@ -49,6 +59,7 @@ class ReceiptOverviewActivity : AppCompatActivity(), ReceiptOverViewAdapter.onRe
         var settlementString: String  = ""
         var settlementArray: ArrayList<String> = ArrayList()
         const val balanced_string: String = "balanced"
+        const val ImagePathIntent = "path"
 
         fun changeNameToYou(participantName: String, capitalize: Boolean): String {
             return if (participantName == getSqlUser) {
@@ -83,6 +94,7 @@ class ReceiptOverviewActivity : AppCompatActivity(), ReceiptOverViewAdapter.onRe
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         receiptList = ArrayList()
+        storageRef = FirebaseStorage.getInstance().reference
 
         // TODO: Ensure these are static like variables to avoid errors
         getSqlGroupId = intent.getStringExtra(GroupScreenActivity.sqlIntentString)
@@ -106,6 +118,29 @@ class ReceiptOverviewActivity : AppCompatActivity(), ReceiptOverViewAdapter.onRe
             setDisplayHomeAsUpEnabled(true)
             setDisplayShowHomeEnabled(true)
             setHomeAsUpIndicator(R.drawable.vector_back_arrow_white)
+        }
+        val path = intent.getStringExtra(ImagePathIntent)
+        loadImageFromStorage(path!!) //TODO: Ensure the prior activity has completed its save activity.
+
+
+//        val localFile = File.createTempFile("images", "jpg")
+//        val userStorageRef = storageRef.child("userID")
+//        userStorageRef.getFile(localFile)
+//            .addOnSuccessListener {
+//                val my_image: Bitmap = BitmapFactory.decodeFile(localFile.absolutePath)
+//                binding.groupProfileImage.setImageBitmap(my_image)
+//            }.addOnFailureListener {
+//                Toast.makeText(this, "Failed", Toast.LENGTH_SHORT).show()
+//            }
+    }
+
+    private fun loadImageFromStorage(path: String) {
+        try {
+            val f = File(path, "profile.jpg")
+            val b = BitmapFactory.decodeStream(FileInputStream(f))
+            binding.groupProfileImage.setImageBitmap(b)
+        } catch (e: FileNotFoundException) {
+            e.printStackTrace()
         }
     }
 

@@ -100,7 +100,7 @@
         app:layout_constraintTop_toBottomOf="@+id/receiptOverBalanceString" />
 
     <ImageView
-        android:id="@+id/imageView"
+        android:id="@+id/groupProfileImage"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginStart="30dp"

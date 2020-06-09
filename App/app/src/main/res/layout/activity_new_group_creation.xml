@@ -13,22 +13,35 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <de.hdodenhof.circleimageview.CircleImageView
+        android:id="@+id/newGroupImage"
+        android:layout_width="96dp"
+        android:layout_height="96dp"
+        android:layout_marginTop="16dp"
+        app:civ_border_color="@android:color/white"
+        app:civ_border_width="2dp"
+        android:onClick="newGroupImageButton"
+        android:src="@drawable/vector_person_green"
+        app:layout_constraintStart_toStartOf="@+id/leftGuideline"
+        app:layout_constraintTop_toBottomOf="@+id/toolbar" />
+
+
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/groupTitleText"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        app:layout_constraintBottom_toBottomOf="@+id/imageButton5"
+        app:layout_constraintBottom_toBottomOf="@+id/newGroupImage"
         app:layout_constraintEnd_toStartOf="@+id/rightGuideline"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toEndOf="@+id/imageButton5"
-        app:layout_constraintTop_toTopOf="@+id/imageButton5">
+        app:layout_constraintStart_toEndOf="@+id/newGroupImage"
+        app:layout_constraintTop_toTopOf="@+id/newGroupImage">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/groupTitleEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/item_title_hint" />
+
     </com.google.android.material.textfield.TextInputLayout>
 
     <androidx.constraintlayout.widget.Guideline
@@ -94,7 +107,7 @@
         android:id="@+id/toggleButton5"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="24dp"
         android:text="ToggleButton"
         android:textOff="Apartment"
         app:layout_constraintStart_toStartOf="@+id/leftGuideline"
@@ -161,14 +174,5 @@
         app:layout_constraintBottom_toBottomOf="@+id/textInputLayout2"
         app:layout_constraintEnd_toStartOf="@+id/rightGuideline"
         app:layout_constraintTop_toTopOf="@+id/textInputLayout2" />
-
-    <ImageButton
-        android:id="@+id/imageButton5"
-        android:layout_width="55dp"
-        android:layout_height="62dp"
-        android:layout_marginTop="24dp"
-        app:layout_constraintStart_toStartOf="@+id/leftGuideline"
-        app:layout_constraintTop_toBottomOf="@+id/toolbar"
-        app:srcCompat="@drawable/vector_person_green" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
