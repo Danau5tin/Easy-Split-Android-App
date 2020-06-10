@@ -10,7 +10,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.splitreceipt.myapplication.data.GroupData
 import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_ID
 import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_NAME
-import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_UNIQUE_ID
+import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_FIREBASE_ID
 import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_TABLE_NAME
 import com.splitreceipt.myapplication.data.DbHelper
 import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_USER
@@ -26,6 +26,7 @@ class GroupScreenActivity : AppCompatActivity() {
 
     companion object {
         var sqlIntentString: String = "sqlID"
+        var firebaseIntentString: String = "fireBaseId"
         var userIntentString: String = "user"
         var groupNameIntentString: String = "groupName"
     }
@@ -49,11 +50,11 @@ class GroupScreenActivity : AppCompatActivity() {
         var groupsFound = false
         val dbHelper = DbHelper(this)
         val reader = dbHelper.readableDatabase
-        val columns = arrayOf(GROUP_COL_ID, GROUP_COL_NAME, GROUP_COL_UNIQUE_ID, GROUP_COL_USER)
+        val columns = arrayOf(GROUP_COL_ID, GROUP_COL_NAME, GROUP_COL_FIREBASE_ID, GROUP_COL_USER)
         val cursor: Cursor = reader.query(GROUP_TABLE_NAME, columns, null, null, null, null, null)
         val groupNameColIndex = cursor.getColumnIndexOrThrow(GROUP_COL_NAME)
         val groupSqlIdIndex = cursor.getColumnIndexOrThrow(GROUP_COL_ID)
-        val groupFirebaseIdIndex = cursor.getColumnIndexOrThrow(GROUP_COL_UNIQUE_ID)
+        val groupFirebaseIdIndex = cursor.getColumnIndexOrThrow(GROUP_COL_FIREBASE_ID)
         val groupSqlUserIndex = cursor.getColumnIndexOrThrow(GROUP_COL_USER)
         while (cursor.moveToNext()) {
             groupsFound = true
@@ -64,7 +65,7 @@ class GroupScreenActivity : AppCompatActivity() {
             groupList.add(GroupData(groupName, groupSqlID, groupFirebaseID, groupSqlUser))
         }
         cursor.close()
-        if (groupsFound) {return true} else {return false}
+        return groupsFound
     }
 
 

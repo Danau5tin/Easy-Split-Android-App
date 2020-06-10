@@ -7,7 +7,7 @@ object DbManager {
     object GroupTable : BaseColumns {
         const val GROUP_TABLE_NAME = "user_groups"
         const val GROUP_COL_ID = BaseColumns._ID
-        const val GROUP_COL_UNIQUE_ID = "group_unique_id"
+        const val GROUP_COL_FIREBASE_ID = "group_unique_id"
         const val GROUP_COL_NAME = "group_name"
         const val GROUP_COL_CATEGORY = "category"
         const val GROUP_COL_PARTICIPANTS = "items"

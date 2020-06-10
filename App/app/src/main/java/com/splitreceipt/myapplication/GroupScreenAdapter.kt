@@ -43,7 +43,7 @@ class GroupScreenAdapter(val groupNameList: ArrayList<GroupData>) : RecyclerView
             val intent = Intent(context, ReceiptOverviewActivity::class.java)
             //TODO: Ensure the firebase ID Is relevant and a static variable
             intent.putExtra(GroupScreenActivity.sqlIntentString, sqlId)
-            intent.putExtra("FirebaseID", sqlId)
+            intent.putExtra(GroupScreenActivity.firebaseIntentString, firebaseId)
             intent.putExtra(GroupScreenActivity.userIntentString, sqlUser)
             intent.putExtra(GroupScreenActivity.groupNameIntentString, titleText.text.toString())
             context.startActivity(intent)

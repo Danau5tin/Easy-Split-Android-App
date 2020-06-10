@@ -1,11 +1,13 @@
 package com.splitreceipt.myapplication
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.database.Cursor
-import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
@@ -13,9 +15,6 @@ import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.google.android.gms.tasks.OnFailureListener
-import com.google.android.gms.tasks.OnSuccessListener
-import com.google.firebase.storage.FileDownloadTask
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
 import com.splitreceipt.myapplication.data.DbHelper
@@ -59,7 +58,8 @@ class ReceiptOverviewActivity : AppCompatActivity(), ReceiptOverViewAdapter.onRe
         var settlementString: String  = ""
         var settlementArray: ArrayList<String> = ArrayList()
         const val balanced_string: String = "balanced"
-        const val ImagePathIntent = "path"
+        const val ImagePathIntent = "path_intent"
+        const val UriIntent = "uri_intent"
 
         fun changeNameToYou(participantName: String, capitalize: Boolean): String {
             return if (participantName == getSqlUser) {
@@ -95,14 +95,11 @@ class ReceiptOverviewActivity : AppCompatActivity(), ReceiptOverViewAdapter.onRe
         setContentView(binding.root)
         receiptList = ArrayList()
         storageRef = FirebaseStorage.getInstance().reference
-
-        // TODO: Ensure these are static like variables to avoid errors
         getSqlGroupId = intent.getStringExtra(GroupScreenActivity.sqlIntentString)
         getSqlUser = intent.getStringExtra(GroupScreenActivity.userIntentString)
         val getAccountName = intent.getStringExtra(GroupScreenActivity.groupNameIntentString)
         binding.accountNameTitleText.text = getAccountName
-        val getFirebaseId = intent.getStringExtra("FirebaseID")
-        Toast.makeText(this, getSqlGroupId, Toast.LENGTH_SHORT).show()
+        val getFirebaseId = intent.getStringExtra(GroupScreenActivity.firebaseIntentString)
 
         loadPreviousReceipts(getSqlGroupId)
         settlementString = loadSqlSettlementString(getSqlGroupId)
@@ -119,9 +116,18 @@ class ReceiptOverviewActivity : AppCompatActivity(), ReceiptOverViewAdapter.onRe
             setDisplayShowHomeEnabled(true)
             setHomeAsUpIndicator(R.drawable.vector_back_arrow_white)
         }
-        val path = intent.getStringExtra(ImagePathIntent)
-        loadImageFromStorage(path!!) //TODO: Ensure the prior activity has completed its save activity.
 
+        if (intent.getStringExtra(UriIntent) != null){
+            /*
+            New Group was just created by user, load the image Uri that has been passed as String as
+            the image is likely still being saved in an AsyncTask.
+             */
+            val uriImage: Uri = Uri.parse(intent.getStringExtra(UriIntent))
+            binding.groupProfileImage.setImageURI(uriImage)
+        } else {
+            //Group has already been created and user is re-entering the group, load internally saved image
+            loadImageFromStorage(getFirebaseId!!)
+        }
 
 //        val localFile = File.createTempFile("images", "jpg")
 //        val userStorageRef = storageRef.child("userID")
@@ -134,9 +140,10 @@ class ReceiptOverviewActivity : AppCompatActivity(), ReceiptOverViewAdapter.onRe
 //            }
     }
 
-    private fun loadImageFromStorage(path: String) {
+    private fun loadImageFromStorage(fileName: String, extension: String=".jpg") {
         try {
-            val f = File(path, "profile.jpg")
+            val directory: File = getDir("imageDir", Context.MODE_PRIVATE)
+            val f = File(directory, "$fileName$extension")
             val b = BitmapFactory.decodeStream(FileInputStream(f))
             binding.groupProfileImage.setImageBitmap(b)
         } catch (e: FileNotFoundException) {
@@ -215,12 +222,14 @@ class ReceiptOverviewActivity : AppCompatActivity(), ReceiptOverViewAdapter.onRe
                     // This scenario means the user deleted the expense and re-balancing must be done
                     val reversedContributions = data?.getStringExtra(ExpenseViewActivity
                         .expenseReturnNewContributions)
-                    Log.i("Algorithm", "Reversed contribution string returned from the recent deletion: $reversedContributions \n\n")
+                    Log.i("Algorithm", "Reversed contribution string returned from the " +
+                                                    "recent deletion: $reversedContributions")
                     newSettlementString = newContributionUpdates(reversedContributions!!)
                 }
                 else {
                     // This scenario means the user edited the expense and re-balancing is already completed
-                    newSettlementString = data?.getStringExtra(ExpenseViewActivity.expenseReturnNewSettlements).toString()
+                    newSettlementString = data.getStringExtra(ExpenseViewActivity.
+                                                        expenseReturnNewSettlements)!!.toString()
                     reloadRecycler()
                 }
                 deconstructAndSetSettlementString(newSettlementString)

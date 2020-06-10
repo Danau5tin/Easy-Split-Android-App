@@ -18,10 +18,10 @@
         android:layout_width="96dp"
         android:layout_height="96dp"
         android:layout_marginTop="16dp"
-        app:civ_border_color="@android:color/white"
-        app:civ_border_width="2dp"
         android:onClick="newGroupImageButton"
         android:src="@drawable/vector_person_green"
+        app:civ_border_color="@android:color/darker_gray"
+        app:civ_border_width="3dp"
         app:layout_constraintStart_toStartOf="@+id/leftGuideline"
         app:layout_constraintTop_toBottomOf="@+id/toolbar" />
 
@@ -107,11 +107,11 @@
         android:id="@+id/toggleButton5"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="8dp"
         android:text="ToggleButton"
         android:textOff="Apartment"
         app:layout_constraintStart_toStartOf="@+id/leftGuideline"
-        app:layout_constraintTop_toBottomOf="@+id/groupTitleText" />
+        app:layout_constraintTop_toBottomOf="@+id/newGroupImage" />
 
     <ToggleButton
         android:id="@+id/toggleButton6"

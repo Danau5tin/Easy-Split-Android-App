@@ -10,6 +10,8 @@ import android.database.Cursor
 import android.graphics.Bitmap
 import android.graphics.Matrix
 import android.net.Uri
+import android.os.AsyncTask
+import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
@@ -17,6 +19,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -28,7 +31,7 @@ import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_CATEGO
 import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_NAME
 import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_PARTICIPANTS
 import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_SETTLEMENTS
-import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_UNIQUE_ID
+import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_FIREBASE_ID
 import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_USER
 import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_TABLE_NAME
 import com.splitreceipt.myapplication.data.ParticipantNewGroupData
@@ -51,10 +54,17 @@ class NewGroupCreation : AppCompatActivity(), NewGroupParticipantAdapter.onPartR
     private val PICK_IMAGE: Int = 10
     private val REQUEST_STORAGE = 20
     private var path = ""
+    private var newBitmap: Bitmap? = null
+
+    companion object {
+        var profileImageSavedLocally: Boolean = false
+        const val imageDir: String = "imageDir"
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityNewGroupCreationBinding.inflate(layoutInflater)
+        profileImageSavedLocally = false
         setContentView(binding.root)
         participantList = ArrayList()
         storageReference = FirebaseStorage.getInstance().reference
@@ -69,14 +79,12 @@ class NewGroupCreation : AppCompatActivity(), NewGroupParticipantAdapter.onPartR
             setDisplayShowHomeEnabled(true)
             setHomeAsUpIndicator(R.drawable.vector_x_white)
         }
-
-
     }
 
     private fun checkIfUserForgotToAddPartic() {
         //This function will add any name left in the add recipient text box presuming the user wanted to add them.
         val newPart = binding.newParticipantName.text.toString()
-        if (newPart.length >= 1){
+        if (newPart.isNotEmpty()){
             participantList.add(newPart)
         }
     }
@@ -135,7 +143,7 @@ class NewGroupCreation : AppCompatActivity(), NewGroupParticipantAdapter.onPartR
             R.id.addGroupSave -> {
                 // TODO: Save the below results to Firebase and to an SQL db
                 val title: String = binding.groupTitleEditText.text.toString()
-                val groupUniqueId = "Pbhbdy46218" // TODO: Create an effective & secure way to create a Unique identifier
+                val groupFirebaseId = "Pbhbdy46218" // TODO: Create an effective & secure way to create a Unique identifier
                 val category = "House" // TODO: Get the toggle buttons value
 
                 val sqlUser: String = binding.yourNameEditText.text.toString()
@@ -147,7 +155,7 @@ class NewGroupCreation : AppCompatActivity(), NewGroupParticipantAdapter.onPartR
 
                 val dbHelper = DbHelper(this)
                 val values: ContentValues = ContentValues().apply {
-                    put(GROUP_COL_UNIQUE_ID, groupUniqueId)
+                    put(GROUP_COL_FIREBASE_ID, groupFirebaseId)
                     put(GROUP_COL_NAME, title)
                     put(GROUP_COL_CATEGORY, category)
                     put(GROUP_COL_PARTICIPANTS, participants)
@@ -161,6 +169,14 @@ class NewGroupCreation : AppCompatActivity(), NewGroupParticipantAdapter.onPartR
                     Toast.makeText(this, "Error #INSQ01. Contact Us", Toast.LENGTH_LONG).show()
                 } else {
                     val intent = Intent(this, ReceiptOverviewActivity::class.java)
+                    if (newBitmap == null){
+                        //User has not uploaded an group profile image
+                        //TODO: Set a standard image depending on which category button was pressed
+                    } else {
+                        //User has uploaded a group profile image
+                        path = ASyncSaveFile(newBitmap!!,this, groupFirebaseId).toString()
+                        intent.putExtra(ReceiptOverviewActivity.ImagePathIntent, path)
+                    }
                     intent.putExtra(GroupScreenActivity.sqlIntentString, sqlRes.toString())
                     intent.putExtra(GroupScreenActivity.userIntentString, sqlUser)
                     intent.putExtra(GroupScreenActivity.groupNameIntentString, title)
@@ -203,25 +219,61 @@ class NewGroupCreation : AppCompatActivity(), NewGroupParticipantAdapter.onPartR
         startActivityForResult(intent, PICK_IMAGE)
     }
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == PICK_IMAGE) {
             if (resultCode == Activity.RESULT_OK) {
                 val uri: Uri? = data!!.data
+                binding.newGroupImage.setImageURI(uri)
                 val bitmap: Bitmap = MediaStore.Images.Media.getBitmap(contentResolver, uri)
-                val newBitmap = rotateBitmap(this, uri, bitmap)
-
-                path = saveToInternalStorage(newBitmap!!) //TODO: Put this in an A-Sync task
-                                                        //TODO: Select the file name to be relevant to the group so there are no clashes.
-                intent.putExtra(ReceiptOverviewActivity.ImagePathIntent, path)
-                binding.newGroupImage.setImageBitmap(newBitmap)
-                //TODO: Store the image internally.
-                //TODO: Store the image with Firebase and create logic in DB so that all members of the group can download a new image if profile picture is ever c hanged.
+                newBitmap = rotateBitmap(this, uri, bitmap)
+                intent.putExtra(ReceiptOverviewActivity.UriIntent, uri.toString())
+                //TODO: Store the image with Firebase and create logic in DB so that all members of the group can download a new image if profile picture is ever changed.
             }
         }
-
     }
 
+    private class ASyncSaveFile(bitmapImage: Bitmap, private var context: Context,
+                                private var filename: String, private var extension: String=".jpg") :
+        AsyncTask<Bitmap, Void, String>() {
+
+        private var bitmap: Bitmap = bitmapImage
+
+        override fun doInBackground(vararg params: Bitmap?): String {
+            return saveToInternalStorage(bitmap, filename, extension)
+        }
+
+        override fun onPostExecute(result: String?) {
+            profileImageSavedLocally = true
+            super.onPostExecute(result)
+        }
+
+        fun saveToInternalStorage(bitmapImage: Bitmap, filename: String, extension: String=".jpg"): String {
+            val cw = ContextWrapper(context)
+            // /data/data/com.splitreceipt.myapplication/app_imageDir
+            val directory: File = cw.getDir(imageDir, Context.MODE_PRIVATE)
+            // Create imageDir
+            val myPath = File(directory, "$filename$extension")
+            var fos: FileOutputStream? = null
+            try {
+                fos = FileOutputStream(myPath)
+                // Use the compress method on the BitMap object to write image to the OutputStream
+                bitmapImage.compress(Bitmap.CompressFormat.PNG, 100, fos)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            } finally {
+                try {
+                    fos?.close()
+                } catch (e: IOException) {
+                    e.printStackTrace()
+                }
+            }
+            return directory.absolutePath
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.Q)
     private fun getOrientation(
         context: Context,
         photoUri: Uri
@@ -243,6 +295,7 @@ class NewGroupCreation : AppCompatActivity(), NewGroupParticipantAdapter.onPartR
         return orientation
     }
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     fun rotateBitmap(
         context: Context?,
         photoUri: Uri?,
@@ -272,36 +325,6 @@ class NewGroupCreation : AppCompatActivity(), NewGroupParticipantAdapter.onPartR
             val b = taskSnapshot.bytesTransferred
             Log.i("Firebase", "$b")
         }
-    }
-
-
-    private fun saveToInternalStorage(bitmapImage: Bitmap): String {
-        val cw = ContextWrapper(applicationContext)
-        // path to /data/data/yourapp/app_data/imageDir
-        val directory: File = cw.getDir("imageDir", Context.MODE_PRIVATE)
-        // Create imageDir
-        val myPath = File(directory, "profile.jpg")
-        var fos: FileOutputStream? = null
-        try {
-            fos = FileOutputStream(myPath)
-            // Use the compress method on the BitMap object to write image to the OutputStream
-            bitmapImage.compress(Bitmap.CompressFormat.PNG, 100, fos)
-        } catch (e: Exception) {
-            e.printStackTrace()
-        } finally {
-            try {
-                fos?.close()
-            } catch (e: IOException) {
-                e.printStackTrace()
-            }
-        }
-        return directory.absolutePath
-    }
-
-    private fun rotateImage(bitmap: Bitmap?, degrees: Float): Bitmap? {
-        val matrix = Matrix()
-        matrix.postRotate(degrees)
-        return Bitmap.createBitmap(bitmap!!, 0,0,bitmap.width, bitmap.height, matrix, true)
     }
 
 }

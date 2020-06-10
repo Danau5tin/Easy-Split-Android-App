@@ -8,7 +8,7 @@ import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_CATEGO
 import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_NAME
 import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_ID
 import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_PARTICIPANTS
-import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_UNIQUE_ID
+import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_FIREBASE_ID
 import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_SETTLEMENTS
 import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_USER
 import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_TABLE_NAME
@@ -39,7 +39,7 @@ class DbHelper(context: Context) : SQLiteOpenHelper(context,
 
         private const val CREATE_GROUP_TABLE = "CREATE TABLE $GROUP_TABLE_NAME (" +
                 "$GROUP_COL_ID INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                "$GROUP_COL_UNIQUE_ID TEXT, " +
+                "$GROUP_COL_FIREBASE_ID TEXT, " +
                 "$GROUP_COL_NAME TEXT, " +
                 "$GROUP_COL_CATEGORY TEXT, " +
                 "$GROUP_COL_PARTICIPANTS TEXT, " +

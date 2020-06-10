@@ -13,6 +13,20 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <de.hdodenhof.circleimageview.CircleImageView
+        android:id="@+id/groupProfileImage"
+        android:layout_width="96dp"
+        android:layout_height="96dp"
+        android:layout_marginStart="16dp"
+        android:src="@drawable/vector_person_green"
+        app:civ_border_color="@android:color/darker_gray"
+        app:civ_border_width="3dp"
+        app:layout_constraintBottom_toTopOf="@+id/button4"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/accountNameTitleText" />
+
+
+
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guideline2"
         android:layout_width="wrap_content"
@@ -98,17 +112,5 @@
         app:layout_constraintEnd_toEndOf="@+id/accountNameTitleText"
         app:layout_constraintStart_toStartOf="@+id/accountNameTitleText"
         app:layout_constraintTop_toBottomOf="@+id/receiptOverBalanceString" />
-
-    <ImageView
-        android:id="@+id/groupProfileImage"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginStart="30dp"
-        android:layout_marginEnd="30dp"
-        app:layout_constraintBottom_toBottomOf="@+id/receiptOverBalanceString"
-        app:layout_constraintEnd_toStartOf="@+id/accountNameTitleText"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/accountNameTitleText"
-        app:srcCompat="@drawable/vector_person_green" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
