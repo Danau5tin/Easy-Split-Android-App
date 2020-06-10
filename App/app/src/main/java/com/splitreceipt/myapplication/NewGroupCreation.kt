@@ -3,14 +3,11 @@ package com.splitreceipt.myapplication
 import android.app.Activity
 import android.content.ContentValues
 import android.content.Context
-import android.content.ContextWrapper
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.database.Cursor
 import android.graphics.Bitmap
-import android.graphics.Matrix
+import android.graphics.BitmapFactory
 import android.net.Uri
-import android.os.AsyncTask
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
@@ -37,8 +34,8 @@ import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_TABLE_NAME
 import com.splitreceipt.myapplication.data.ParticipantNewGroupData
 import com.splitreceipt.myapplication.databinding.ActivityNewGroupCreationBinding
 import java.io.File
-import java.io.FileOutputStream
-import java.io.IOException
+import java.io.FileInputStream
+import java.io.FileNotFoundException
 
 
 class NewGroupCreation : AppCompatActivity(), NewGroupParticipantAdapter.onPartRowClick {
@@ -58,7 +55,6 @@ class NewGroupCreation : AppCompatActivity(), NewGroupParticipantAdapter.onPartR
 
     companion object {
         var profileImageSavedLocally: Boolean = false
-        const val imageDir: String = "imageDir"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -79,6 +75,7 @@ class NewGroupCreation : AppCompatActivity(), NewGroupParticipantAdapter.onPartR
             setDisplayShowHomeEnabled(true)
             setHomeAsUpIndicator(R.drawable.vector_x_white)
         }
+
     }
 
     private fun checkIfUserForgotToAddPartic() {
@@ -174,10 +171,13 @@ class NewGroupCreation : AppCompatActivity(), NewGroupParticipantAdapter.onPartR
                         //TODO: Set a standard image depending on which category button was pressed
                     } else {
                         //User has uploaded a group profile image
-                        path = ASyncSaveFile(newBitmap!!,this, groupFirebaseId).toString()
+                        val async = ASyncSaveImage(true, this, groupFirebaseId)
+                        path = async.execute(newBitmap!!).get()
+
                         intent.putExtra(ReceiptOverviewActivity.ImagePathIntent, path)
                     }
                     intent.putExtra(GroupScreenActivity.sqlIntentString, sqlRes.toString())
+                    intent.putExtra(GroupScreenActivity.firebaseIntentString, groupFirebaseId)
                     intent.putExtra(GroupScreenActivity.userIntentString, sqlUser)
                     intent.putExtra(GroupScreenActivity.groupNameIntentString, title)
                     intent.putExtra(ReceiptOverviewActivity.ImagePathIntent, path)
@@ -227,91 +227,14 @@ class NewGroupCreation : AppCompatActivity(), NewGroupParticipantAdapter.onPartR
                 val uri: Uri? = data!!.data
                 binding.newGroupImage.setImageURI(uri)
                 val bitmap: Bitmap = MediaStore.Images.Media.getBitmap(contentResolver, uri)
-                newBitmap = rotateBitmap(this, uri, bitmap)
+                val bitmapHelper = BitmapRotationFixHelper()
+                newBitmap = bitmapHelper.rotateBitmap(this, uri, bitmap)
                 intent.putExtra(ReceiptOverviewActivity.UriIntent, uri.toString())
                 //TODO: Store the image with Firebase and create logic in DB so that all members of the group can download a new image if profile picture is ever changed.
             }
         }
     }
 
-    private class ASyncSaveFile(bitmapImage: Bitmap, private var context: Context,
-                                private var filename: String, private var extension: String=".jpg") :
-        AsyncTask<Bitmap, Void, String>() {
-
-        private var bitmap: Bitmap = bitmapImage
-
-        override fun doInBackground(vararg params: Bitmap?): String {
-            return saveToInternalStorage(bitmap, filename, extension)
-        }
-
-        override fun onPostExecute(result: String?) {
-            profileImageSavedLocally = true
-            super.onPostExecute(result)
-        }
-
-        fun saveToInternalStorage(bitmapImage: Bitmap, filename: String, extension: String=".jpg"): String {
-            val cw = ContextWrapper(context)
-            // /data/data/com.splitreceipt.myapplication/app_imageDir
-            val directory: File = cw.getDir(imageDir, Context.MODE_PRIVATE)
-            // Create imageDir
-            val myPath = File(directory, "$filename$extension")
-            var fos: FileOutputStream? = null
-            try {
-                fos = FileOutputStream(myPath)
-                // Use the compress method on the BitMap object to write image to the OutputStream
-                bitmapImage.compress(Bitmap.CompressFormat.PNG, 100, fos)
-            } catch (e: Exception) {
-                e.printStackTrace()
-            } finally {
-                try {
-                    fos?.close()
-                } catch (e: IOException) {
-                    e.printStackTrace()
-                }
-            }
-            return directory.absolutePath
-        }
-    }
-
-    @RequiresApi(Build.VERSION_CODES.Q)
-    private fun getOrientation(
-        context: Context,
-        photoUri: Uri
-    ): Int {
-        val cursor: Cursor? = context.contentResolver.query(
-            photoUri,
-            arrayOf(MediaStore.Images.ImageColumns.ORIENTATION),
-            null,
-            null,
-            null
-        )
-        if (cursor?.getCount() != 1) {
-            cursor?.close()
-            return -1
-        }
-        cursor.moveToFirst()
-        val orientation: Int = cursor.getInt(0)
-        cursor.close()
-        return orientation
-    }
-
-    @RequiresApi(Build.VERSION_CODES.Q)
-    fun rotateBitmap(
-        context: Context?,
-        photoUri: Uri?,
-        bitmap: Bitmap
-    ): Bitmap? {
-        var bitmap = bitmap
-        val orientation = getOrientation(context!!, photoUri!!)
-        if (orientation <= 0) {
-            return bitmap
-        }
-        val matrix = Matrix()
-        matrix.postRotate(orientation.toFloat())
-        bitmap =
-            Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, false)
-        return bitmap
-    }
 
     fun uploadImage(imageRef: Uri?) {
         val storageReference = FirebaseStorage.getInstance().reference

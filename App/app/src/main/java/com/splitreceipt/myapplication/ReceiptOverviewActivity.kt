@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.database.Cursor
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
@@ -87,6 +88,24 @@ class ReceiptOverviewActivity : AppCompatActivity(), ReceiptOverViewAdapter.onRe
             }
             return balance
         }
+
+        fun loadImageFromStorage(context: Context, profile:Boolean, fileName: String, extension: String=".jpg") : Bitmap? {
+            val directory: File
+            try {
+                if (profile) {
+                    directory = context.getDir(ASyncSaveImage.profileImageDir, Context.MODE_PRIVATE)
+                } else {
+                    directory = context.getDir(ASyncSaveImage.scannedImageDir, Context.MODE_PRIVATE)
+                }
+
+                val f = File(directory, "$fileName$extension")
+                val b = BitmapFactory.decodeStream(FileInputStream(f))
+                return b
+            } catch (e: FileNotFoundException) {
+                e.printStackTrace()
+                return null
+            }
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -126,7 +145,8 @@ class ReceiptOverviewActivity : AppCompatActivity(), ReceiptOverViewAdapter.onRe
             binding.groupProfileImage.setImageURI(uriImage)
         } else {
             //Group has already been created and user is re-entering the group, load internally saved image
-            loadImageFromStorage(getFirebaseId!!)
+            val b = loadImageFromStorage(this, true, getFirebaseId!!)
+            binding.groupProfileImage.setImageBitmap(b)
         }
 
 //        val localFile = File.createTempFile("images", "jpg")
@@ -140,16 +160,6 @@ class ReceiptOverviewActivity : AppCompatActivity(), ReceiptOverViewAdapter.onRe
 //            }
     }
 
-    private fun loadImageFromStorage(fileName: String, extension: String=".jpg") {
-        try {
-            val directory: File = getDir("imageDir", Context.MODE_PRIVATE)
-            val f = File(directory, "$fileName$extension")
-            val b = BitmapFactory.decodeStream(FileInputStream(f))
-            binding.groupProfileImage.setImageBitmap(b)
-        } catch (e: FileNotFoundException) {
-            e.printStackTrace()
-        }
-    }
 
     private fun loadSqlSettlementString(sqlAccountId: String?): String {
         var settlementString: String = ""
