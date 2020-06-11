@@ -3,6 +3,7 @@ package com.splitreceipt.myapplication
 import android.app.Activity
 import android.app.DatePickerDialog
 import android.content.ContentValues
+import android.content.Context
 import android.content.Intent
 import android.database.Cursor
 import android.os.Bundle
@@ -43,7 +44,6 @@ class NewReceiptCreationActivity : AppCompatActivity() {
     private lateinit var binding: ActivityNewReceiptCreationBinding
     private var editPaidBy: String = ""
 
-
     companion object {
         var sqlAccountId: String? = "-1"
         lateinit var participantList: ArrayList<String>
@@ -59,6 +59,33 @@ class NewReceiptCreationActivity : AppCompatActivity() {
         const val editIntentSqlRowIdString = "edit_sql_id"
         var isEdit: Boolean = false
         var editTotal: String = ""
+
+        fun retrieveParticipants(context: Context, participantList: ArrayList<String>) : ArrayList<String> {
+            /*
+            Query the sql DB for the current group to find its participants
+             */
+            participantList.clear()
+            val dbHelper = DbHelper(context)
+            sqlAccountId = ReceiptOverviewActivity.getSqlGroupId
+            val reader = dbHelper.readableDatabase
+            val columns = arrayOf(DbManager.GroupTable.GROUP_COL_PARTICIPANTS)
+            val selectClause = "${DbManager.GroupTable.GROUP_COL_ID} = ?"
+            val selectArgs = arrayOf(sqlAccountId)
+            val cursor: Cursor = reader.query(
+                DbManager.GroupTable.GROUP_TABLE_NAME, columns, selectClause, selectArgs,
+                null, null, null)
+            val particColIndex = cursor.getColumnIndexOrThrow(DbManager.GroupTable.GROUP_COL_PARTICIPANTS)
+            while (cursor.moveToNext()){
+                val participantsString = cursor.getString(particColIndex)
+                val splitParticipants = participantsString.split(",")
+                for (participant in splitParticipants) {
+                    participantList.add(participant)
+                }
+            }
+            cursor.close()
+            dbHelper.close()
+            return participantList
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -67,13 +94,19 @@ class NewReceiptCreationActivity : AppCompatActivity() {
         setContentView(binding.root)
         participantDataEditList = ArrayList()
 
+        val spinnerAdapter = ArrayAdapter(this,
+            R.layout.support_simple_spinner_dropdown_item, participantList)
+        binding.paidBySpinner.adapter = spinnerAdapter
+
         val editTitle = intent.getStringExtra(editIntentTitleString)
         if (editTitle != null) {
             isEdit = true
-            editTotal = intent.getStringExtra(editIntentTotalString) //TODO: pass the total to the fragment
-            editPaidBy = intent.getStringExtra(editIntentPaidByString) //TODO: Not currently doing anything as not sure how to change spinner
+            editTotal = intent.getStringExtra(editIntentTotalString)!!
+            editPaidBy = intent.getStringExtra(editIntentPaidByString)!!
+            val paidByPosition = spinnerAdapter.getPosition(editPaidBy)
+            binding.paidBySpinner.setSelection(paidByPosition)
             val editDate = intent.getStringExtra(editIntentDateString)
-            val editContributions = intent.getStringExtra(editIntentContributionsString) //TODO: Update the recyclerview in the fragment
+            val editContributions = intent.getStringExtra(editIntentContributionsString)
             deconstructAndBuildEditContribs(editContributions)
             binding.receiptTitleEditText.setText(editTitle)
             binding.dateButton.text = editDate
@@ -83,10 +116,8 @@ class NewReceiptCreationActivity : AppCompatActivity() {
         }
 
         sqlAccountId = intent.getStringExtra(intentSqlIdString)
-
         participantList = ArrayList()
-        retrieveParticipants()
-
+        participantList = retrieveParticipants(this, participantList)
 
         setSupportActionBar(findViewById(R.id.toolbar))
         supportActionBar?.title = "Add expense"
@@ -95,9 +126,6 @@ class NewReceiptCreationActivity : AppCompatActivity() {
             setDisplayShowHomeEnabled(true)
             setHomeAsUpIndicator(R.drawable.vector_x_white)
         }
-        //TODO: Currently if a user wasn't contributing before they are ticked anyway when the user edits. Fix this.
-        binding.paidBySpinner.adapter = ArrayAdapter(this,
-            R.layout.support_simple_spinner_dropdown_item, participantList)
 
         val pagerAdapter = ReceiptPagerAdapter(supportFragmentManager)
         binding.receiptViewPager.adapter = pagerAdapter
@@ -130,38 +158,48 @@ class NewReceiptCreationActivity : AppCompatActivity() {
             R.id.addExpenseSave -> {
                 val okayToProceed = checkAllInputsAreValid()
                 if (okayToProceed) {
-                    val receiptFirebaseID = "rec0001" //TODO: Increment this number
-                    val date = getDate()
-                    val title =  binding.receiptTitleEditText.text.toString()
-                    val total = findViewById<EditText>(R.id.currencyAmount).text.toString().toFloat()
-                    val paidBy = binding.paidBySpinner.selectedItem.toString()
-                    // TODO: Take all the itemized results
+                    //Check where the user is
+                    val currentPage = binding.receiptViewPager.currentItem
 
-                    val updatedContribList = SplitReceiptManuallyFragment.fragmentManualParticipantList
-                    val contributionsString = createContribString(updatedContribList, paidBy)
-                    Log.i("TEST", contributionsString)
+                    if (currentPage == 0) {
+                        //User is saving a manual expense
+                        val date = getDate()
+                        val title =  binding.receiptTitleEditText.text.toString()
+                        val total = findViewById<EditText>(R.id.currencyAmount).text.toString().toFloat()
+                        val paidBy = binding.paidBySpinner.selectedItem.toString()
 
-                    if (!isEdit) {
-                        // Insert new entry to SQL DB.
-                        val sqlRow = insertSql(receiptFirebaseID, date, title, total, paidBy, contributionsString)
-                        intent.putExtra(CONTRIBUTION_INTENT_DATA, contributionsString)
-                        setResult(Activity.RESULT_OK, intent)
-                        finish()
-                        return true
-                    } else {
-                        // Update previous entry in SQL DB
-                        val sqlRow = updateSql(date, title, total, paidBy, contributionsString)
-                        intent.putExtra(ExpenseViewActivity.expenseReturnEditSql, sqlRow)
-                        intent.putExtra(ExpenseViewActivity.expenseReturnEditDate, date)
-                        intent.putExtra(ExpenseViewActivity.expenseReturnEditTotal, total.toString())
-                        intent.putExtra(ExpenseViewActivity.expenseReturnEditTitle, title)
-                        intent.putExtra(ExpenseViewActivity.expenseReturnEditPaidBy, paidBy)
-                        intent.putExtra(ExpenseViewActivity.expenseReturnEditContributions, contributionsString)
-                        setResult(Activity.RESULT_OK, intent)
-                        isEdit = false
-                        finish()
+                        val updatedContribList = SplitReceiptManuallyFragment.fragmentManualParticipantList
+                        val contributionsString = createContribString(updatedContribList, paidBy)
+                        Log.i("TEST", contributionsString)
+
+                        if (!isEdit) {
+                            // Insert new entry to SQL DB.
+                            val receiptFirebaseID = "rec0001" //TODO: Increment this number
+                            val sqlRow = insertSql(receiptFirebaseID, date, title, total, paidBy, contributionsString)
+                            intent.putExtra(CONTRIBUTION_INTENT_DATA, contributionsString)
+                            setResult(Activity.RESULT_OK, intent)
+                            finish()
+                            return true
+                        } else {
+                            // Update previous entry in SQL DB
+                            val sqlRow = updateSql(date, title, total, paidBy, contributionsString)
+                            intent.putExtra(ExpenseViewActivity.expenseReturnEditSql, sqlRow)
+                            intent.putExtra(ExpenseViewActivity.expenseReturnEditDate, date)
+                            intent.putExtra(ExpenseViewActivity.expenseReturnEditTotal, total.toString())
+                            intent.putExtra(ExpenseViewActivity.expenseReturnEditTitle, title)
+                            intent.putExtra(ExpenseViewActivity.expenseReturnEditPaidBy, paidBy)
+                            intent.putExtra(ExpenseViewActivity.expenseReturnEditContributions, contributionsString)
+                            setResult(Activity.RESULT_OK, intent)
+                            isEdit = false
+                            finish()
+                            return true
+                        }
+                    }
+                    else {
+                        //User is saving a scanned receipt
                         return true
                     }
+
 
                 } else
                 {return false}
@@ -169,8 +207,6 @@ class NewReceiptCreationActivity : AppCompatActivity() {
             else -> return false
         }
     }
-
-
 
     private fun createContribString(updatedContribList: ArrayList<ParticipantData>, paidBy: String): String {
         val sb = StringBuilder()
@@ -222,28 +258,6 @@ class NewReceiptCreationActivity : AppCompatActivity() {
         picker.show()
     }
 
-    private fun retrieveParticipants() {
-        participantList.clear()
-        val dbHelper = DbHelper(this)
-        sqlAccountId = ReceiptOverviewActivity.getSqlGroupId
-        val reader = dbHelper.readableDatabase
-        val columns = arrayOf(DbManager.GroupTable.GROUP_COL_PARTICIPANTS)
-        val selectClause = "${DbManager.GroupTable.GROUP_COL_ID} = ?"
-        val selectArgs = arrayOf(sqlAccountId)
-        val cursor: Cursor = reader.query(
-            DbManager.GroupTable.GROUP_TABLE_NAME, columns, selectClause, selectArgs,
-            null, null, null)
-        val particColIndex = cursor.getColumnIndexOrThrow(DbManager.GroupTable.GROUP_COL_PARTICIPANTS)
-        while (cursor.moveToNext()){
-            val participantsString = cursor.getString(particColIndex)
-            val splitParticipants = participantsString.split(",")
-            for (participant in splitParticipants) {
-                participantList.add(participant)
-            }
-        }
-        cursor.close()
-        dbHelper.close()
-    }
 
     private fun getDate(): String{
         val dateSelection = binding.dateButton.text.toString()
@@ -322,5 +336,9 @@ class NewReceiptCreationActivity : AppCompatActivity() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
+    }
+
+    fun testButton(view: View) {
+        //TODO: Delete when done testing
     }
 }

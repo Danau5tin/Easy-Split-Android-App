@@ -1,6 +1,7 @@
 package com.splitreceipt.myapplication
 
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -16,24 +17,29 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ArrayAdapter
 import androidx.core.app.ActivityCompat
 import androidx.core.content.FileProvider
-import androidx.core.text.isDigitsOnly
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.firebase.ml.vision.FirebaseVision
 import com.google.firebase.ml.vision.common.FirebaseVisionImage
+import com.splitreceipt.myapplication.data.ScannedItemizedProductData
 import com.splitreceipt.myapplication.databinding.FragmentSplitReceiptScanBinding
+import kotlinx.android.synthetic.main.alert_dialog_scanned_product_edit.view.*
 import java.io.File
-import java.lang.Exception
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
 
 
-class SplitReceiptScanFragment : Fragment() {
+class SplitReceiptScanFragment : Fragment(), NewScannedReceiptRecyclerAdapter.onScannedClick {
 
     private lateinit var contxt: Context
     private lateinit var binding: FragmentSplitReceiptScanBinding
+    private lateinit var itemizedArrayList: ArrayList<ScannedItemizedProductData>
+    private lateinit var participantList: ArrayList<String>
+    private lateinit var adapter: NewScannedReceiptRecyclerAdapter
     private var currentPhotoPath: String = ""
 
     companion object{
@@ -47,8 +53,14 @@ class SplitReceiptScanFragment : Fragment() {
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        // Inflate the layout for this fragment
         binding = FragmentSplitReceiptScanBinding.inflate(inflater, container, false)
+        itemizedArrayList = ArrayList()
+        participantList = ArrayList()
+        adapter = NewScannedReceiptRecyclerAdapter(participantList, itemizedArrayList, this)
+        binding.scannedRecy.layoutManager = LinearLayoutManager(contxt)
+        binding.scannedRecy.adapter = adapter
+        binding.scannedRecy.isNestedScrollingEnabled = false
+
 
         binding.addReceiptImageButton.setOnClickListener {
             checkPermissions()
@@ -156,7 +168,17 @@ class SplitReceiptScanFragment : Fragment() {
                 for (block in blocks) {
                     for (line in block.lines){
                         var added = false
-                        val newLine = line.text.toLowerCase()
+
+                        if (line.text.isBlank()) {
+                            deletedItemArray.add(line.text)
+                            added = true
+                        }
+
+                        if (added){
+                            break
+                        }
+
+                        val newLine = line.text.toLowerCase().trim()
 
                         for (negWord in negWords) {
                             //Step 1: Check if any of the negative words are in the string.
@@ -247,7 +269,9 @@ class SplitReceiptScanFragment : Fragment() {
                         deletedValuesArrays.add(value)
                     }
 
-                    if (value.contains("26.6") || value.contains("17.95") || value.contains("8.65")){
+                    if (value.contains("26.6") || value.contains("17.95") ||
+                        value.contains("8.65") || value.contains("1.44") ||
+                        value.contains("25.16")){
                         // Check if user given totals are in the values. (this will only be used if the running totals do not work with more testing)
                         explicitDeletedArray.add(value)
                     }
@@ -269,7 +293,24 @@ class SplitReceiptScanFragment : Fragment() {
             Log.i("RECOG", "EXPLICITLY WANTED VALUES ARRAY $explicitWantedArray")
             Log.i("RECOG", "TOTAL $runningTotal")
             Log.i("RECOG", "SUB-TOTAL $runningSubTotal")
+            Log.i("RECOG", "Lonely Characters List: ${lonelyCharacters}")
+            Log.i("RECOG", "Lonely Digits List: ${lonelyDigits}")
+            Log.i("RECOG", "Lower case words List: ${deletedLowerCaseArrays}")
             Log.i("RECOG", "--------------------------------------------")
+
+            val finalCheckedItems: ArrayList<String> = ArrayList()
+
+            //Final checks
+            for (item in itemsArray) {
+                if (item.length < 5) {
+                    break
+                }
+
+                else {
+                    val trimmed = item.trim()
+                    finalCheckedItems.add(trimmed)
+                }
+            }
 
             var correctedItems: MutableList<String>
             var correctedValues: MutableList<String>
@@ -277,7 +318,7 @@ class SplitReceiptScanFragment : Fragment() {
             try {
                 // If we can get the number of items then create a sublist to that effect
                 val numbItems = explicitWantedArray[0].filter { it.isDigit() }.toInt()
-                correctedItems = itemsArray.subList(0, numbItems)
+                correctedItems = finalCheckedItems.subList(0, numbItems)
                 correctedValues = valuesArray.subList(0, numbItems)
                 Log.i("RECOG", "Able to find number of items and correct")
             } catch (exception: IndexOutOfBoundsException) {
@@ -288,15 +329,90 @@ class SplitReceiptScanFragment : Fragment() {
 
             Log.i("RECOG", "Corrected Items List: ${correctedItems}")
             Log.i("RECOG", "Corrected Values List: ${correctedValues}")
-            Log.i("RECOG", "Lonely Characters List: ${lonelyCharacters}")
-            Log.i("RECOG", "Lonely Digits List: ${lonelyDigits}")
-            Log.i("RECOG", "Lower case words List: ${deletedLowerCaseArrays}")
 
-            //TODO: Update a list, pass to adapter and show in UI.
+            retrieveParticipants()
+            initializeProductList(correctedItems, correctedValues)
+            flagAndRefresh()
+            }
 
-        }
         .addOnFailureListener {
             Log.i("RECOG", "Failed completely")
+        }
+    }
+
+    fun updateOwnerships(){
+        //TODO: Create function. When radioButtons pressed or when save button pressed in receipt creation activity?
+        //TODO: This function will update the itemized products list with the correct ownership details ready for the sql insertion and participant balancing
+    }
+
+    private fun retrieveParticipants() {
+        participantList = NewReceiptCreationActivity.participantList
+        participantList.add(0, "Equal")
+    }
+
+    private fun initializeProductList (correctedItems: MutableList<String>, correctedValues: MutableList<String>){
+        /*
+        Matches the product names with their corresponding values
+         */
+        itemizedArrayList.clear()
+        for (x in 0 until correctedItems.size){
+            val productName = correctedItems[x]
+            val productValue = correctedValues[x]
+            val defaultError = false
+            itemizedArrayList.add(ScannedItemizedProductData(productName, productValue, defaultError))
+        }
+    }
+
+    private fun flagAndRefresh(){
+        /*
+        Flags any potential issues with the current product list and refreshes adapter
+         */
+        for (product in itemizedArrayList){
+            val itemName = product.itemName
+            val itemValue = product.itemValue
+            // Flag any potential errors in the items name
+            product.potentialError = itemName.length < 7
+            // Flag any potential errors in the value
+            if (!product.potentialError){
+                val regex = "[0-9]+\\.[0-9][0-9]".toRegex()
+                if (itemValue.startsWith(".")){
+                    product.potentialError = true
+                } else if (itemValue.length <= 2) {
+                    product.potentialError = true
+                } else product.potentialError = !itemValue.matches(regex)
+            }
+        }
+        adapter.notifyDataSetChanged()
+    }
+
+    override fun editProduct(position: Int) {
+        val product = itemizedArrayList[position]
+        val productName = product.itemName
+        val productValue = product.itemValue
+        val itemOwnership = product.ownership //TODO: Find the ownership from the currently selected radio button
+
+        val diagView = LayoutInflater.from(contxt).inflate(R.layout.alert_dialog_scanned_product_edit, null)
+        val builder = AlertDialog.Builder(contxt).setView(diagView).setTitle("Edit product").show()
+        diagView.dialogProductName.setText(productName)
+        diagView.dialogProductValue.setText(productValue)
+        val spinnerAdapter = ArrayAdapter(contxt, R.layout.support_simple_spinner_dropdown_item, participantList)
+        diagView.dialogSpinner.adapter = spinnerAdapter
+        val spinPosition = spinnerAdapter.getPosition(itemOwnership)
+        diagView.dialogSpinner.setSelection(spinPosition)
+
+        diagView.dialogUpdateButton.setOnClickListener {
+            product.itemName = diagView.dialogProductName.text.toString()
+            product.itemValue = diagView.dialogProductValue.text.toString()
+            product.ownership = diagView.dialogSpinner.selectedItem.toString()
+            flagAndRefresh()
+            builder.cancel()
+        }
+        diagView.dialogDeleteButton.setOnClickListener {
+            itemizedArrayList.remove(product)
+            flagAndRefresh()
+        }
+        diagView.dialogCancelButton.setOnClickListener {
+            builder.cancel()
         }
     }
 
@@ -305,5 +421,4 @@ class SplitReceiptScanFragment : Fragment() {
         matrix.postRotate(degrees)
         return Bitmap.createBitmap(bitmap!!, 0,0,bitmap.width, bitmap.height, matrix, true)
     }
-
 }

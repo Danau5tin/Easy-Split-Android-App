@@ -10,4 +10,16 @@
         <item name="android:itemBackground">@android:color/white</item>
     </style>
 
+    <style name="delete_button">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">35dp</item>
+        <item name="android:layout_marginStart">100dp</item>
+        <item name="android:layout_marginEnd">100dp</item>
+        <item name="android:layout_marginBottom">24dp</item>
+        <item name="android:background">@android:color/holo_red_light</item>
+        <item name="android:textColor">#FFFFFF</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
 </resources>
