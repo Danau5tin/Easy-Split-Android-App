@@ -6,7 +6,9 @@ import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.database.Cursor
+import android.database.sqlite.SQLiteDatabase
 import android.os.Bundle
+import android.provider.Telephony
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
@@ -15,7 +17,7 @@ import android.widget.ArrayAdapter
 import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.splitreceipt.myapplication.data.DbManager
+import com.splitreceipt.myapplication.data.*
 import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_DATE
 import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_FK_GROUP_ID
 import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_PAID_BY
@@ -23,10 +25,14 @@ import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_TI
 import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_TOTAL
 import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_UNIQUE_ID
 import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_TABLE_NAME
-import com.splitreceipt.myapplication.data.DbHelper
+import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_COL_FK_RECEIPT_ID
+import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_COL_NAME
+import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_COL_OWNERSHIP
+import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_COL_VALUE
+import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_TABLE_NAME
 import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_CONTRIBUTIONS
 import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_ID
-import com.splitreceipt.myapplication.data.ParticipantData
+import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_SCANNED
 import com.splitreceipt.myapplication.databinding.ActivityNewReceiptCreationBinding
 import java.lang.StringBuilder
 import java.time.LocalDate
@@ -92,6 +98,7 @@ class NewReceiptCreationActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityNewReceiptCreationBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        participantList = ArrayList()
         participantDataEditList = ArrayList()
 
         val spinnerAdapter = ArrayAdapter(this,
@@ -158,31 +165,39 @@ class NewReceiptCreationActivity : AppCompatActivity() {
             R.id.addExpenseSave -> {
                 val okayToProceed = checkAllInputsAreValid()
                 if (okayToProceed) {
+                    val dbHelper = DbHelper(this)
+                    val writeableDB = dbHelper.writableDatabase
+                    //Obtain global receipt details
+                    val date = getDate()
+                    val title =  binding.receiptTitleEditText.text.toString()
+                    val total = findViewById<EditText>(R.id.currencyAmount).text.toString().toFloat()
+                    val paidBy = binding.paidBySpinner.selectedItem.toString()
+                    val receiptFirebaseID: String?
+                    val scanned: Boolean
                     //Check where the user is
                     val currentPage = binding.receiptViewPager.currentItem
 
                     if (currentPage == 0) {
                         //User is saving a manual expense
-                        val date = getDate()
-                        val title =  binding.receiptTitleEditText.text.toString()
-                        val total = findViewById<EditText>(R.id.currencyAmount).text.toString().toFloat()
-                        val paidBy = binding.paidBySpinner.selectedItem.toString()
-
-                        val updatedContribList = SplitReceiptManuallyFragment.fragmentManualParticipantList
-                        val contributionsString = createContribString(updatedContribList, paidBy)
+                        val participantDataList = SplitReceiptManuallyFragment.fragmentManualParticipantList
+                        val participantBalDataList: ArrayList<ParticipantBalanceData> = particDataToParticBalData(participantDataList)
+                        val contributionsString = createContribString(participantBalDataList, paidBy)
                         Log.i("TEST", contributionsString)
 
                         if (!isEdit) {
                             // Insert new entry to SQL DB.
-                            val receiptFirebaseID = "rec0001" //TODO: Increment this number
-                            val sqlRow = insertSql(receiptFirebaseID, date, title, total, paidBy, contributionsString)
+                            scanned = false
+                            receiptFirebaseID = newFirebaseReceiptID()
+                            insertNewReceiptSql(writeableDB, receiptFirebaseID, date, title, total, paidBy, contributionsString, scanned)
+                            dbHelper.close()
                             intent.putExtra(CONTRIBUTION_INTENT_DATA, contributionsString)
                             setResult(Activity.RESULT_OK, intent)
                             finish()
                             return true
                         } else {
                             // Update previous entry in SQL DB
-                            val sqlRow = updateSql(date, title, total, paidBy, contributionsString)
+                            val sqlRow = updateSql(writeableDB, date, title, total, paidBy, contributionsString)
+                            dbHelper.close()
                             intent.putExtra(ExpenseViewActivity.expenseReturnEditSql, sqlRow)
                             intent.putExtra(ExpenseViewActivity.expenseReturnEditDate, date)
                             intent.putExtra(ExpenseViewActivity.expenseReturnEditTotal, total.toString())
@@ -195,26 +210,129 @@ class NewReceiptCreationActivity : AppCompatActivity() {
                             return true
                         }
                     }
-                    else {
+                    else if (currentPage == 1){
                         //User is saving a scanned receipt
+                        val itemizedProductList = SplitReceiptScanFragment.itemizedArrayList
+                        receiptFirebaseID = newFirebaseReceiptID()
+                        val particBalDataList: ArrayList<ParticipantBalanceData> = productsToParticBalData(itemizedProductList)
+                        val contributionsString = createContribString(particBalDataList, paidBy)
+                        val sqlRow = insertNewReceiptSql(writeableDB, receiptFirebaseID, date, title, total, paidBy, contributionsString, true)
+                        insertReceiptItemsSql(writeableDB, itemizedProductList, sqlRow)
+                        dbHelper.close()
+                        intent.putExtra(CONTRIBUTION_INTENT_DATA, contributionsString)
+                        setResult(Activity.RESULT_OK, intent)
+                        finish()
                         return true
                     }
-
-
+                dbHelper.close()
                 } else
                 {return false}
             }
             else -> return false
         }
+        return false
     }
 
-    private fun createContribString(updatedContribList: ArrayList<ParticipantData>, paidBy: String): String {
+    private fun productsToParticBalData(itemizedProductList: ArrayList<ScannedItemizedProductData>): ArrayList<ParticipantBalanceData> {
+        val particBalDataList: ArrayList<ParticipantBalanceData> = ArrayList()
+        for (participant in participantList) {
+            //Populate a default particBalDataList using the groups participants
+            particBalDataList.add(ParticipantBalanceData(participant, 0.0F))
+        }
+
+        val numberParticipants = particBalDataList.size
+        for (product in itemizedProductList){
+            val itemValue = product.itemValue.toFloat()
+            val itemOwnership = product.ownership
+            if (itemOwnership == SplitReceiptScanFragment.ownershipEqualString) {
+                // This product is going to be split evenly between all participants
+                val equalSplit: Float = ReceiptOverviewActivity.roundToTwoDecimalPlace(itemValue / numberParticipants)
+                for (participant in particBalDataList) {
+                    participant.balance += equalSplit
+                }
+            }
+            else {
+                // This product is being paid for only by one participant
+                for (participant in particBalDataList) {
+                    if (participant.name == itemOwnership) {
+                        participant.balance += itemValue
+                        break
+                    }
+                }
+            }
+        }
+        return particBalDataList
+    }
+
+    private fun particDataToParticBalData(participantDataList: ArrayList<ParticipantData>): ArrayList<ParticipantBalanceData> {
+        val particBalDataList: ArrayList<ParticipantBalanceData> = ArrayList()
+        for (participant in participantDataList) {
+            val name = participant.name
+            val contributions = participant.contributionValue.toFloat()
+            particBalDataList.add(ParticipantBalanceData(name, contributions))
+        }
+        return particBalDataList
+    }
+
+    private fun insertReceiptItemsSql(writeableDB: SQLiteDatabase, itemizedProductList: ArrayList<ScannedItemizedProductData>, receiptRowSql: Int) {
+        // Parses the scanned products out of their data classes and inserts them into SQL DB TABLE ITEMS
+        val sqlFK = receiptRowSql.toString()
+        for (product in itemizedProductList) {
+            val productName = product.itemName
+            val productValue = product.itemValue
+            val productOwnership = product.ownership
+            val values = ContentValues().apply {
+                put(ITEMS_COL_NAME, productName)
+                put(ITEMS_COL_VALUE, productValue)
+                put(ITEMS_COL_OWNERSHIP, productOwnership)
+                put(ITEMS_COL_FK_RECEIPT_ID, sqlFK)
+            }
+            writeableDB.insert(ITEMS_TABLE_NAME, null, values)
+        }
+    }
+
+    private fun insertNewReceiptSql(writeableDB: SQLiteDatabase, recFirebaseId: String, date: String, title: String, total: Float, paidBy: String, contributions: String, scanned: Boolean) : Int{
+        val scannedInt: Int
+        scannedInt = if (scanned) { 1 } else { 0 }
+        val values = ContentValues().apply {
+            put(RECEIPT_COL_UNIQUE_ID, recFirebaseId)
+            put(RECEIPT_COL_DATE, date)
+            put(RECEIPT_COL_TITLE, title)
+            put(RECEIPT_COL_TOTAL, total)
+            put(RECEIPT_COL_PAID_BY, paidBy)
+            put(RECEIPT_COL_CONTRIBUTIONS, contributions)
+            put(RECEIPT_COL_SCANNED, scannedInt)
+            put(RECEIPT_COL_FK_GROUP_ID, sqlAccountId)
+        }
+        val sqlId = writeableDB.insert(RECEIPT_TABLE_NAME, null, values)
+        return sqlId.toInt()
+    }
+
+    private fun updateSql(writeableDB: SQLiteDatabase, date: String, title: String, total: Float, paidBy: String, contributionsString: String): String {
+        val editSqlRowId = intent.getStringExtra(editIntentSqlRowIdString)
+        val values = ContentValues().apply {
+            put(RECEIPT_COL_DATE, date)
+            put(RECEIPT_COL_TITLE, title)
+            put(RECEIPT_COL_TOTAL, total)
+            put(RECEIPT_COL_PAID_BY, paidBy)
+            put(RECEIPT_COL_CONTRIBUTIONS, contributionsString)
+        }
+        val whereClause = "$RECEIPT_COL_ID = ?"
+        val whereArgs = arrayOf(editSqlRowId)
+        return writeableDB.update(RECEIPT_TABLE_NAME, values, whereClause, whereArgs).toString()
+    }
+
+    private fun newFirebaseReceiptID() : String{
+        return "rec0001" // TODO: Find a way to increment this receipt number for the group.
+    }
+
+    private fun createContribString(updatedContribList: ArrayList<ParticipantBalanceData>, paidBy: String): String {
         val sb = StringBuilder()
         for (participant in updatedContribList) {
             val name = participant.name
             val nameString = "$name,"
             sb.append(nameString)
-            val value = participant.contributionValue
+            val value = participant.balance.toString()
             val valString = "$value,"
             sb.append(valString)
             val paidByString = "$paidBy/"
@@ -277,39 +395,6 @@ class NewReceiptCreationActivity : AppCompatActivity() {
     private fun retrieveTodaysDate(): String {
         val date = LocalDate.now()
         return date.format(DateTimeFormatter.ofPattern(getString(R.string.date_format_dd_MM_yyyy))).toString()
-    }
-
-    private fun insertSql(recFirebaseId: String, date: String, title: String, total: Float, paidBy: String, contributions: String) : Int{
-        val dbHelper = DbHelper(this)
-        val write = dbHelper.writableDatabase
-        val values = ContentValues().apply {
-            put(RECEIPT_COL_UNIQUE_ID, recFirebaseId)
-            put(RECEIPT_COL_DATE, date)
-            put(RECEIPT_COL_TITLE, title)
-            put(RECEIPT_COL_TOTAL, total)
-            put(RECEIPT_COL_PAID_BY, paidBy)
-            put(RECEIPT_COL_CONTRIBUTIONS, contributions)
-            put(RECEIPT_COL_FK_GROUP_ID, sqlAccountId)
-        }
-        val sqlId = write.insert(RECEIPT_TABLE_NAME, null, values)
-        dbHelper.close()
-        return sqlId.toInt()
-    }
-
-    private fun updateSql(date: String, title: String, total: Float, paidBy: String, contributionsString: String): String {
-        val editSqlRowId = intent.getStringExtra(editIntentSqlRowIdString)
-        val dbHelper = DbHelper(this)
-        val writer = dbHelper.writableDatabase
-        val values = ContentValues().apply {
-            put(RECEIPT_COL_DATE, date)
-            put(RECEIPT_COL_TITLE, title)
-            put(RECEIPT_COL_TOTAL, total)
-            put(RECEIPT_COL_PAID_BY, paidBy)
-            put(RECEIPT_COL_CONTRIBUTIONS, contributionsString)
-        }
-        val whereClause = "$RECEIPT_COL_ID = ?"
-        val whereArgs = arrayOf(editSqlRowId)
-        return writer.update(RECEIPT_TABLE_NAME, values, whereClause, whereArgs).toString()
     }
 
     private fun cleanDay(dayOfMonth: Int): String {

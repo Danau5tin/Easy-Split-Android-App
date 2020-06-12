@@ -25,6 +25,7 @@ object DbManager {
         const val RECEIPT_COL_TOTAL = "total_cost"
         const val RECEIPT_COL_PAID_BY = "paid_by"
         const val RECEIPT_COL_CONTRIBUTIONS = "contributions"
+        const val RECEIPT_COL_SCANNED = "scanned"
         const val RECEIPT_COL_FK_GROUP_ID = "group_id"
     }
 
@@ -33,7 +34,7 @@ object DbManager {
         const val ITEMS_COL_ID = BaseColumns._ID
         const val ITEMS_COL_NAME = "item_name"
         const val ITEMS_COL_VALUE = "item_value"
-        const val ITEMS_COL_WHOME = "for_whome"
+        const val ITEMS_COL_OWNERSHIP = "ownership"
         const val ITEMS_COL_FK_RECEIPT_ID = "receipt_id"
     }
 

@@ -4,13 +4,13 @@ import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ArrayAdapter
-import android.widget.EditText
-import android.widget.Spinner
+import android.widget.RadioButton
+import android.widget.RadioGroup
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.RecyclerView
 import com.splitreceipt.myapplication.data.ScannedItemizedProductData
+
 
 class NewScannedReceiptRecyclerAdapter(var participantList: ArrayList<String>,
                                        var itemizedList: ArrayList<ScannedItemizedProductData>,
@@ -39,6 +39,16 @@ class NewScannedReceiptRecyclerAdapter(var participantList: ArrayList<String>,
         } else {
             holder.constraintHolder.setBackgroundResource(R.drawable.confident_scanned_row_outline)
         }
+        holder.radioGroup.removeAllViews()
+        for (participant in participantList) {
+            val radioButton = RadioButton(holder.context)
+            radioButton.text = participant
+            radioButton.id = View.generateViewId()
+            val rprms = RadioGroup.LayoutParams(RadioGroup.LayoutParams.WRAP_CONTENT, RadioGroup.LayoutParams.WRAP_CONTENT)
+            radioButton.isChecked = itemizedList[position].ownership == participant
+            holder.radioGroup.addView(radioButton, rprms)
+        }
+
     }
 
     class ItemizedViewholder(val context: Context, itemView: View, var onScannedClick: onScannedClick) : RecyclerView.ViewHolder(itemView), View.OnClickListener{
@@ -46,9 +56,13 @@ class NewScannedReceiptRecyclerAdapter(var participantList: ArrayList<String>,
         val itemCurrencyText: TextView = itemView.findViewById(R.id.scannedCurrencySymbol)
         val itemValueText: TextView = itemView.findViewById(R.id.scannedItemValue)
         val constraintHolder: ConstraintLayout = itemView.findViewById(R.id.scannedConstraint)
+        val radioGroup: RadioGroup = itemView.findViewById(R.id.scannedRadioGroup)
 
         init {
             itemView.setOnClickListener(this)
+            radioGroup.setOnCheckedChangeListener { group, checkedId ->
+                onScannedClick.radioChecked(adapterPosition, group, checkedId)
+            }
         }
 
         override fun onClick(v: View?) {
@@ -58,5 +72,6 @@ class NewScannedReceiptRecyclerAdapter(var participantList: ArrayList<String>,
 
     interface onScannedClick{
         fun editProduct(position: Int)
+        fun radioChecked(position: Int, group: RadioGroup, checkedId: Int)
     }
 }

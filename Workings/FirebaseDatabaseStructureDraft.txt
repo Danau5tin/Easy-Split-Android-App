@@ -30,15 +30,15 @@ GroupId
 |				|
 |				--- Contributions : "xxx,£x.xx,xxx/xxx,£x.xx,xxx"
 |				|
-|				--- items
-|					|
-|					--- Strawberries
-|					|		|
-|					|		--- Price : "£xx.xx"
-|					|		|
-|					|		--- For Whome: xxx
-|					|
-|					--- Tea : "£xx.xx"
+|				--- Scanned n->false
+|					 y|
+|					  --- Strawberries
+|					  |		  |
+|					  |		  --- Price : "£xx.xx"
+|					  |		  |
+|					  |		  --- Ownership: "xxx"
+|					  |
+|					  --- Tea : "£xx.xx"
 Users
     |
     ---

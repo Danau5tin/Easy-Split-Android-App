@@ -16,13 +16,14 @@ import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_COL
 import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_COL_ID
 import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_COL_NAME
 import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_COL_VALUE
-import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_COL_WHOME
+import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_COL_OWNERSHIP
 import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_TABLE_NAME
 import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_CONTRIBUTIONS
 import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_DATE
 import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_FK_GROUP_ID
 import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_ID
 import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_PAID_BY
+import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_SCANNED
 import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_TITLE
 import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_TOTAL
 import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_UNIQUE_ID
@@ -44,7 +45,7 @@ class DbHelper(context: Context) : SQLiteOpenHelper(context,
                 "$GROUP_COL_CATEGORY TEXT, " +
                 "$GROUP_COL_PARTICIPANTS TEXT, " +
                 "$GROUP_COL_BALANCES TEXT, " +
-                "$GROUP_COL_SETTLEMENTS TEXT," +
+                "$GROUP_COL_SETTLEMENTS TEXT, " +
                 "$GROUP_COL_USER TEXT)"
         private const val DELETE_GROUP_ENTRIES = "DROP TABLE IF EXISTS $GROUP_TABLE_NAME"
 
@@ -57,6 +58,7 @@ class DbHelper(context: Context) : SQLiteOpenHelper(context,
                 "$RECEIPT_COL_PAID_BY TEXT, " +
                 "$RECEIPT_COL_FK_GROUP_ID INTEGER, " +
                 "$RECEIPT_COL_CONTRIBUTIONS TEXT, " +
+                "$RECEIPT_COL_SCANNED INTEGER, " + //Boolean: 0=False, 1=True
                 "FOREIGN KEY ($RECEIPT_COL_FK_GROUP_ID) REFERENCES $GROUP_TABLE_NAME" +
                 "($GROUP_COL_ID) ON DELETE CASCADE)"
         private const val DELETE_RECEIPT_ENTRIES = "DROP TABLE IF EXISTS $RECEIPT_TABLE_NAME"
@@ -65,7 +67,7 @@ class DbHelper(context: Context) : SQLiteOpenHelper(context,
                 "$ITEMS_COL_ID INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "$ITEMS_COL_NAME TEXT, " +
                 "$ITEMS_COL_VALUE REAL, " +
-                "$ITEMS_COL_WHOME TEXT, " +
+                "$ITEMS_COL_OWNERSHIP TEXT, " +
                 "$ITEMS_COL_FK_RECEIPT_ID INTEGER, " +
                 "FOREIGN KEY ($ITEMS_COL_FK_RECEIPT_ID) REFERENCES $RECEIPT_TABLE_NAME" +
                 "($RECEIPT_COL_ID) ON DELETE CASCADE)"

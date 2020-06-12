@@ -18,6 +18,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
+import android.widget.RadioButton
+import android.widget.RadioGroup
+import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
@@ -37,7 +40,7 @@ class SplitReceiptScanFragment : Fragment(), NewScannedReceiptRecyclerAdapter.on
 
     private lateinit var contxt: Context
     private lateinit var binding: FragmentSplitReceiptScanBinding
-    private lateinit var itemizedArrayList: ArrayList<ScannedItemizedProductData>
+
     private lateinit var participantList: ArrayList<String>
     private lateinit var adapter: NewScannedReceiptRecyclerAdapter
     private var currentPhotoPath: String = ""
@@ -45,6 +48,8 @@ class SplitReceiptScanFragment : Fragment(), NewScannedReceiptRecyclerAdapter.on
     companion object{
         private const val CAMERA_REQ_CODE = 1
         private const val TAKE_PICTURE = 2
+        lateinit var itemizedArrayList: ArrayList<ScannedItemizedProductData>
+        const val ownershipEqualString = "Equal"
     }
 
     override fun onAttach(context: Context) {
@@ -56,11 +61,11 @@ class SplitReceiptScanFragment : Fragment(), NewScannedReceiptRecyclerAdapter.on
         binding = FragmentSplitReceiptScanBinding.inflate(inflater, container, false)
         itemizedArrayList = ArrayList()
         participantList = ArrayList()
+        retrieveParticipants()
         adapter = NewScannedReceiptRecyclerAdapter(participantList, itemizedArrayList, this)
         binding.scannedRecy.layoutManager = LinearLayoutManager(contxt)
         binding.scannedRecy.adapter = adapter
         binding.scannedRecy.isNestedScrollingEnabled = false
-
 
         binding.addReceiptImageButton.setOnClickListener {
             checkPermissions()
@@ -284,18 +289,18 @@ class SplitReceiptScanFragment : Fragment(), NewScannedReceiptRecyclerAdapter.on
                     itemsArray.remove(value)
                 }
             }
-            Log.i("RECOG", "ENTIRE BLOCK ${it.text}")
-            Log.i("RECOG", "ITEMS ARRAY ${itemsArray}")
-            Log.i("RECOG", "VALUES ARRAY ${valuesArray}")
-            Log.i("RECOG", "DELETED ITEMS ARRAY ${deletedItemArray}")
-            Log.i("RECOG", "DELETED VALUES ARRAY ${deletedValuesArrays}")
-            Log.i("RECOG", "EXPLICITLY DELETED VALUES ARRAY ${explicitDeletedArray}")
+            Log.i("RECOG", "ENTIRE BLOCK $it.text}")
+            Log.i("RECOG", "ITEMS ARRAY $itemsArray")
+            Log.i("RECOG", "VALUES ARRAY $valuesArray")
+            Log.i("RECOG", "DELETED ITEMS ARRAY $deletedItemArray")
+            Log.i("RECOG", "DELETED VALUES ARRAY $deletedValuesArrays")
+            Log.i("RECOG", "EXPLICITLY DELETED VALUES ARRAY $explicitDeletedArray")
             Log.i("RECOG", "EXPLICITLY WANTED VALUES ARRAY $explicitWantedArray")
             Log.i("RECOG", "TOTAL $runningTotal")
             Log.i("RECOG", "SUB-TOTAL $runningSubTotal")
-            Log.i("RECOG", "Lonely Characters List: ${lonelyCharacters}")
-            Log.i("RECOG", "Lonely Digits List: ${lonelyDigits}")
-            Log.i("RECOG", "Lower case words List: ${deletedLowerCaseArrays}")
+            Log.i("RECOG", "Lonely Characters List: $lonelyCharacters")
+            Log.i("RECOG", "Lonely Digits List: $lonelyDigits")
+            Log.i("RECOG", "Lower case words List: $deletedLowerCaseArrays")
             Log.i("RECOG", "--------------------------------------------")
 
             val finalCheckedItems: ArrayList<String> = ArrayList()
@@ -322,15 +327,23 @@ class SplitReceiptScanFragment : Fragment(), NewScannedReceiptRecyclerAdapter.on
                 correctedValues = valuesArray.subList(0, numbItems)
                 Log.i("RECOG", "Able to find number of items and correct")
             } catch (exception: IndexOutOfBoundsException) {
-                correctedItems = itemsArray
-                correctedValues = valuesArray
-                Log.i("RECOG", "Not able to find number of items and correct")
+                try {
+                    correctedItems = finalCheckedItems.subList(0, 11)
+                    correctedValues = valuesArray.subList(0, 11)
+                    Log.i("RECOG", "Not able to find number of items and correct. Set explicitly to 12")
+                } catch (exception: java.lang.IndexOutOfBoundsException){
+                    exception.printStackTrace()
+                    Toast.makeText(contxt, "Not enough items or values recognised", Toast.LENGTH_SHORT).show()
+                    correctedItems = mutableListOf("failed")
+                    correctedValues = mutableListOf("0.00")
+                }
+
             }
 
-            Log.i("RECOG", "Corrected Items List: ${correctedItems}")
-            Log.i("RECOG", "Corrected Values List: ${correctedValues}")
+            Log.i("RECOG", "Corrected Items List: $correctedItems")
+            Log.i("RECOG", "Corrected Values List: $correctedValues")
 
-            retrieveParticipants()
+
             initializeProductList(correctedItems, correctedValues)
             flagAndRefresh()
             }
@@ -340,14 +353,10 @@ class SplitReceiptScanFragment : Fragment(), NewScannedReceiptRecyclerAdapter.on
         }
     }
 
-    fun updateOwnerships(){
-        //TODO: Create function. When radioButtons pressed or when save button pressed in receipt creation activity?
-        //TODO: This function will update the itemized products list with the correct ownership details ready for the sql insertion and participant balancing
-    }
 
     private fun retrieveParticipants() {
         participantList = NewReceiptCreationActivity.participantList
-        participantList.add(0, "Equal")
+        participantList.add(0, ownershipEqualString)
     }
 
     private fun initializeProductList (correctedItems: MutableList<String>, correctedValues: MutableList<String>){
@@ -374,6 +383,8 @@ class SplitReceiptScanFragment : Fragment(), NewScannedReceiptRecyclerAdapter.on
             product.potentialError = itemName.length < 7
             // Flag any potential errors in the value
             if (!product.potentialError){
+                //TODO: If the value has two "." then handle this to neatly place just one instead E.G: 2. .00 -> 2.00
+                //TODO: If the value has an o instead of 0 then convert it E.G: 6. o0 -> 6.00
                 val regex = "[0-9]+\\.[0-9][0-9]".toRegex()
                 if (itemValue.startsWith(".")){
                     product.potentialError = true
@@ -389,7 +400,7 @@ class SplitReceiptScanFragment : Fragment(), NewScannedReceiptRecyclerAdapter.on
         val product = itemizedArrayList[position]
         val productName = product.itemName
         val productValue = product.itemValue
-        val itemOwnership = product.ownership //TODO: Find the ownership from the currently selected radio button
+        val itemOwnership = product.ownership
 
         val diagView = LayoutInflater.from(contxt).inflate(R.layout.alert_dialog_scanned_product_edit, null)
         val builder = AlertDialog.Builder(contxt).setView(diagView).setTitle("Edit product").show()
@@ -414,6 +425,18 @@ class SplitReceiptScanFragment : Fragment(), NewScannedReceiptRecyclerAdapter.on
         diagView.dialogCancelButton.setOnClickListener {
             builder.cancel()
         }
+    }
+
+    override fun radioChecked(position: Int, group: RadioGroup, checkedId: Int) {
+        val checkedRadioButton: RadioButton? = group.findViewById(checkedId)
+        if (checkedRadioButton != null) {
+            val isChecked = checkedRadioButton?.isChecked
+            if (isChecked) {
+                val productOwner = checkedRadioButton.text.toString()
+                itemizedArrayList[position].ownership = productOwner
+            }
+        }
+
     }
 
     private fun rotateImage(bitmap: Bitmap?, degrees: Float): Bitmap? {
