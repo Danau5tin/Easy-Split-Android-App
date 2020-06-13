@@ -57,7 +57,7 @@
         android:id="@+id/paidByHintText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginStart="4dp"
         android:text="@string/item_paidby_hint"
         app:layout_constraintStart_toStartOf="@+id/paidBySpinner"
         app:layout_constraintTop_toBottomOf="@+id/textTitleInputLayout" />
@@ -75,24 +75,20 @@
         android:id="@+id/receiptTabLayout"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="42dp"
+        android:layout_marginTop="32dp"
         android:textAllCaps="false"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/paidBySpinner">
 
         <com.google.android.material.tabs.TabItem
-            android:textAllCaps="false"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:icon="@drawable/vector_edit_pencil_white"
             android:text="Split Manually" />
 
         <com.google.android.material.tabs.TabItem
-            android:textAllCaps="false"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:icon="@drawable/vector_add_photo_grey"
             android:text="Scan Receipt" />
     </com.google.android.material.tabs.TabLayout>
 
@@ -121,7 +117,7 @@
 
     <Button
         android:id="@+id/dateButton"
-        android:layout_width="80dp"
+        android:layout_width="100dp"
         android:layout_height="0dp"
         android:background="@null"
         android:gravity="left|center_vertical"
@@ -133,14 +129,5 @@
         app:layout_constraintBottom_toBottomOf="@+id/imageButton2"
         app:layout_constraintEnd_toStartOf="@+id/rightGuideline"
         app:layout_constraintTop_toTopOf="@+id/imageButton2" />
-
-    <Button
-        android:id="@+id/button2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="TEST"
-        android:onClick="testButton"
-        app:layout_constraintEnd_toStartOf="@+id/rightGuideline"
-        app:layout_constraintTop_toBottomOf="@+id/dateButton" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

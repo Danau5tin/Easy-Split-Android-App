@@ -59,10 +59,12 @@
 
     <string name="row_scanned_sample_name">Dan</string>
 
+    <!-- Alert dialogs -->
+    <string name="how_many_items_desc">Take a look at your receipt. Does it show you the number of items?</string>
+    <string name="how_many_hint">(We need it for accuracy)\n\nYou should find it next to the balance/ receipt total.</string>
+
     <!-- Common Texts -->
     <string name="finished">Finished</string>
     <string name="next">Next</string>
 
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

@@ -13,6 +13,12 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.splitreceipt.myapplication.CurrencySelectorActivity.Companion.SHARED_PREF_ACCOUNT_CURRENCY_CODE
+import com.splitreceipt.myapplication.CurrencySelectorActivity.Companion.SHARED_PREF_ACCOUNT_CURRENCY_SYMBOL
+import com.splitreceipt.myapplication.CurrencySelectorActivity.Companion.SHARED_PREF_NAME
+import com.splitreceipt.myapplication.NewReceiptCreationActivity.Companion.currencyCode
+import com.splitreceipt.myapplication.NewReceiptCreationActivity.Companion.currencySymbol
+import com.splitreceipt.myapplication.NewReceiptCreationActivity.Companion.zeroCurrency
 import com.splitreceipt.myapplication.data.DbHelper
 import com.splitreceipt.myapplication.data.ParticipantData
 import com.splitreceipt.myapplication.databinding.FragmentSplitReceiptManuallyBinding
@@ -24,20 +30,14 @@ class SplitReceiptManuallyFragment : Fragment(), NewManualReceiptRecyclerAdapter
     private lateinit var dbHelper: DbHelper
     private lateinit var contxt: Context
     private var everybodyEqual: Boolean = true
-    private var transactionTotal: String = zeroCurrency
     private lateinit var sharedPreferences: SharedPreferences
 
 
     companion object{
-        private const val zeroCurrency: String = "0.00"
-        private const val SHARED_PREF_NAME = "SharedPref"
-        private const val SHARED_PREF_ACCOUNT_CURRENCY_SYMBOL = "currency_symbol"
-        private const val SHARED_PREF_ACCOUNT_CURRENCY_CODE = "currency_code"
+
+        var transactionTotal: String = zeroCurrency
         private const val CURRENCY_INTENT = 2
         var fragmentManualParticipantList: ArrayList<ParticipantData> = ArrayList()
-
-        var currencyCode = ""
-        var currencySymbol = ""
 
         fun addStringZerosForDecimalPlace(value: String): String {
             var fixedValue = ""
@@ -57,7 +57,12 @@ class SplitReceiptManuallyFragment : Fragment(), NewManualReceiptRecyclerAdapter
         retrieveParticipants()
         updateUICurrency()
 
-        binding.currencyAmount.addTextChangedListener(object: TextWatcher{
+        adapter = NewManualReceiptRecyclerAdapter(fragmentManualParticipantList, this)
+        binding.fragManualRecy.layoutManager = LinearLayoutManager(activity)
+        binding.fragManualRecy.adapter = adapter
+
+
+        binding.currencyAmount.addTextChangedListener(object: TextWatcher {
             override fun afterTextChanged(s: Editable?) {}
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(text: CharSequence?, start: Int, before: Int, count: Int) {
@@ -65,13 +70,13 @@ class SplitReceiptManuallyFragment : Fragment(), NewManualReceiptRecyclerAdapter
                 if (!text.isNullOrBlank()){
                     val allText = text.toString()
                     if (allText.contains(".")){
-                       /* If there is a decimal place present: find the index and ensure the user
-                        cannot type more than 2 decimal places from that point by taking a substring.
-                        Reset the cursor to end of text with setSelection.
-                        */
+                        /* If there is a decimal place present: find the index and ensure the user
+                         cannot type more than 2 decimal places from that point by taking a substring.
+                         Reset the cursor to end of text with setSelection.
+                         */
                         val dotIndex = allText.indexOf(".")
                         if (start > (dotIndex + 2)){
-                        correctNumber = text.subSequence(0, dotIndex + 3)
+                            correctNumber = text.subSequence(0, dotIndex + 3)
                             binding.currencyAmount.setText(correctNumber.toString())
                             binding.currencyAmount.text?.length?.let {binding.currencyAmount.setSelection(it)}
                         }}
@@ -82,12 +87,8 @@ class SplitReceiptManuallyFragment : Fragment(), NewManualReceiptRecyclerAdapter
                     transactionTotal = zeroCurrency
                     setContributionStatus()}}})
 
-        adapter = NewManualReceiptRecyclerAdapter(fragmentManualParticipantList, this)
-        binding.fragManualRecy.layoutManager = LinearLayoutManager(activity)
-        binding.fragManualRecy.adapter = adapter
 
         binding.currencyButton.setOnClickListener{v ->
-            Toast.makeText(contxt, binding.currencyButton.text.toString(), Toast.LENGTH_SHORT).show()
             val intent = Intent(activity, CurrencySelectorActivity::class.java)
             startActivityForResult(intent, CURRENCY_INTENT)
         }
@@ -97,14 +98,11 @@ class SplitReceiptManuallyFragment : Fragment(), NewManualReceiptRecyclerAdapter
         return binding.root
     }
 
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == CURRENCY_INTENT) {
             if (resultCode == Activity.RESULT_OK) {
-                val editSharedPref = sharedPreferences.edit()
-                editSharedPref.putString(SHARED_PREF_ACCOUNT_CURRENCY_CODE, currencyCode)
-                editSharedPref.putString(SHARED_PREF_ACCOUNT_CURRENCY_SYMBOL, currencySymbol)
-                editSharedPref.apply()
                 updateUICurrency(adapterInitialised = true)
             }
         }
@@ -118,7 +116,6 @@ class SplitReceiptManuallyFragment : Fragment(), NewManualReceiptRecyclerAdapter
             binding.fragManualRecy.post(Runnable { adapter.notifyDataSetChanged() })
         }
     }
-
 
     fun setContributionStatus(handlerRequired: Boolean = false){
         val totalOfReceipt = transactionTotal.toFloat()

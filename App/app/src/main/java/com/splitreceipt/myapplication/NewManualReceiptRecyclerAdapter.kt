@@ -6,6 +6,7 @@ import android.view.ViewGroup
 import android.widget.CheckBox
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.splitreceipt.myapplication.NewReceiptCreationActivity.Companion.currencySymbol
 import com.splitreceipt.myapplication.data.ParticipantData
 
 class NewManualReceiptRecyclerAdapter(var participantList: ArrayList<ParticipantData>, var onRecyInt: onRecyRowCheked) : RecyclerView.Adapter<NewManualReceiptRecyclerAdapter.ItemizedViewholder>() {
@@ -36,7 +37,7 @@ class NewManualReceiptRecyclerAdapter(var participantList: ArrayList<Participant
         if (participantList[position].contributing){
             holder.participantCheckBox.isChecked = true
         }
-        holder.currencySymbol.text = SplitReceiptManuallyFragment.currencySymbol
+        holder.currencySymbol.text = currencySymbol
         holder.participantContribution.text = participantList[position].contributionValue
     }
 

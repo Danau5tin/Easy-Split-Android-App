@@ -9,6 +9,7 @@ import android.widget.RadioGroup
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.RecyclerView
+import com.splitreceipt.myapplication.NewReceiptCreationActivity.Companion.currencySymbol
 import com.splitreceipt.myapplication.data.ScannedItemizedProductData
 
 
@@ -29,10 +30,8 @@ class NewScannedReceiptRecyclerAdapter(var participantList: ArrayList<String>,
     }
 
     override fun onBindViewHolder(holder: ItemizedViewholder, position: Int) {
-        //TODO: Add as many radio buttons as there are participants by wrapping the radio group in a horizontal scroll view and programatically add the radio buttons.
-        //TODO: Set the checked radio button according to the data classes ownership status
         holder.itemNameText.text = itemizedList[position].itemName
-        holder.itemCurrencyText.text = "£"
+        holder.itemCurrencyText.text = currencySymbol
         holder.itemValueText.text = itemizedList[position].itemValue
         if (itemizedList[position].potentialError){
             holder.constraintHolder.setBackgroundResource(R.drawable.confident_not_scanned_row_otline)

@@ -1,14 +1,19 @@
 package com.splitreceipt.myapplication
 
 import android.app.Activity
-import android.content.Intent
+import android.content.Context
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.splitreceipt.myapplication.databinding.ActivityCurrencySelectorBinding
 
 class CurrencySelectorActivity : AppCompatActivity(), CurrencySelectorAdapter.onCureClick {
+
+    companion object {
+        const val SHARED_PREF_NAME = "SharedPref"
+        const val SHARED_PREF_ACCOUNT_CURRENCY_SYMBOL = "currency_symbol"
+        const val SHARED_PREF_ACCOUNT_CURRENCY_CODE = "currency_code"
+    }
 
     private lateinit var binding: ActivityCurrencySelectorBinding
     private var currencyList: MutableList<String> = mutableListOf(
@@ -33,8 +38,11 @@ class CurrencySelectorActivity : AppCompatActivity(), CurrencySelectorAdapter.on
         val endIndex = selection.indexOf(")")
         val countrySymbol = selection.substring(startIndex + 1, endIndex)
 
-        SplitReceiptManuallyFragment.currencyCode = countryCode
-        SplitReceiptManuallyFragment.currencySymbol = countrySymbol
+        val sharedPreferences = getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE)
+        val edit = sharedPreferences.edit()
+        edit.putString(SHARED_PREF_ACCOUNT_CURRENCY_CODE, countryCode)
+        edit.putString(SHARED_PREF_ACCOUNT_CURRENCY_SYMBOL, countrySymbol)
+        edit.apply()
 
         setResult(Activity.RESULT_OK)
         finish()

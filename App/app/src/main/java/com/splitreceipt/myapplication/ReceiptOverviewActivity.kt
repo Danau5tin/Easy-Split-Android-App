@@ -8,16 +8,16 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
-import android.os.Environment
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
+import com.splitreceipt.myapplication.CurrencySelectorActivity.Companion.SHARED_PREF_ACCOUNT_CURRENCY_SYMBOL
+import com.splitreceipt.myapplication.CurrencySelectorActivity.Companion.SHARED_PREF_NAME
 import com.splitreceipt.myapplication.data.DbHelper
 import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_ID
 import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_SETTLEMENTS
@@ -36,6 +36,8 @@ import java.io.FileInputStream
 import java.io.FileNotFoundException
 import java.math.RoundingMode
 import java.text.DecimalFormat
+import java.util.*
+import kotlin.collections.ArrayList
 
 
 class ReceiptOverviewActivity : AppCompatActivity(), ReceiptOverViewAdapter.onReceRowClick {
@@ -48,9 +50,9 @@ class ReceiptOverviewActivity : AppCompatActivity(), ReceiptOverViewAdapter.onRe
     lateinit var receiptList: ArrayList<ReceiptData>
     private lateinit var storageRef: StorageReference
     private lateinit var adapter: ReceiptOverViewAdapter
-    private val SEE_EXPENSE_RESULT = 10
-    private val ADD_EXPENSE_RESULT = 20
-    private val GROUP_SETTINGS_RESULT = 30
+    private val seeExpenseResult = 10
+    private val addExpenseResult = 20
+    private val grouptSettingsResult = 30
     private var userSettlementString = ""
 
     companion object {
@@ -91,19 +93,19 @@ class ReceiptOverviewActivity : AppCompatActivity(), ReceiptOverViewAdapter.onRe
 
         fun loadImageFromStorage(context: Context, profile:Boolean, fileName: String, extension: String=".jpg") : Bitmap? {
             val directory: File
-            try {
-                if (profile) {
-                    directory = context.getDir(ASyncSaveImage.profileImageDir, Context.MODE_PRIVATE)
+            return try {
+                directory = if (profile) {
+                    context.getDir(ASyncSaveImage.profileImageDir, Context.MODE_PRIVATE)
                 } else {
-                    directory = context.getDir(ASyncSaveImage.scannedImageDir, Context.MODE_PRIVATE)
+                    context.getDir(ASyncSaveImage.scannedImageDir, Context.MODE_PRIVATE)
                 }
 
                 val f = File(directory, "$fileName$extension")
                 val b = BitmapFactory.decodeStream(FileInputStream(f))
-                return b
+                b
             } catch (e: FileNotFoundException) {
                 e.printStackTrace()
-                return null
+                null
             }
         }
     }
@@ -162,7 +164,7 @@ class ReceiptOverviewActivity : AppCompatActivity(), ReceiptOverViewAdapter.onRe
 
 
     private fun loadSqlSettlementString(sqlAccountId: String?): String {
-        var settlementString: String = ""
+        var settlementString = ""
         val dbHelper = DbHelper(this)
         val reader = dbHelper.readableDatabase
         val columns = arrayOf(GROUP_COL_SETTLEMENTS)
@@ -170,9 +172,9 @@ class ReceiptOverviewActivity : AppCompatActivity(), ReceiptOverViewAdapter.onRe
         val selectArgs = arrayOf(sqlAccountId)
         val cursor: Cursor = reader.query(GROUP_TABLE_NAME, columns, selectClause, selectArgs,
                         null, null, null)
-        val settlemnetIndex = cursor.getColumnIndexOrThrow(GROUP_COL_SETTLEMENTS)
+        val settlementIndex = cursor.getColumnIndexOrThrow(GROUP_COL_SETTLEMENTS)
         while (cursor.moveToNext()) {
-            settlementString = cursor.getString(settlemnetIndex)
+            settlementString = cursor.getString(settlementIndex)
         }
         cursor.close()
         dbHelper.close()
@@ -208,14 +210,14 @@ class ReceiptOverviewActivity : AppCompatActivity(), ReceiptOverViewAdapter.onRe
     fun addNewReceiptButton(view: View) {
         val intent = Intent(this, NewReceiptCreationActivity::class.java)
         intent.putExtra(NewReceiptCreationActivity.intentSqlIdString, getSqlGroupId)
-        startActivityForResult(intent, ADD_EXPENSE_RESULT)
+        startActivityForResult(intent, addExpenseResult)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         val newSettlementString: String
 
-        if (requestCode == ADD_EXPENSE_RESULT){
+        if (requestCode == addExpenseResult){
             if (resultCode == Activity.RESULT_OK){
                 val contributions = data?.getStringExtra(NewReceiptCreationActivity.
                                                             CONTRIBUTION_INTENT_DATA)
@@ -224,7 +226,7 @@ class ReceiptOverviewActivity : AppCompatActivity(), ReceiptOverViewAdapter.onRe
                 deconstructAndSetSettlementString(newSettlementString)
             }
         }
-        else if (requestCode == SEE_EXPENSE_RESULT){
+        else if (requestCode == seeExpenseResult){
             if (resultCode == Activity.RESULT_OK) {
 
                 if (data?.getStringExtra(ExpenseViewActivity
@@ -246,7 +248,7 @@ class ReceiptOverviewActivity : AppCompatActivity(), ReceiptOverViewAdapter.onRe
 
             }
         }
-        else if (requestCode == GROUP_SETTINGS_RESULT) {
+        else if (requestCode == grouptSettingsResult) {
             if (resultCode == Activity.RESULT_OK) {
                 //TODO: Create functionality to handle group settings changes.
             }
@@ -264,15 +266,17 @@ class ReceiptOverviewActivity : AppCompatActivity(), ReceiptOverViewAdapter.onRe
             userDirectedSettlementIndexes.add(indexCount)
         }
         else {
+            val sharedPref = getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE)
+            val currencySymbol = sharedPref.getString(SHARED_PREF_ACCOUNT_CURRENCY_SYMBOL, "$")
             val splitIndividual = settlementString.split("/")
             for (settlement in splitIndividual) {
                 val splitSettlement = settlement.split(",")
                 val debtor = changeNameToYou(splitSettlement[0], true)
                 val value = splitSettlement[1]
                 val receiver = changeNameToYou(splitSettlement[2], false)
-                val finalSettlementString = "$debtor owes $value to $receiver."
+                val finalSettlementString = createSettlementString(debtor, value, receiver, currencySymbol!!)
                 settlementArray.add(finalSettlementString)
-                if ("you" in finalSettlementString.toLowerCase()) {
+                if ("you" in finalSettlementString.toLowerCase(Locale.ROOT)) {
                     userDirectedSettlementIndexes.add(indexCount)
                 }
                 indexCount ++
@@ -287,14 +291,31 @@ class ReceiptOverviewActivity : AppCompatActivity(), ReceiptOverViewAdapter.onRe
         userSettlementString = newString
     }
 
-    fun newContributionUpdates(newContributions: String) : String {
+    private fun createSettlementString(debtor: String, value: String, receiver: String, currencySymbol: String): String {
+        val finalString: String
+        val you = "you"
+        val debtorLow = debtor.toLowerCase(Locale.ROOT)
+        val receiverLow = receiver.toLowerCase(Locale.ROOT)
+        if (you == debtorLow) {
+            finalString = "$debtor owe $currencySymbol$value to $receiver."
+        }
+        else if (you == receiverLow){
+            finalString = "$debtor owes $currencySymbol$value to $receiverLow."
+        }
+        else {
+            finalString = "$debtor owes $currencySymbol$value to $receiver."
+        }
+        return finalString
+    }
+
+    private fun newContributionUpdates(newContributions: String) : String {
         val balanceSettlementHelper = BalanceSettlementHelper(this, getSqlGroupId.toString())
         val settlementString = balanceSettlementHelper.recalculateBalancesAndSettlements(newContributions)
         reloadRecycler()
         return settlementString
     }
 
-    fun reloadRecycler(){
+    private fun reloadRecycler(){
         // Clears the list and refreshes receipts from SQL db back into it.
         receiptList.clear()
         loadPreviousReceipts(getSqlGroupId)
@@ -306,13 +327,13 @@ class ReceiptOverviewActivity : AppCompatActivity(), ReceiptOverViewAdapter.onRe
         startActivity(intent)
     }
 
-    override fun onRowClick(pos: Int, title:String, total:String, sqlRowId: String, paidBy:String) {
+    override fun onRowClick(pos: Int, title:String, total:String, sqlID: String, paidBy:String) {
         val intent = Intent(this, ExpenseViewActivity::class.java)
         intent.putExtra(ExpenseViewActivity.expenseTitleIntentString, title)
         intent.putExtra(ExpenseViewActivity.expenseTotalIntentString, total)
-        intent.putExtra(ExpenseViewActivity.expenseSqlIntentString, sqlRowId)
+        intent.putExtra(ExpenseViewActivity.expenseSqlIntentString, sqlID)
         intent.putExtra(ExpenseViewActivity.expensePaidByIntentString, paidBy)
-        startActivityForResult(intent, SEE_EXPENSE_RESULT)
+        startActivityForResult(intent, seeExpenseResult)
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -324,7 +345,7 @@ class ReceiptOverviewActivity : AppCompatActivity(), ReceiptOverViewAdapter.onRe
         when (item.itemId) {
             R.id.groupSettings -> {
                 val intent = Intent(this, GroupSettingsActivity::class.java)
-                startActivityForResult(intent, GROUP_SETTINGS_RESULT)
+                startActivityForResult(intent, grouptSettingsResult)
                 return true
             }
             R.id.groupBalances -> {

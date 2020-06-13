@@ -4,6 +4,7 @@ import android.app.Activity
 import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -13,6 +14,8 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -23,14 +26,20 @@ import android.widget.RadioGroup
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.FileProvider
+import androidx.core.text.isDigitsOnly
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.firebase.ml.vision.FirebaseVision
 import com.google.firebase.ml.vision.common.FirebaseVisionImage
+import com.splitreceipt.myapplication.NewReceiptCreationActivity.Companion.currencyCode
+import com.splitreceipt.myapplication.NewReceiptCreationActivity.Companion.currencySymbol
+import com.splitreceipt.myapplication.ReceiptOverviewActivity.Companion.roundToTwoDecimalPlace
 import com.splitreceipt.myapplication.data.ScannedItemizedProductData
 import com.splitreceipt.myapplication.databinding.FragmentSplitReceiptScanBinding
+import kotlinx.android.synthetic.main.alert_dialog_scanned_item_confirmation.view.*
 import kotlinx.android.synthetic.main.alert_dialog_scanned_product_edit.view.*
 import java.io.File
+import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
@@ -40,14 +49,18 @@ class SplitReceiptScanFragment : Fragment(), NewScannedReceiptRecyclerAdapter.on
 
     private lateinit var contxt: Context
     private lateinit var binding: FragmentSplitReceiptScanBinding
-
+    private lateinit var sharedPreferences: SharedPreferences
+    private lateinit var explicitTotalTaxIgnoreList: ArrayList<String>
+    private val currencyIntent: Int = 50
     private lateinit var participantList: ArrayList<String>
     private lateinit var adapter: NewScannedReceiptRecyclerAdapter
     private var currentPhotoPath: String = ""
+    private var numberOfItemsProvided = false
+    private var numberOfItems: Int = 0
 
     companion object{
         private const val CAMERA_REQ_CODE = 1
-        private const val TAKE_PICTURE = 2
+        private const val takePictureIntent = 2
         lateinit var itemizedArrayList: ArrayList<ScannedItemizedProductData>
         const val ownershipEqualString = "Equal"
     }
@@ -59,19 +72,78 @@ class SplitReceiptScanFragment : Fragment(), NewScannedReceiptRecyclerAdapter.on
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         binding = FragmentSplitReceiptScanBinding.inflate(inflater, container, false)
+        sharedPreferences = contxt.getSharedPreferences(CurrencySelectorActivity.SHARED_PREF_NAME, Context.MODE_PRIVATE)
         itemizedArrayList = ArrayList()
         participantList = ArrayList()
+        explicitTotalTaxIgnoreList = ArrayList()
+        updateUICurrency()
         retrieveParticipants()
         adapter = NewScannedReceiptRecyclerAdapter(participantList, itemizedArrayList, this)
         binding.scannedRecy.layoutManager = LinearLayoutManager(contxt)
         binding.scannedRecy.adapter = adapter
         binding.scannedRecy.isNestedScrollingEnabled = false
 
+
+        binding.currencyAmountScan.addTextChangedListener(object: TextWatcher {
+            //TODO: This is copied from other fragment. Can we move this up into the activity and have the two fragments listen for changes from the main activity?
+            override fun afterTextChanged(s: Editable?) {}
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(text: CharSequence?, start: Int, before: Int, count: Int) {
+                val correctNumber: CharSequence
+                if (!text.isNullOrBlank()){
+                    val allText = text.toString()
+                    if (allText.contains(".")){
+                        /* If there is a decimal place present: find the index and ensure the user
+                         cannot type more than 2 decimal places from that point by taking a substring.
+                         Reset the cursor to end of text with setSelection.
+                         */
+                        val dotIndex = allText.indexOf(".")
+                        if (start > (dotIndex + 2)){
+                            correctNumber = text.subSequence(0, dotIndex + 3)
+                            val correctText = correctNumber.toString()
+                            binding.currencyAmountScan.setText(correctText)
+                            binding.currencyAmountScan.text?.length?.let {binding.currencyAmountScan.setSelection(it)}
+                        }
+                    }
+                    SplitReceiptManuallyFragment.transactionTotal = text.toString()
+                    calculateExplicitDeleteValues()
+                }
+                else{
+                    SplitReceiptManuallyFragment.transactionTotal =
+                        NewReceiptCreationActivity.zeroCurrency
+
+                    }}})
+
         binding.addReceiptImageButton.setOnClickListener {
             checkPermissions()
         }
 
+        binding.currencyButtonScan.setOnClickListener {
+            val intent = Intent(contxt, CurrencySelectorActivity::class.java)
+            startActivityForResult(intent, currencyIntent)
+        }
+
         return binding.root
+    }
+
+    private fun calculateExplicitDeleteValues() {
+        /*
+        This function discovers the correct taxes for each country so that when the receipt is
+         scanned, the algorithm can ignore the tax values and not add them as another product.
+         */
+        //TODO: Ensure the different taxes are calculated differently for different currencies
+        //TODO: Ensure the "GBP" is obtained from a static variable
+        val expenseTotalString = binding.currencyAmountScan.text.toString()
+        explicitTotalTaxIgnoreList.add(expenseTotalString)
+        val expenseTotal = binding.currencyAmountScan.text.toString().toFloat()
+        if (currencyCode == "GBP") {
+            //TODO: Improve the text recog algorithm for identifying taxes and balances 1) After VAT is seen then any number after this is added to the explicitly deleted list?
+            val twentyPercent = roundToTwoDecimalPlace(expenseTotal * 0.20F).toString()
+            explicitTotalTaxIgnoreList.add(twentyPercent)
+        }
+        else {
+            //TODO: Add each countries taxes? Likely too manual, maybe the TODO above is a more efficient way. Or maybe just by identifying the number of items it is enough anyway?
+        }
     }
 
     private fun checkPermissions() {
@@ -94,6 +166,8 @@ class SplitReceiptScanFragment : Fragment(), NewScannedReceiptRecyclerAdapter.on
     }
 
     private fun getImageFromCamera() {
+        //TODO: Provide the user with instructions on how to get the best quality and performance
+        //TODO: Check if the user has filled in the receipt total
         val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
         intent.resolveActivity(contxt.packageManager)
 
@@ -109,7 +183,7 @@ class SplitReceiptScanFragment : Fragment(), NewScannedReceiptRecyclerAdapter.on
             photoFile!!)
 
         intent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri)
-        startActivityForResult(intent, TAKE_PICTURE)
+        startActivityForResult(intent, takePictureIntent)
     }
 
     private fun createImageFile(): File {
@@ -123,7 +197,7 @@ class SplitReceiptScanFragment : Fragment(), NewScannedReceiptRecyclerAdapter.on
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == TAKE_PICTURE) {
+        if (requestCode == takePictureIntent) {
             if (resultCode == Activity.RESULT_OK) {
                 val options = BitmapFactory.Options()
                 options.inPreferredConfig = Bitmap.Config.ARGB_8888
@@ -141,8 +215,23 @@ class SplitReceiptScanFragment : Fragment(), NewScannedReceiptRecyclerAdapter.on
 
                 binding.addReceiptImageButton.setImageBitmap(rotatedBitmap)
                 runTextRecognition(rotatedBitmap!!)
-
             }
+        } else if (requestCode == currencyIntent){
+            if (resultCode == Activity.RESULT_OK) {
+                updateUICurrency()
+            }
+        }
+    }
+
+    private fun updateUICurrency(adapterInitialised: Boolean = false) {
+        currencySymbol = sharedPreferences.getString(
+            CurrencySelectorActivity.SHARED_PREF_ACCOUNT_CURRENCY_SYMBOL, "$").toString()
+        currencyCode = sharedPreferences.getString(
+            CurrencySelectorActivity.SHARED_PREF_ACCOUNT_CURRENCY_CODE, "US").toString()
+        binding.currencyButtonScan.text = currencyCode
+        if (adapterInitialised) {
+            //TODO: Update the adapter with the correct currency code
+//            binding.fragManualRecy.post(Runnable { adapter.notifyDataSetChanged() })
         }
     }
 
@@ -274,15 +363,6 @@ class SplitReceiptScanFragment : Fragment(), NewScannedReceiptRecyclerAdapter.on
                         deletedValuesArrays.add(value)
                     }
 
-                    if (value.contains("26.6") || value.contains("17.95") ||
-                        value.contains("8.65") || value.contains("1.44") ||
-                        value.contains("25.16")){
-                        // Check if user given totals are in the values. (this will only be used if the running totals do not work with more testing)
-                        explicitDeletedArray.add(value)
-                    }
-                }
-                for (value in explicitDeletedArray) {
-                    valuesArray.remove(value)
                 }
 
                 for (value in explicitWantedArray) {
@@ -310,11 +390,22 @@ class SplitReceiptScanFragment : Fragment(), NewScannedReceiptRecyclerAdapter.on
                 if (item.length < 5) {
                     break
                 }
-
                 else {
                     val trimmed = item.trim()
                     finalCheckedItems.add(trimmed)
                 }
+            }
+            for (value in valuesArray) {
+                if (value.contains(" ")){
+                    value.replace(" ", "")
+                }
+                if (value.contains("o")) {
+                    value.replace("o", "0")
+                }
+                if (value.contains("c")){
+                    value.replace("c", "0")
+                }
+
             }
 
             var correctedItems: MutableList<String>
@@ -322,27 +413,29 @@ class SplitReceiptScanFragment : Fragment(), NewScannedReceiptRecyclerAdapter.on
 
             try {
                 // If we can get the number of items then create a sublist to that effect
-                val numbItems = explicitWantedArray[0].filter { it.isDigit() }.toInt()
-                correctedItems = finalCheckedItems.subList(0, numbItems)
-                correctedValues = valuesArray.subList(0, numbItems)
+                numberOfItems = explicitWantedArray[0].filter { it.isDigit() }.toInt()
+                correctedItems = finalCheckedItems.subList(0, numberOfItems)
+                correctedValues = valuesArray.subList(0, numberOfItems)
                 Log.i("RECOG", "Able to find number of items and correct")
             } catch (exception: IndexOutOfBoundsException) {
                 try {
-                    correctedItems = finalCheckedItems.subList(0, 11)
-                    correctedValues = valuesArray.subList(0, 11)
-                    Log.i("RECOG", "Not able to find number of items and correct. Set explicitly to 12")
+                    if (!numberOfItemsProvided) {
+                        numberOfItems = howManyDialog()
+                        numberOfItemsProvided = true
+                    }
+                    correctedItems = finalCheckedItems.subList(0, numberOfItems)
+                    correctedValues = valuesArray.subList(0, numberOfItems)
+                    Log.i("RECOG", "Not able to automatically find number of items and correct. Set explicitly by user to $numberOfItems")
                 } catch (exception: java.lang.IndexOutOfBoundsException){
                     exception.printStackTrace()
-                    Toast.makeText(contxt, "Not enough items or values recognised", Toast.LENGTH_SHORT).show()
-                    correctedItems = mutableListOf("failed")
+                    Toast.makeText(contxt, "Unable to recognise all the items", Toast.LENGTH_SHORT).show()
+                    correctedItems = mutableListOf("Please try again")
                     correctedValues = mutableListOf("0.00")
                 }
 
             }
-
             Log.i("RECOG", "Corrected Items List: $correctedItems")
             Log.i("RECOG", "Corrected Values List: $correctedValues")
-
 
             initializeProductList(correctedItems, correctedValues)
             flagAndRefresh()
@@ -351,6 +444,25 @@ class SplitReceiptScanFragment : Fragment(), NewScannedReceiptRecyclerAdapter.on
         .addOnFailureListener {
             Log.i("RECOG", "Failed completely")
         }
+    }
+
+    private fun howManyDialog(): Int {
+        // Presents a dialog to the user asking for them to identify the number of products on the receipt
+        var numberOfItems: Int = 0
+        val diagView = LayoutInflater.from(contxt).inflate(R.layout.alert_dialog_scanned_item_confirmation, null)
+        val builder = AlertDialog.Builder(contxt).setTitle("How many items?").setView(diagView).show()
+        diagView.scannedHowManyUpdateBut.setOnClickListener {
+            val userInput = diagView.scannedHowManyNumber.text.toString()
+            if (userInput.isBlank() || !userInput.matches("[0-9]*".toRegex())) {
+                Toast.makeText(contxt, "Please enter a valid number", Toast.LENGTH_SHORT).show()
+            }
+            numberOfItems = userInput.toInt()
+            builder.cancel()
+        }
+        diagView.scannedHowManyCantFindBut.setOnClickListener {
+            builder.cancel()
+        }
+        return numberOfItems
     }
 
 
@@ -383,8 +495,6 @@ class SplitReceiptScanFragment : Fragment(), NewScannedReceiptRecyclerAdapter.on
             product.potentialError = itemName.length < 7
             // Flag any potential errors in the value
             if (!product.potentialError){
-                //TODO: If the value has two "." then handle this to neatly place just one instead E.G: 2. .00 -> 2.00
-                //TODO: If the value has an o instead of 0 then convert it E.G: 6. o0 -> 6.00
                 val regex = "[0-9]+\\.[0-9][0-9]".toRegex()
                 if (itemValue.startsWith(".")){
                     product.potentialError = true
@@ -397,6 +507,7 @@ class SplitReceiptScanFragment : Fragment(), NewScannedReceiptRecyclerAdapter.on
     }
 
     override fun editProduct(position: Int) {
+        //TODO: The product name and the product price should have delete buttons which clear the text and set the selector ready to go on the line to type the correct values
         val product = itemizedArrayList[position]
         val productName = product.itemName
         val productValue = product.itemValue
@@ -430,7 +541,7 @@ class SplitReceiptScanFragment : Fragment(), NewScannedReceiptRecyclerAdapter.on
     override fun radioChecked(position: Int, group: RadioGroup, checkedId: Int) {
         val checkedRadioButton: RadioButton? = group.findViewById(checkedId)
         if (checkedRadioButton != null) {
-            val isChecked = checkedRadioButton?.isChecked
+            val isChecked = checkedRadioButton.isChecked
             if (isChecked) {
                 val productOwner = checkedRadioButton.text.toString()
                 itemizedArrayList[position].ownership = productOwner

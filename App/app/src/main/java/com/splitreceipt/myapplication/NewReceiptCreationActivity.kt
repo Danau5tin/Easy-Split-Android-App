@@ -8,7 +8,6 @@ import android.content.Intent
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.os.Bundle
-import android.provider.Telephony
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
@@ -17,6 +16,8 @@ import android.widget.ArrayAdapter
 import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.splitreceipt.myapplication.CurrencySelectorActivity.Companion.SHARED_PREF_NAME
+import com.splitreceipt.myapplication.SplitReceiptScanFragment.Companion.ownershipEqualString
 import com.splitreceipt.myapplication.data.*
 import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_DATE
 import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_FK_GROUP_ID
@@ -34,6 +35,7 @@ import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_CO
 import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_ID
 import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_SCANNED
 import com.splitreceipt.myapplication.databinding.ActivityNewReceiptCreationBinding
+import kotlinx.android.synthetic.main.fragment_split_receipt_scan.*
 import java.lang.StringBuilder
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -52,10 +54,14 @@ class NewReceiptCreationActivity : AppCompatActivity() {
 
     companion object {
         var sqlAccountId: String? = "-1"
+        const val zeroCurrency: String = "0.00"
         lateinit var participantList: ArrayList<String>
         lateinit var participantDataEditList: ArrayList<ParticipantData> //TODO: Currently being initialised even when it is not an edit. Fix this.
         const val CONTRIBUTION_INTENT_DATA = "contribution"
         const val intentSqlIdString = "sqlID"
+
+        var currencyCode = ""
+        var currencySymbol = ""
 
         const val editIntentTitleString = "edit_title"
         const val editIntentTotalString = "edit_total"
@@ -99,10 +105,13 @@ class NewReceiptCreationActivity : AppCompatActivity() {
         binding = ActivityNewReceiptCreationBinding.inflate(layoutInflater)
         setContentView(binding.root)
         participantList = ArrayList()
+        participantList = retrieveParticipants(this, participantList)
         participantDataEditList = ArrayList()
 
-        val spinnerAdapter = ArrayAdapter(this,
-            R.layout.support_simple_spinner_dropdown_item, participantList)
+        val spinnerAdapter = ArrayAdapter(
+            this,
+            R.layout.support_simple_spinner_dropdown_item, participantList
+        )
         binding.paidBySpinner.adapter = spinnerAdapter
 
         val editTitle = intent.getStringExtra(editIntentTitleString)
@@ -139,6 +148,8 @@ class NewReceiptCreationActivity : AppCompatActivity() {
         binding.receiptTabLayout.setupWithViewPager(binding.receiptViewPager)
     }
 
+
+
     private fun deconstructAndBuildEditContribs(editContributions: String) {
         //deconstruct the contrib string, convert to participant data and add to editParticipantData list
         val contributionsSplit = editContributions.split("/")
@@ -163,22 +174,23 @@ class NewReceiptCreationActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.addExpenseSave -> {
-                val okayToProceed = checkAllInputsAreValid()
+                val currentPage = binding.receiptViewPager.currentItem
+                val okayToProceed = checkAllInputsAreValid(currentPage)
                 if (okayToProceed) {
                     val dbHelper = DbHelper(this)
                     val writeableDB = dbHelper.writableDatabase
                     //Obtain global receipt details
                     val date = getDate()
                     val title =  binding.receiptTitleEditText.text.toString()
-                    val total = findViewById<EditText>(R.id.currencyAmount).text.toString().toFloat()
+                    val total : Float
                     val paidBy = binding.paidBySpinner.selectedItem.toString()
                     val receiptFirebaseID: String?
                     val scanned: Boolean
-                    //Check where the user is
-                    val currentPage = binding.receiptViewPager.currentItem
 
+                    //Check where the user is
                     if (currentPage == 0) {
                         //User is saving a manual expense
+                        total = findViewById<EditText>(R.id.currencyAmount).text.toString().toFloat()
                         val participantDataList = SplitReceiptManuallyFragment.fragmentManualParticipantList
                         val participantBalDataList: ArrayList<ParticipantBalanceData> = particDataToParticBalData(participantDataList)
                         val contributionsString = createContribString(participantBalDataList, paidBy)
@@ -212,6 +224,7 @@ class NewReceiptCreationActivity : AppCompatActivity() {
                     }
                     else if (currentPage == 1){
                         //User is saving a scanned receipt
+                        total = findViewById<EditText>(R.id.currencyAmountScan).text.toString().toFloat()
                         val itemizedProductList = SplitReceiptScanFragment.itemizedArrayList
                         receiptFirebaseID = newFirebaseReceiptID()
                         val particBalDataList: ArrayList<ParticipantBalanceData> = productsToParticBalData(itemizedProductList)
@@ -237,7 +250,9 @@ class NewReceiptCreationActivity : AppCompatActivity() {
         val particBalDataList: ArrayList<ParticipantBalanceData> = ArrayList()
         for (participant in participantList) {
             //Populate a default particBalDataList using the groups participants
-            particBalDataList.add(ParticipantBalanceData(participant, 0.0F))
+            if (participant != ownershipEqualString){
+                particBalDataList.add(ParticipantBalanceData(participant, 0.0F))
+            }
         }
 
         val numberParticipants = particBalDataList.size
@@ -292,8 +307,7 @@ class NewReceiptCreationActivity : AppCompatActivity() {
     }
 
     private fun insertNewReceiptSql(writeableDB: SQLiteDatabase, recFirebaseId: String, date: String, title: String, total: Float, paidBy: String, contributions: String, scanned: Boolean) : Int{
-        val scannedInt: Int
-        scannedInt = if (scanned) { 1 } else { 0 }
+        val scannedInt: Int = if (scanned) { 1 } else { 0 }
         val values = ContentValues().apply {
             put(RECEIPT_COL_UNIQUE_ID, recFirebaseId)
             put(RECEIPT_COL_DATE, date)
@@ -323,7 +337,18 @@ class NewReceiptCreationActivity : AppCompatActivity() {
     }
 
     private fun newFirebaseReceiptID() : String{
-        return "rec0001" // TODO: Find a way to increment this receipt number for the group.
+        val prefix = "rec"
+        val sharedPreferences = getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE)
+        /*
+        This will need multiple sharedPreferences for each account. When a new account is opened then
+        a new shared pref file is created for this account.
+        The accounts shared pref name will be stored as a companion object variable. Initialised as
+        the current Account Sql ID is initialised.
+        When initialized then we will check the most recent receipt number and see if we match this.
+        We will repeat this just before inserting a new receipt.
+         */
+
+        return "rec0001" // TODO:(LOGIC THOUGHT OUT ALREADY) Find a way to increment this receipt number for the group.
     }
 
     private fun createContribString(updatedContribList: ArrayList<ParticipantBalanceData>, paidBy: String): String {
@@ -342,17 +367,26 @@ class NewReceiptCreationActivity : AppCompatActivity() {
         return sb.toString()
     }
 
-    private fun checkAllInputsAreValid(): Boolean {
+    private fun checkAllInputsAreValid(currentPage: Int): Boolean {
         val currencyAmount: EditText = findViewById(R.id.currencyAmount)
         //TODO: Animate the items which need input
         if (binding.receiptTitleEditText.text!!.isEmpty()) {
             Toast.makeText(this, "Please add a title", Toast.LENGTH_SHORT).show()
             return false
         }
-        else if (currencyAmount.text.isEmpty()){
-            Toast.makeText(this, "Please add an amount", Toast.LENGTH_SHORT).show()
-            return false
+        if (currentPage == 0){
+            //Manual Expense
+             if (currencyAmount.text.isEmpty()){
+                        Toast.makeText(this, "Please add an amount", Toast.LENGTH_SHORT).show()
+                        return false
+                    }
+        } else if (currentPage == 1) {
+            if (currencyAmountScan.text!!.isEmpty()){
+                Toast.makeText(this, "Please add an amount", Toast.LENGTH_SHORT).show()
+                return false
+            }
         }
+
         return true
     }
 
@@ -421,9 +455,5 @@ class NewReceiptCreationActivity : AppCompatActivity() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-    }
-
-    fun testButton(view: View) {
-        //TODO: Delete when done testing
     }
 }
