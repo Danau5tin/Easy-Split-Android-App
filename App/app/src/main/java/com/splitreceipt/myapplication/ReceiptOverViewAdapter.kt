@@ -36,6 +36,7 @@ class ReceiptOverViewAdapter(var receiptList: ArrayList<ReceiptData>, var onRecR
         holder.total = totalFixedString
         holder.paidBy = paidBy
         holder.sqlId = receiptList[position].sqlRowId
+        holder.scanned = receiptList[position].scanned
     }
 
     class ReceiptOverviewViewHolder(var context: Context, itemView: View, var onRecRowClick: onReceRowClick) : RecyclerView.ViewHolder(itemView), View.OnClickListener {
@@ -46,6 +47,7 @@ class ReceiptOverViewAdapter(var receiptList: ArrayList<ReceiptData>, var onRecR
         var sqlId = "-1"
         var total = "0"
         var paidBy = "unknown"
+        var scanned = false
 
         init {
             itemView.setOnClickListener(this)
@@ -53,12 +55,12 @@ class ReceiptOverViewAdapter(var receiptList: ArrayList<ReceiptData>, var onRecR
 
         override fun onClick(v: View?) {
             val title = receiptTitleTextView.text.toString()
-            onRecRowClick.onRowClick(adapterPosition, title, total, sqlId, paidBy)
+            onRecRowClick.onRowClick(adapterPosition, title, total, sqlId, paidBy, scanned)
         }
 
     }
 
     interface onReceRowClick{
-        fun onRowClick(pos: Int, title: String="", total: String="", sqlID: String="", paidBy: String="")
+        fun onRowClick(pos: Int, title: String="", total: String="", sqlID: String="", paidBy: String="", scanned: Boolean = false)
     }
 }

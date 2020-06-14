@@ -148,8 +148,6 @@ class NewReceiptCreationActivity : AppCompatActivity() {
         binding.receiptTabLayout.setupWithViewPager(binding.receiptViewPager)
     }
 
-
-
     private fun deconstructAndBuildEditContribs(editContributions: String) {
         //deconstruct the contrib string, convert to participant data and add to editParticipantData list
         val contributionsSplit = editContributions.split("/")
@@ -275,6 +273,10 @@ class NewReceiptCreationActivity : AppCompatActivity() {
                     }
                 }
             }
+        }
+        for (participant in particBalDataList){
+            //Round to 2dp
+            participant.balance = ReceiptOverviewActivity.roundToTwoDecimalPlace(participant.balance)
         }
         return particBalDataList
     }

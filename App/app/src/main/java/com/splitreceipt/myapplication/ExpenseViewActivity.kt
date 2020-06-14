@@ -12,13 +12,21 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.splitreceipt.myapplication.data.DbHelper
+import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_COL_FK_RECEIPT_ID
+import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_COL_NAME
+import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_COL_OWNERSHIP
+import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_COL_VALUE
+import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_TABLE_NAME
 import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_CONTRIBUTIONS
 import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_DATE
 import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_ID
 import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_TABLE_NAME
 import com.splitreceipt.myapplication.data.ExpenseAdapterData
 import com.splitreceipt.myapplication.data.ParticipantBalanceData
+import com.splitreceipt.myapplication.data.ScannedItemizedProductData
 import com.splitreceipt.myapplication.databinding.ActivityExpenseViewBinding
+import java.util.*
+import kotlin.collections.ArrayList
 
 class ExpenseViewActivity : AppCompatActivity() {
 
@@ -26,17 +34,20 @@ class ExpenseViewActivity : AppCompatActivity() {
     private lateinit var expenseDate: String
     private lateinit var contributionString: String
     private lateinit var contributionList: ArrayList<ExpenseAdapterData>
+    private lateinit var itemizedProductData: ArrayList<ScannedItemizedProductData>
     private var sqlRowId: String = "-1"
     private var getTitleIntent: String = ""
     private var getTotalIntent: String = ""
     private var getPaidByIntent: String = ""
-    private lateinit var adapter: ExpenseViewAdapter
+    private var getScannedIntent: Boolean = false
+    private lateinit var participantAdapter: ExpenseViewParticipantAdapter
 
     companion object {
         const val expenseSqlIntentString: String = "expense_sql_id"
         const val expenseTitleIntentString: String = "expense_title"
         const val expenseTotalIntentString: String = "expense_total"
         const val expensePaidByIntentString: String = "expense_paid_by"
+        const val expenseScannedIntentString: String = "expense_scanned"
         const val expenseReturnNewContributions: String = "expense_return_contributions"
         const val expenseReturnNewSettlements: String = "expense_return_settlements"
         const val expenseReturnEditSql: String = "expense_edit_sql"
@@ -54,15 +65,27 @@ class ExpenseViewActivity : AppCompatActivity() {
         setContentView(binding.root)
         contributionList = ArrayList()
 
-        getTitleIntent = intent.getStringExtra(expenseTitleIntentString)
-        getTotalIntent = intent.getStringExtra(expenseTotalIntentString)
-        getPaidByIntent = intent.getStringExtra(expensePaidByIntentString).toLowerCase()
-        sqlRowId = intent.getStringExtra(expenseSqlIntentString)
-        getSqlDetails()
+        getTitleIntent = intent.getStringExtra(expenseTitleIntentString)!!
+        getTotalIntent = intent.getStringExtra(expenseTotalIntentString)!!
+        getPaidByIntent =
+            intent.getStringExtra(expensePaidByIntentString)!!.toLowerCase(Locale.ROOT)
+        sqlRowId = intent.getStringExtra(expenseSqlIntentString)!!
+        getScannedIntent = intent.getBooleanExtra(expenseScannedIntentString, false)
+        retrieveAllSqlDetails(getScannedIntent)
+        if (getScannedIntent){
+            binding.expenseProductRecy.visibility = View.VISIBLE
+            binding.expenseProductDetailText.visibility = View.VISIBLE
+            val expenseProdAdapter = ExpenseViewProductAdapter(itemizedProductData)
+            binding.expenseProductRecy.adapter = expenseProdAdapter
+            binding.expenseProductRecy.layoutManager = LinearLayoutManager(this)
+        } else {
+            binding.expenseProductRecy.visibility = View.GONE
+            binding.expenseProductDetailText.visibility = View.GONE
+        }
         deconstructContributionString()
 
         val paidByText = "Paid by $getPaidByIntent"
-        val valueText = "£$getTotalIntent"
+        val valueText = "£$getTotalIntent" //TODO: Ensure the correct currency is being used
         binding.expenseValue.text = valueText
         binding.paidByText.text = paidByText
 
@@ -74,9 +97,9 @@ class ExpenseViewActivity : AppCompatActivity() {
             setHomeAsUpIndicator(R.drawable.vector_back_arrow_white)
         }
 
-        adapter = ExpenseViewAdapter(contributionList)
-        binding.expenseRecy.layoutManager = LinearLayoutManager(this)
-        binding.expenseRecy.adapter = adapter
+        participantAdapter = ExpenseViewParticipantAdapter(contributionList)
+        binding.expenseParticRecy.layoutManager = LinearLayoutManager(this)
+        binding.expenseParticRecy.adapter = participantAdapter
     }
 
     private fun deconstructContributionString() {
@@ -91,13 +114,40 @@ class ExpenseViewActivity : AppCompatActivity() {
             contributionList.add(ExpenseAdapterData(newString, value))
         }
     }
+    private fun retrieveAllSqlDetails(scanned: Boolean){
+        val dbHelper = DbHelper(this)
+        val reader = dbHelper.readableDatabase
+        getReceiptSqlDetails(reader)
+        if(scanned){
+            getReceiptProductDetails(reader)
+        }
+        dbHelper.close()
+    }
 
-    private fun getSqlDetails() {
+    private fun getReceiptProductDetails(reader: SQLiteDatabase?) {
+        itemizedProductData = ArrayList()
+        val columns = arrayOf(ITEMS_COL_NAME, ITEMS_COL_VALUE, ITEMS_COL_OWNERSHIP)
+        val selectClause = "$ITEMS_COL_FK_RECEIPT_ID = ?"
+        val selectArgs = arrayOf(sqlRowId)
+        val cursor: Cursor = reader!!.query(ITEMS_TABLE_NAME, columns, selectClause, selectArgs,
+                    null, null, null)
+        val nameColIndex = cursor.getColumnIndexOrThrow(ITEMS_COL_NAME)
+        val valueColIndex = cursor.getColumnIndexOrThrow(ITEMS_COL_VALUE)
+        val ownershipColIndex = cursor.getColumnIndexOrThrow(ITEMS_COL_OWNERSHIP)
+        while (cursor.moveToNext()) {
+            val productName = cursor.getString(nameColIndex)
+            val productValue = cursor.getString(valueColIndex)
+            val productOwner = cursor.getString(ownershipColIndex)
+            itemizedProductData.add(ScannedItemizedProductData(productName, productValue, false, productOwner))
+        }
+        cursor.close()
+        //TODO: Load the expense view activity on the correct tab.
+    }
+
+    private fun getReceiptSqlDetails(reader: SQLiteDatabase) {
         // Retrieves the date and contributions of the selected expense.
         var date = ""
         var contributions = ""
-        val dbHelper = DbHelper(this)
-        val reader = dbHelper.readableDatabase
         val columns = arrayOf(RECEIPT_COL_DATE, RECEIPT_COL_CONTRIBUTIONS)
         val whereClause = "$RECEIPT_COL_ID = ?"
         val whereArgs = arrayOf(sqlRowId)
@@ -109,7 +159,6 @@ class ExpenseViewActivity : AppCompatActivity() {
             contributions = cursor.getString(contributionIndex)
         }
         cursor.close()
-        dbHelper.close()
         expenseDate = date
         contributionString = contributions
     }
@@ -166,7 +215,7 @@ class ExpenseViewActivity : AppCompatActivity() {
                 intent.putExtra(expenseReturnNewSettlements, settlementString)
                 setResult(Activity.RESULT_OK, intent)
                 deconstructContributionString()
-                adapter.notifyDataSetChanged()
+                participantAdapter.notifyDataSetChanged()
             }
         }
     }

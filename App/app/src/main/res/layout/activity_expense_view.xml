@@ -63,12 +63,12 @@
         app:layout_constraintTop_toBottomOf="@+id/expenseTag" />
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/expenseRecy"
+        android:id="@+id/expenseParticRecy"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginTop="8dp"
-        android:layout_marginBottom="8dp"
-        app:layout_constraintBottom_toTopOf="@+id/deleteExpenseButton"
+        android:layout_marginBottom="16dp"
+        app:layout_constraintBottom_toTopOf="@+id/expenseProductDetailText"
         app:layout_constraintEnd_toStartOf="@+id/guideline3"
         app:layout_constraintStart_toStartOf="@+id/guideline"
         app:layout_constraintTop_toBottomOf="@+id/textView3" />
@@ -100,12 +100,31 @@
 
     <Button
         android:id="@+id/deleteExpenseButton"
+        style="@style/delete_button"
         android:onClick="deleteExpense"
         android:text="DELETE EXPENSE"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/guideline3"
-        app:layout_constraintStart_toStartOf="@+id/guideline"
-        style="@style/delete_button" />
+        app:layout_constraintStart_toStartOf="@+id/guideline" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/expenseProductRecy"
+        android:layout_width="0dp"
+        android:layout_height="250dp"
+        android:layout_marginBottom="16dp"
+        app:layout_constraintBottom_toTopOf="@+id/deleteExpenseButton"
+        app:layout_constraintEnd_toStartOf="@+id/guideline3"
+        app:layout_constraintStart_toStartOf="@+id/guideline" />
+
+    <TextView
+        android:id="@+id/expenseProductDetailText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:text="Product details"
+        android:textColor="#020202"
+        app:layout_constraintBottom_toTopOf="@+id/expenseProductRecy"
+        app:layout_constraintStart_toStartOf="@+id/guideline" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -26,6 +26,7 @@ import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_DA
 import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_FK_GROUP_ID
 import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_ID
 import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_PAID_BY
+import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_SCANNED
 import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_TITLE
 import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_TOTAL
 import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_TABLE_NAME
@@ -184,7 +185,8 @@ class ReceiptOverviewActivity : AppCompatActivity(), ReceiptOverViewAdapter.onRe
     private fun loadPreviousReceipts(sqlId: String?) {
         val dbHelper = DbHelper(this)
         val reader = dbHelper.readableDatabase
-        val columns = arrayOf(RECEIPT_COL_DATE, RECEIPT_COL_TITLE, RECEIPT_COL_TOTAL, RECEIPT_COL_PAID_BY, RECEIPT_COL_ID)
+        val columns = arrayOf(RECEIPT_COL_DATE, RECEIPT_COL_TITLE, RECEIPT_COL_TOTAL,
+            RECEIPT_COL_PAID_BY, RECEIPT_COL_ID, RECEIPT_COL_SCANNED)
         val selectClause = "$RECEIPT_COL_FK_GROUP_ID = ?"
         val selectArgs = arrayOf("$sqlId")
         val cursor: Cursor = reader.query(RECEIPT_TABLE_NAME, columns, selectClause, selectArgs,
@@ -195,13 +197,16 @@ class ReceiptOverviewActivity : AppCompatActivity(), ReceiptOverViewAdapter.onRe
         val totalColIndex = cursor.getColumnIndexOrThrow(RECEIPT_COL_TOTAL)
         val paidByColIndex = cursor.getColumnIndexOrThrow(RECEIPT_COL_PAID_BY)
         val idColIndex = cursor.getColumnIndexOrThrow(RECEIPT_COL_ID)
+        val scannedColIndex = cursor.getColumnIndexOrThrow(RECEIPT_COL_SCANNED)
         while (cursor.moveToNext()) {
             val receiptDate = cursor.getString(dateColIndex)
             val receiptTitle = cursor.getString(titleColIndex)
             val receiptTotal = cursor.getFloat(totalColIndex)
             val receiptPaidBy = cursor.getString(paidByColIndex)
             val receiptSqlId =  cursor.getInt(idColIndex).toString()
-            receiptList.add(ReceiptData(receiptDate, receiptTitle, receiptTotal, receiptPaidBy, receiptSqlId))
+            val receiptScannedInt = cursor.getInt(scannedColIndex)
+            val scanned = receiptScannedInt == 1
+            receiptList.add(ReceiptData(receiptDate, receiptTitle, receiptTotal, receiptPaidBy, receiptSqlId, scanned))
         }
         cursor.close()
         dbHelper.close()
@@ -325,12 +330,20 @@ class ReceiptOverviewActivity : AppCompatActivity(), ReceiptOverViewAdapter.onRe
         startActivity(intent)
     }
 
-    override fun onRowClick(pos: Int, title:String, total:String, sqlID: String, paidBy:String) {
+    override fun onRowClick(
+        pos: Int,
+        title: String,
+        total: String,
+        sqlID: String,
+        paidBy: String,
+        scanned: Boolean
+    ) {
         val intent = Intent(this, ExpenseViewActivity::class.java)
         intent.putExtra(ExpenseViewActivity.expenseTitleIntentString, title)
         intent.putExtra(ExpenseViewActivity.expenseTotalIntentString, total)
         intent.putExtra(ExpenseViewActivity.expenseSqlIntentString, sqlID)
         intent.putExtra(ExpenseViewActivity.expensePaidByIntentString, paidBy)
+        intent.putExtra(ExpenseViewActivity.expenseScannedIntentString, scanned)
         startActivityForResult(intent, seeExpenseResult)
     }
 

@@ -174,7 +174,6 @@ class SplitReceiptScanFragment : Fragment(), NewScannedReceiptRecyclerAdapter.on
 
     private fun getImageFromCamera() {
         //TODO: Provide the user with instructions on how to get the best quality and performance
-        //TODO: Check if the user has filled in the receipt total
         val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
         intent.resolveActivity(contxt.packageManager)
 

@@ -10,7 +10,7 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.splitreceipt.myapplication.data.ExpenseAdapterData
 
-class ExpenseViewAdapter(var contributionList: ArrayList<ExpenseAdapterData>): RecyclerView.Adapter<ExpenseViewAdapter.ExpenseViewHolder>() {
+class ExpenseViewParticipantAdapter(var contributionList: ArrayList<ExpenseAdapterData>): RecyclerView.Adapter<ExpenseViewParticipantAdapter.ExpenseViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ExpenseViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         val view = inflater.inflate(R.layout.expense_recy_row, parent, false)
