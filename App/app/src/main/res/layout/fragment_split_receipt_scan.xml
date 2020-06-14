@@ -16,7 +16,7 @@
         android:padding="5dp"
         android:paddingBottom="10dp"
         android:scaleType="fitCenter"
-        app:layout_constraintBottom_toBottomOf="@+id/textInputLayout5"
+        app:layout_constraintBottom_toBottomOf="@+id/textInputLayout6"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@+id/textInputLayout5"
         app:srcCompat="@drawable/vector_add_photo_grey" />
@@ -25,12 +25,12 @@
         android:id="@+id/scannedRecy"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/addReceiptImageButton" />
+        app:layout_constraintTop_toBottomOf="@+id/textInputLayout6" />
 
     <Button
         android:id="@+id/currencyButtonScan"
@@ -58,5 +58,23 @@
             android:layout_height="wrap_content"
             android:focusable="auto"
             android:hint="Amount" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/textInputLayout6"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="32dp"
+        app:layout_constraintEnd_toEndOf="@+id/textInputLayout5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/currencyButtonScan">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/numberScanItemsText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Number of items" />
     </com.google.android.material.textfield.TextInputLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

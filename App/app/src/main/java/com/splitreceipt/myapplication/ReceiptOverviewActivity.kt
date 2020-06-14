@@ -296,14 +296,12 @@ class ReceiptOverviewActivity : AppCompatActivity(), ReceiptOverViewAdapter.onRe
         val you = "you"
         val debtorLow = debtor.toLowerCase(Locale.ROOT)
         val receiverLow = receiver.toLowerCase(Locale.ROOT)
-        if (you == debtorLow) {
-            finalString = "$debtor owe $currencySymbol$value to $receiver."
-        }
-        else if (you == receiverLow){
-            finalString = "$debtor owes $currencySymbol$value to $receiverLow."
-        }
-        else {
-            finalString = "$debtor owes $currencySymbol$value to $receiver."
+        finalString = if (you == debtorLow) {
+            "$debtor owe $currencySymbol$value to $receiver."
+        } else if (you == receiverLow){
+            "$debtor owes $currencySymbol$value to $receiverLow."
+        } else {
+            "$debtor owes $currencySymbol$value to $receiver."
         }
         return finalString
     }

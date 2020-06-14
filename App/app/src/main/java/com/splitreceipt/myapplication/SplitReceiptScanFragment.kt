@@ -26,20 +26,16 @@ import android.widget.RadioGroup
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.FileProvider
-import androidx.core.text.isDigitsOnly
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.firebase.ml.vision.FirebaseVision
 import com.google.firebase.ml.vision.common.FirebaseVisionImage
 import com.splitreceipt.myapplication.NewReceiptCreationActivity.Companion.currencyCode
 import com.splitreceipt.myapplication.NewReceiptCreationActivity.Companion.currencySymbol
-import com.splitreceipt.myapplication.ReceiptOverviewActivity.Companion.roundToTwoDecimalPlace
 import com.splitreceipt.myapplication.data.ScannedItemizedProductData
 import com.splitreceipt.myapplication.databinding.FragmentSplitReceiptScanBinding
-import kotlinx.android.synthetic.main.alert_dialog_scanned_item_confirmation.view.*
 import kotlinx.android.synthetic.main.alert_dialog_scanned_product_edit.view.*
 import java.io.File
-import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
@@ -50,7 +46,7 @@ class SplitReceiptScanFragment : Fragment(), NewScannedReceiptRecyclerAdapter.on
     private lateinit var contxt: Context
     private lateinit var binding: FragmentSplitReceiptScanBinding
     private lateinit var sharedPreferences: SharedPreferences
-    private lateinit var explicitTotalTaxIgnoreList: ArrayList<String>
+    private var explicitTotal = ""
     private val currencyIntent: Int = 50
     private lateinit var participantList: ArrayList<String>
     private lateinit var adapter: NewScannedReceiptRecyclerAdapter
@@ -72,10 +68,10 @@ class SplitReceiptScanFragment : Fragment(), NewScannedReceiptRecyclerAdapter.on
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         binding = FragmentSplitReceiptScanBinding.inflate(inflater, container, false)
+        numberOfItemsProvided = false
         sharedPreferences = contxt.getSharedPreferences(CurrencySelectorActivity.SHARED_PREF_NAME, Context.MODE_PRIVATE)
         itemizedArrayList = ArrayList()
         participantList = ArrayList()
-        explicitTotalTaxIgnoreList = ArrayList()
         updateUICurrency()
         retrieveParticipants()
         adapter = NewScannedReceiptRecyclerAdapter(participantList, itemizedArrayList, this)
@@ -86,7 +82,9 @@ class SplitReceiptScanFragment : Fragment(), NewScannedReceiptRecyclerAdapter.on
 
         binding.currencyAmountScan.addTextChangedListener(object: TextWatcher {
             //TODO: This is copied from other fragment. Can we move this up into the activity and have the two fragments listen for changes from the main activity?
-            override fun afterTextChanged(s: Editable?) {}
+            override fun afterTextChanged(s: Editable?) {
+                setTotal()
+            }
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(text: CharSequence?, start: Int, before: Int, count: Int) {
                 val correctNumber: CharSequence
@@ -106,7 +104,6 @@ class SplitReceiptScanFragment : Fragment(), NewScannedReceiptRecyclerAdapter.on
                         }
                     }
                     SplitReceiptManuallyFragment.transactionTotal = text.toString()
-                    calculateExplicitDeleteValues()
                 }
                 else{
                     SplitReceiptManuallyFragment.transactionTotal =
@@ -115,7 +112,11 @@ class SplitReceiptScanFragment : Fragment(), NewScannedReceiptRecyclerAdapter.on
                     }}})
 
         binding.addReceiptImageButton.setOnClickListener {
-            checkPermissions()
+            val okayToProceed = okayToProceed()
+            if (okayToProceed){
+                setTotal()
+                checkPermissions()
+            }
         }
 
         binding.currencyButtonScan.setOnClickListener {
@@ -126,24 +127,30 @@ class SplitReceiptScanFragment : Fragment(), NewScannedReceiptRecyclerAdapter.on
         return binding.root
     }
 
-    private fun calculateExplicitDeleteValues() {
-        /*
-        This function discovers the correct taxes for each country so that when the receipt is
-         scanned, the algorithm can ignore the tax values and not add them as another product.
-         */
-        //TODO: Ensure the different taxes are calculated differently for different currencies
-        //TODO: Ensure the "GBP" is obtained from a static variable
+    private fun okayToProceed(): Boolean {
+        if(binding.currencyAmountScan.text.toString().isBlank()){
+            Toast.makeText(contxt, "Please enter receipt total", Toast.LENGTH_SHORT).show()
+            return false
+        } else if (binding.numberScanItemsText.text.toString().isBlank()){
+            Toast.makeText(contxt, "Please enter number of items on receipt", Toast.LENGTH_LONG).show()
+            return false
+        } else {
+            val num = binding.numberScanItemsText.text.toString().toIntOrNull()
+            if (num != null){
+                numberOfItems = binding.numberScanItemsText.text.toString().toInt()
+                Log.i("RECOG", "Number of items set explicitly by user to $numberOfItems")
+                return true
+            } else {
+                Toast.makeText(contxt, "Please enter a valid number", Toast.LENGTH_LONG).show()
+                return false
+            }
+        }
+
+    }
+
+    private fun setTotal() {
         val expenseTotalString = binding.currencyAmountScan.text.toString()
-        explicitTotalTaxIgnoreList.add(expenseTotalString)
-        val expenseTotal = binding.currencyAmountScan.text.toString().toFloat()
-        if (currencyCode == "GBP") {
-            //TODO: Improve the text recog algorithm for identifying taxes and balances 1) After VAT is seen then any number after this is added to the explicitly deleted list?
-            val twentyPercent = roundToTwoDecimalPlace(expenseTotal * 0.20F).toString()
-            explicitTotalTaxIgnoreList.add(twentyPercent)
-        }
-        else {
-            //TODO: Add each countries taxes? Likely too manual, maybe the TODO above is a more efficient way. Or maybe just by identifying the number of items it is enough anyway?
-        }
+        explicitTotal = expenseTotalString
     }
 
     private fun checkPermissions() {
@@ -245,226 +252,139 @@ class SplitReceiptScanFragment : Fragment(), NewScannedReceiptRecyclerAdapter.on
             val deletedItemArray: ArrayList<String> = ArrayList()
             val deletedValuesArrays: ArrayList<String> = ArrayList()
             val deletedLowerCaseArrays: ArrayList<String> = ArrayList()
-            val explicitDeletedArray: ArrayList<String> = ArrayList()
-            val explicitWantedArray: ArrayList<String> = ArrayList()
             val lonelyCharacters: ArrayList<String> = ArrayList()
             val lonelyDigits: ArrayList<String> = ArrayList()
-            var runningTotal = 0.0F
-            var runningSubTotal = 0.0F
-            var runningTax = 0.0F
-            val negWords = arrayOf(":", "visa", ".com", "mastercard", "master", "card", "waitrose","change", "vat",
-                "rate", "net", "copy", "*", "/", "%", "&", "0.00", "balance", "due", "totals",
-                "tota", "gross")
-            val wantedWords = arrayOf("items", "itens", "ite")
+            val negWords = arrayOf(
+                ":",
+                "visa",
+                ".com",
+                ".co",
+                "www",
+                "mastercard",
+                "master",
+                "card",
+                "waitrose",
+                "change",
+                "vat",
+                "rate",
+                "net",
+                "copy",
+                "*",
+                "0.00",
+                "balance",
+                "due",
+                "totals",
+                "tota",
+                "gross"
+            )
             if (blocks.isEmpty()) {
                 Log.i("RECOG", "Failed to get any text")
             } else {
                 for (block in blocks) {
-                    for (line in block.lines){
-                        var added = false
+                    for (line in block.lines) {
 
                         if (line.text.isBlank()) {
                             deletedItemArray.add(line.text)
-                            added = true
                         }
-
-                        if (added){
-                            break
-                        }
-
-                        val newLine = line.text.toLowerCase().trim()
+                        val newLine = line.text.toLowerCase()
 
                         for (negWord in negWords) {
                             //Step 1: Check if any of the negative words are in the string.
-                            if (newLine.contains(negWord)) {
-                                deletedItemArray.add(line.text)
-                                added = true
+                            for (element in line.text){
+                                if (element.toString() == negWord) {
+                                    deletedItemArray.add(line.text)
+                                }
                             }
                         }
-                        if (added) {break}
 
-                        if(newLine.contains(".")) {
+                        if (newLine.contains(".")) {
                             // Step 2 (DIGIT): Check if string is an individual item price
-                            try {
-                                val valueToFloat = newLine.toFloat()
-
-                                if (valueToFloat == runningTotal || valueToFloat == runningSubTotal || valueToFloat == runningTax) {
-                                    // Step 3: Check if we are just trying to add the total instead of an item
-                                    deletedValuesArrays.add(newLine)
-                                    added = true
-                                }
-
-                                if (added) {break}
-
-                                val totalToFloat = runningTotal
-                                val newTotal = totalToFloat + valueToFloat
-                                runningTax = newTotal * 0.2F
-                                val newSubTotal = newTotal - runningTax
-                                runningTotal = newTotal
-                                runningSubTotal = newSubTotal
-                                Log.i("RECOG", "Value: $valueToFloat, Total: $runningTotal, Sub: $runningSubTotal, Tax: $runningTax")
-                            } catch (e: Exception) {
-                                e.printStackTrace()
+                            if (newLine.length < 6) {
+                                valuesArray.add(newLine)
                             }
-
-                            valuesArray.add(newLine)
-                        } else {
+                        }
+                        else {
                             //Step 2 (Item): Check if string is an item
-                            for (element in line.elements) {
-                                if (element.text.length == 1) {
-                                    //Step 3: Check if any element is just one character
-                                    val num = element.text.toIntOrNull()
-                                    if (num == null) {
-                                        // Character is not a digit and should be deleted
-                                        val item = line.text.removeRange(line.text.indexOf(element.text), line.text.indexOf(element.text) + 1)
-                                        itemsArray.add(item)
-                                        lonelyCharacters.add(element.text)
-                                        added = true
-                                    } else {
-                                        // Character is a lonely digit
-                                        lonelyDigits.add(element.text)
-                                    }
-                                }
-                            }
-
-                            for (word in wantedWords) {
-                                //Step 4: Check if we can extract the number of receipt items
-                                if (newLine.contains(word)) {
-                                    explicitWantedArray.add(line.text)
-                                    added = true
-                                }
-                            }
-
-                            if (added) {
-                                break
-                            }
-
                             if (newLine.equals(line.text)) {
                                 //Step 5: Check if the item is all lowercase indicating it is not an item
                                 deletedLowerCaseArrays.add(line.text)
-                                added = true
-                            }
-
-                            if (added) {
-                                break
                             }
 
                             itemsArray.add(line.text)
                         }
                     }
                 }
-
-                for (value in valuesArray) {
-                    val stringTotal = runningTotal.toString()
-                    val stringSubTotal = runningSubTotal.toString()
-                    val stringTax = runningTax.toString()
-                    if (value.contains(stringTotal) || value.contains(stringSubTotal) || value.contains(stringTax)) {
-                        // Check if the running total has worked and delete any items that match the running total
-                        deletedValuesArrays.add(value)
-                    }
-
-                }
-
-                for (value in explicitWantedArray) {
-                    itemsArray.remove(value)
-                }
             }
-            Log.i("RECOG", "ENTIRE BLOCK $it.text}")
+
+            for (delete in deletedLowerCaseArrays){
+                itemsArray.remove(delete)
+            }
+            for (delete in deletedItemArray) {
+                itemsArray.remove(delete)
+            }
+            Log.i("RECOG", "ENTIRE BLOCK ${it.text}")
             Log.i("RECOG", "ITEMS ARRAY $itemsArray")
             Log.i("RECOG", "VALUES ARRAY $valuesArray")
             Log.i("RECOG", "DELETED ITEMS ARRAY $deletedItemArray")
             Log.i("RECOG", "DELETED VALUES ARRAY $deletedValuesArrays")
-            Log.i("RECOG", "EXPLICITLY DELETED VALUES ARRAY $explicitDeletedArray")
-            Log.i("RECOG", "EXPLICITLY WANTED VALUES ARRAY $explicitWantedArray")
-            Log.i("RECOG", "TOTAL $runningTotal")
-            Log.i("RECOG", "SUB-TOTAL $runningSubTotal")
             Log.i("RECOG", "Lonely Characters List: $lonelyCharacters")
             Log.i("RECOG", "Lonely Digits List: $lonelyDigits")
             Log.i("RECOG", "Lower case words List: $deletedLowerCaseArrays")
             Log.i("RECOG", "--------------------------------------------")
 
             val finalCheckedItems: ArrayList<String> = ArrayList()
+            val finalCheckedValues: ArrayList<String> = ArrayList()
 
             //Final checks
             for (item in itemsArray) {
-                if (item.length < 5) {
-                    break
-                }
-                else {
-                    val trimmed = item.trim()
-                    finalCheckedItems.add(trimmed)
-                }
+                val trimmed = item.trim()
+                finalCheckedItems.add(trimmed)
             }
+            val toBeRemoved: ArrayList<String> = ArrayList()
+
             for (value in valuesArray) {
-                if (value.contains(" ")){
-                    value.replace(" ", "")
+                var finalisedValue = value
+                if (finalisedValue.contains(" ")) {
+                    finalisedValue = finalisedValue.replace(" ", "")
                 }
-                if (value.contains("o")) {
-                    value.replace("o", "0")
+                if (finalisedValue.contains("o")) {
+                    finalisedValue = finalisedValue.replace("o", "0")
                 }
-                if (value.contains("c")){
-                    value.replace("c", "0")
+                if (finalisedValue.contains("c")) {
+                    finalisedValue = finalisedValue.replace("c", "0")
+                }
+                if (finalisedValue.contains("£")){
+                    finalisedValue = finalisedValue.replace("£", "")
+                }
+                if (finalisedValue.contains("$")){
+                    finalisedValue = finalisedValue.replace("$", "")
+                }
+                if (finalisedValue.contains("€")){
+                    finalisedValue = finalisedValue.replace("€", "")
                 }
 
+                if (!value.contains(explicitTotal)){
+                    finalCheckedValues.add(finalisedValue)
+                }
             }
 
-            var correctedItems: MutableList<String>
-            var correctedValues: MutableList<String>
 
             try {
                 // If we can get the number of items then create a sublist to that effect
-                numberOfItems = explicitWantedArray[0].filter { it.isDigit() }.toInt()
-                correctedItems = finalCheckedItems.subList(0, numberOfItems)
-                correctedValues = valuesArray.subList(0, numberOfItems)
-                Log.i("RECOG", "Able to find number of items and correct")
+                val correctedItems = finalCheckedItems.subList(0, numberOfItems)
+                val correctedValues = finalCheckedValues.subList(0, numberOfItems)
+                initializeProductList(correctedItems, correctedValues)
+                flagAndRefresh()
             } catch (exception: IndexOutOfBoundsException) {
-                try {
-                    if (!numberOfItemsProvided) {
-                        numberOfItems = howManyDialog()
-                        numberOfItemsProvided = true
-                    }
-                    correctedItems = finalCheckedItems.subList(0, numberOfItems)
-                    correctedValues = valuesArray.subList(0, numberOfItems)
-                    Log.i("RECOG", "Not able to automatically find number of items and correct. Set explicitly by user to $numberOfItems")
-                } catch (exception: java.lang.IndexOutOfBoundsException){
-                    exception.printStackTrace()
-                    Toast.makeText(contxt, "Unable to recognise all the items", Toast.LENGTH_SHORT).show()
-                    correctedItems = mutableListOf("Please try again")
-                    correctedValues = mutableListOf("0.00")
-                }
-
+                Log.i("RECOG", "Unable to identify all items")
+                Toast.makeText(contxt, "FAILED TO RECOGNISE- TRY AGAIN!!", Toast.LENGTH_LONG).show()
             }
-            Log.i("RECOG", "Corrected Items List: $correctedItems")
-            Log.i("RECOG", "Corrected Values List: $correctedValues")
-
-            initializeProductList(correctedItems, correctedValues)
-            flagAndRefresh()
-            }
+        }
 
         .addOnFailureListener {
             Log.i("RECOG", "Failed completely")
         }
     }
-
-    private fun howManyDialog(): Int {
-        // Presents a dialog to the user asking for them to identify the number of products on the receipt
-        var numberOfItems: Int = 0
-        val diagView = LayoutInflater.from(contxt).inflate(R.layout.alert_dialog_scanned_item_confirmation, null)
-        val builder = AlertDialog.Builder(contxt).setTitle("How many items?").setView(diagView).show()
-        diagView.scannedHowManyUpdateBut.setOnClickListener {
-            val userInput = diagView.scannedHowManyNumber.text.toString()
-            if (userInput.isBlank() || !userInput.matches("[0-9]*".toRegex())) {
-                Toast.makeText(contxt, "Please enter a valid number", Toast.LENGTH_SHORT).show()
-            }
-            numberOfItems = userInput.toInt()
-            builder.cancel()
-        }
-        diagView.scannedHowManyCantFindBut.setOnClickListener {
-            builder.cancel()
-        }
-        return numberOfItems
-    }
-
 
     private fun retrieveParticipants() {
         participantList = NewReceiptCreationActivity.participantList
