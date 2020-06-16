@@ -18,7 +18,7 @@ class ExpenseViewProductAdapter(var itemizedProductData: ArrayList<ScannedItemiz
         return itemizedProductData.size
     }
 
-    override fun onBindViewHolder(holder: ExpenseViewProductAdapter.ExpenseProductViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: ExpenseProductViewHolder, position: Int) {
         holder.productTitleText.text = itemizedProductData[position].itemName
         holder.productValueText.text = itemizedProductData[position].itemValue
         holder.productOwnershipText.text = itemizedProductData[position].ownership

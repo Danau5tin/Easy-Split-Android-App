@@ -93,7 +93,10 @@ class SplitReceiptManuallyFragment : Fragment(), NewManualReceiptRecyclerAdapter
             startActivityForResult(intent, CURRENCY_INTENT)
         }
 
-        binding.currencyAmount.setText(NewReceiptCreationActivity.editTotal)
+        if (!NewReceiptCreationActivity.isScanned){
+            binding.currencyAmount.setText(NewReceiptCreationActivity.editTotal)
+        }
+
 
         return binding.root
     }

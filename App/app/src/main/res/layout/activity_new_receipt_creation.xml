@@ -83,16 +83,14 @@
 
         <com.google.android.material.tabs.TabItem
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Split Manually" />
+            android:layout_height="wrap_content"/>
 
         <com.google.android.material.tabs.TabItem
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Scan Receipt" />
+            android:layout_height="wrap_content"/>
     </com.google.android.material.tabs.TabLayout>
 
-    <androidx.viewpager.widget.ViewPager
+    <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/receiptViewPager"
         android:layout_width="0dp"
         android:layout_height="0dp"

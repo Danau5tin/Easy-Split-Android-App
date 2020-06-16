@@ -110,8 +110,8 @@
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/expenseProductRecy"
         android:layout_width="0dp"
-        android:layout_height="250dp"
-        android:layout_marginBottom="16dp"
+        android:layout_height="350dp"
+        android:layout_marginBottom="8dp"
         app:layout_constraintBottom_toTopOf="@+id/deleteExpenseButton"
         app:layout_constraintEnd_toStartOf="@+id/guideline3"
         app:layout_constraintStart_toStartOf="@+id/guideline" />
@@ -120,7 +120,6 @@
         android:id="@+id/expenseProductDetailText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
         android:text="Product details"
         android:textColor="#020202"
         app:layout_constraintBottom_toTopOf="@+id/expenseProductRecy"

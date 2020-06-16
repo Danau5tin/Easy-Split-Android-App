@@ -13,6 +13,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.splitreceipt.myapplication.data.DbHelper
 import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_COL_FK_RECEIPT_ID
+import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_COL_ID
 import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_COL_NAME
 import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_COL_OWNERSHIP
 import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_COL_VALUE
@@ -41,6 +42,7 @@ class ExpenseViewActivity : AppCompatActivity() {
     private var getPaidByIntent: String = ""
     private var getScannedIntent: Boolean = false
     private lateinit var participantAdapter: ExpenseViewParticipantAdapter
+    private lateinit var expenseProdAdapter: ExpenseViewProductAdapter
 
     companion object {
         const val expenseSqlIntentString: String = "expense_sql_id"
@@ -57,6 +59,30 @@ class ExpenseViewActivity : AppCompatActivity() {
         const val expenseReturnEditPaidBy: String = "expense_edit_paid_by"
         const val expenseReturnEditContributions: String = "expense_edit_contributions"
         const val EDIT_EXPENSE_INTENT_CODE = 30
+
+        fun getReceiptProductDetails(reader: SQLiteDatabase?, sqlRowId: String, itemisedProductList: ArrayList<ScannedItemizedProductData>) : ArrayList<ScannedItemizedProductData> {
+            //Takes an initialized list, clears it and updates it with the correct product items
+            itemisedProductList.clear()
+            val columns = arrayOf(ITEMS_COL_NAME, ITEMS_COL_VALUE, ITEMS_COL_OWNERSHIP, ITEMS_COL_ID)
+            val selectClause = "$ITEMS_COL_FK_RECEIPT_ID = ?"
+            val selectArgs = arrayOf(sqlRowId)
+            val cursor: Cursor = reader!!.query(ITEMS_TABLE_NAME, columns, selectClause, selectArgs,
+                null, null, null)
+            val nameColIndex = cursor.getColumnIndexOrThrow(ITEMS_COL_NAME)
+            val valueColIndex = cursor.getColumnIndexOrThrow(ITEMS_COL_VALUE)
+            val ownershipColIndex = cursor.getColumnIndexOrThrow(ITEMS_COL_OWNERSHIP)
+            val sqlRowColIndex = cursor.getColumnIndexOrThrow(ITEMS_COL_ID)
+            while (cursor.moveToNext()) {
+                val productName = cursor.getString(nameColIndex)
+                val productValue = SplitReceiptManuallyFragment.addStringZerosForDecimalPlace(cursor.getString(valueColIndex))
+                val productOwner = cursor.getString(ownershipColIndex)
+                val productSqlRow = cursor.getInt(sqlRowColIndex).toString()
+                itemisedProductList.add(ScannedItemizedProductData(productName, productValue,
+                    false, productOwner, productSqlRow))
+            }
+            cursor.close()
+            return itemisedProductList
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -75,7 +101,7 @@ class ExpenseViewActivity : AppCompatActivity() {
         if (getScannedIntent){
             binding.expenseProductRecy.visibility = View.VISIBLE
             binding.expenseProductDetailText.visibility = View.VISIBLE
-            val expenseProdAdapter = ExpenseViewProductAdapter(itemizedProductData)
+            expenseProdAdapter = ExpenseViewProductAdapter(itemizedProductData)
             binding.expenseProductRecy.adapter = expenseProdAdapter
             binding.expenseProductRecy.layoutManager = LinearLayoutManager(this)
         } else {
@@ -119,29 +145,10 @@ class ExpenseViewActivity : AppCompatActivity() {
         val reader = dbHelper.readableDatabase
         getReceiptSqlDetails(reader)
         if(scanned){
-            getReceiptProductDetails(reader)
+            itemizedProductData = ArrayList()
+            itemizedProductData = getReceiptProductDetails(reader, sqlRowId, itemizedProductData)
         }
         dbHelper.close()
-    }
-
-    private fun getReceiptProductDetails(reader: SQLiteDatabase?) {
-        itemizedProductData = ArrayList()
-        val columns = arrayOf(ITEMS_COL_NAME, ITEMS_COL_VALUE, ITEMS_COL_OWNERSHIP)
-        val selectClause = "$ITEMS_COL_FK_RECEIPT_ID = ?"
-        val selectArgs = arrayOf(sqlRowId)
-        val cursor: Cursor = reader!!.query(ITEMS_TABLE_NAME, columns, selectClause, selectArgs,
-                    null, null, null)
-        val nameColIndex = cursor.getColumnIndexOrThrow(ITEMS_COL_NAME)
-        val valueColIndex = cursor.getColumnIndexOrThrow(ITEMS_COL_VALUE)
-        val ownershipColIndex = cursor.getColumnIndexOrThrow(ITEMS_COL_OWNERSHIP)
-        while (cursor.moveToNext()) {
-            val productName = cursor.getString(nameColIndex)
-            val productValue = cursor.getString(valueColIndex)
-            val productOwner = cursor.getString(ownershipColIndex)
-            itemizedProductData.add(ScannedItemizedProductData(productName, productValue, false, productOwner))
-        }
-        cursor.close()
-        //TODO: Load the expense view activity on the correct tab.
     }
 
     private fun getReceiptSqlDetails(reader: SQLiteDatabase) {
@@ -171,6 +178,7 @@ class ExpenseViewActivity : AppCompatActivity() {
         intent.putExtra(NewReceiptCreationActivity.editIntentDateString, expenseDate)
         intent.putExtra(NewReceiptCreationActivity.editIntentContributionsString, contributionString)
         intent.putExtra(NewReceiptCreationActivity.editIntentSqlRowIdString, sqlRowId)
+        intent.putExtra(NewReceiptCreationActivity.editIntentScannedBoolean, getScannedIntent)
         startActivityForResult(intent, EDIT_EXPENSE_INTENT_CODE)
     }
 
@@ -178,9 +186,11 @@ class ExpenseViewActivity : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == EDIT_EXPENSE_INTENT_CODE) {
             if (resultCode == Activity.RESULT_OK) {
+                // Below code retrieves the edited intents after they have already been saved.
                 Toast.makeText(this, "Expense edited", Toast.LENGTH_SHORT).show()
                 supportActionBar?.title = data?.getStringExtra(expenseReturnEditTitle)
-                val total = SplitReceiptManuallyFragment.addStringZerosForDecimalPlace(data?.getStringExtra(expenseReturnEditTotal).toString())
+                val total = SplitReceiptManuallyFragment.addStringZerosForDecimalPlace(data?.
+                                                getStringExtra(expenseReturnEditTotal).toString())
                 val totalWithCurrency = "£$total" //TODO: Ensure correct user currency is displayed
                 binding.expenseValue.text = totalWithCurrency
                 val newPaidBy = data?.getStringExtra(expenseReturnEditPaidBy)
@@ -216,6 +226,10 @@ class ExpenseViewActivity : AppCompatActivity() {
                 setResult(Activity.RESULT_OK, intent)
                 deconstructContributionString()
                 participantAdapter.notifyDataSetChanged()
+                if (getScannedIntent){
+                    expenseProdAdapter.notifyDataSetChanged()
+                }
+
             }
         }
     }

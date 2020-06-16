@@ -32,6 +32,7 @@ import com.google.firebase.ml.vision.FirebaseVision
 import com.google.firebase.ml.vision.common.FirebaseVisionImage
 import com.splitreceipt.myapplication.NewReceiptCreationActivity.Companion.currencyCode
 import com.splitreceipt.myapplication.NewReceiptCreationActivity.Companion.currencySymbol
+import com.splitreceipt.myapplication.data.DbHelper
 import com.splitreceipt.myapplication.data.ScannedItemizedProductData
 import com.splitreceipt.myapplication.databinding.FragmentSplitReceiptScanBinding
 import kotlinx.android.synthetic.main.alert_dialog_scanned_product_edit.view.*
@@ -49,6 +50,7 @@ class SplitReceiptScanFragment : Fragment(), NewScannedReceiptRecyclerAdapter.on
     private var explicitTotal = ""
     private val currencyIntent: Int = 50
     private lateinit var participantList: ArrayList<String>
+    private lateinit var participantAdapterList: MutableList<String>
     private lateinit var adapter: NewScannedReceiptRecyclerAdapter
     private var currentPhotoPath: String = ""
     private var numberOfItemsProvided = false
@@ -74,7 +76,7 @@ class SplitReceiptScanFragment : Fragment(), NewScannedReceiptRecyclerAdapter.on
         participantList = ArrayList()
         updateUICurrency()
         retrieveParticipants()
-        adapter = NewScannedReceiptRecyclerAdapter(participantList, itemizedArrayList, this)
+        adapter = NewScannedReceiptRecyclerAdapter(participantAdapterList, itemizedArrayList, this)
         binding.scannedRecy.layoutManager = LinearLayoutManager(contxt)
         binding.scannedRecy.adapter = adapter
         binding.scannedRecy.isNestedScrollingEnabled = false
@@ -124,8 +126,15 @@ class SplitReceiptScanFragment : Fragment(), NewScannedReceiptRecyclerAdapter.on
             startActivityForResult(intent, currencyIntent)
         }
 
+        if (NewReceiptCreationActivity.isScanned) {
+            binding.currencyAmountScan.setText(NewReceiptCreationActivity.editTotal)
+            val reader = DbHelper(contxt).readableDatabase
+            itemizedArrayList = ExpenseViewActivity.getReceiptProductDetails(reader, NewReceiptCreationActivity.editSqlRowId, itemizedArrayList)
+        }
+
         return binding.root
     }
+
 
     private fun okayToProceed(): Boolean {
         if(binding.currencyAmountScan.text.toString().isBlank()){
@@ -339,7 +348,6 @@ class SplitReceiptScanFragment : Fragment(), NewScannedReceiptRecyclerAdapter.on
                 val trimmed = item.trim()
                 finalCheckedItems.add(trimmed)
             }
-            val toBeRemoved: ArrayList<String> = ArrayList()
 
             for (value in valuesArray) {
                 var finalisedValue = value
@@ -387,19 +395,23 @@ class SplitReceiptScanFragment : Fragment(), NewScannedReceiptRecyclerAdapter.on
 
     private fun retrieveParticipants() {
         participantList = NewReceiptCreationActivity.participantList
-        participantList.add(0, ownershipEqualString)
+        participantAdapterList = NewReceiptCreationActivity.participantList.toMutableList()
+        participantAdapterList.add(0, ownershipEqualString)
     }
 
     private fun initializeProductList (correctedItems: MutableList<String>, correctedValues: MutableList<String>){
         /*
-        Matches the product names with their corresponding values
+        Matches the product names with their corresponding values after text recognition
          */
         itemizedArrayList.clear()
         for (x in 0 until correctedItems.size){
             val productName = correctedItems[x]
             val productValue = correctedValues[x]
             val defaultError = false
-            itemizedArrayList.add(ScannedItemizedProductData(productName, productValue, defaultError))
+            val defaultOwnership = ownershipEqualString
+            val defaultSql = "-1"
+            itemizedArrayList.add(ScannedItemizedProductData(productName, productValue,
+                defaultError, defaultOwnership, defaultSql))
         }
     }
 
@@ -466,7 +478,6 @@ class SplitReceiptScanFragment : Fragment(), NewScannedReceiptRecyclerAdapter.on
                 itemizedArrayList[position].ownership = productOwner
             }
         }
-
     }
 
     private fun rotateImage(bitmap: Bitmap?, degrees: Float): Bitmap? {

@@ -13,7 +13,7 @@ import com.splitreceipt.myapplication.NewReceiptCreationActivity.Companion.curre
 import com.splitreceipt.myapplication.data.ScannedItemizedProductData
 
 
-class NewScannedReceiptRecyclerAdapter(var participantList: ArrayList<String>,
+class NewScannedReceiptRecyclerAdapter(var participantList: MutableList<String>,
                                        var itemizedList: ArrayList<ScannedItemizedProductData>,
                                        var passedOnScannedClick: onScannedClick) :
                     RecyclerView.Adapter<NewScannedReceiptRecyclerAdapter.ItemizedViewholder>() {

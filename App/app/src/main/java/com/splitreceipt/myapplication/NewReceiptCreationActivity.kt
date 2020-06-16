@@ -16,6 +16,7 @@ import android.widget.ArrayAdapter
 import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.tabs.TabLayoutMediator
 import com.splitreceipt.myapplication.CurrencySelectorActivity.Companion.SHARED_PREF_NAME
 import com.splitreceipt.myapplication.SplitReceiptScanFragment.Companion.ownershipEqualString
 import com.splitreceipt.myapplication.data.*
@@ -27,6 +28,7 @@ import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_TO
 import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_UNIQUE_ID
 import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_TABLE_NAME
 import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_COL_FK_RECEIPT_ID
+import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_COL_ID
 import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_COL_NAME
 import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_COL_OWNERSHIP
 import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_COL_VALUE
@@ -54,6 +56,7 @@ class NewReceiptCreationActivity : AppCompatActivity() {
 
     companion object {
         var sqlAccountId: String? = "-1"
+        var editSqlRowId: String = "-1"
         const val zeroCurrency: String = "0.00"
         lateinit var participantList: ArrayList<String>
         lateinit var participantDataEditList: ArrayList<ParticipantData> //TODO: Currently being initialised even when it is not an edit. Fix this.
@@ -69,7 +72,9 @@ class NewReceiptCreationActivity : AppCompatActivity() {
         const val editIntentDateString = "edit_date"
         const val editIntentContributionsString = "edit_contributions"
         const val editIntentSqlRowIdString = "edit_sql_id"
+        const val editIntentScannedBoolean = "edit_scanned"
         var isEdit: Boolean = false
+        var isScanned: Boolean = false
         var editTotal: String = ""
 
         fun retrieveParticipants(context: Context, participantList: ArrayList<String>) : ArrayList<String> {
@@ -104,9 +109,10 @@ class NewReceiptCreationActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityNewReceiptCreationBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        sqlAccountId = intent.getStringExtra(intentSqlIdString)
         participantList = ArrayList()
-        participantList = retrieveParticipants(this, participantList)
         participantDataEditList = ArrayList()
+        participantList = retrieveParticipants(this, participantList)
 
         val spinnerAdapter = ArrayAdapter(
             this,
@@ -114,26 +120,38 @@ class NewReceiptCreationActivity : AppCompatActivity() {
         )
         binding.paidBySpinner.adapter = spinnerAdapter
 
+        val pagerAdapter = ReceiptPagerAdapter(this)
+        binding.receiptViewPager.adapter = pagerAdapter
+        TabLayoutMediator(binding.receiptTabLayout, binding.receiptViewPager) { tab, position ->
+            val tabNames = arrayOf("Split manually", "Scan receipt")
+            //To get the first name of doppelganger celebrities
+            tab.text = tabNames[position]
+        }.attach()
+        binding.receiptViewPager.currentItem = 0
+
         val editTitle = intent.getStringExtra(editIntentTitleString)
         if (editTitle != null) {
             isEdit = true
+            editSqlRowId = intent.getStringExtra(editIntentSqlRowIdString)!!
+            val editScanned = intent.getBooleanExtra(editIntentScannedBoolean, false)
+            if (editScanned) {
+                // User is editing a scanned receipt. Split receipt fragment will see this and load the itemised products accordingly
+                isScanned = true
+                binding.receiptViewPager.currentItem = 1
+            }
+            else {
+                // User is editing a manual expense. Get contributions ready for the manual fragment to show in UI.
+                val editContributions = intent.getStringExtra(editIntentContributionsString)
+                deconstructAndBuildEditContribs(editContributions!!)
+            }
             editTotal = intent.getStringExtra(editIntentTotalString)!!
             editPaidBy = intent.getStringExtra(editIntentPaidByString)!!
             val paidByPosition = spinnerAdapter.getPosition(editPaidBy)
             binding.paidBySpinner.setSelection(paidByPosition)
             val editDate = intent.getStringExtra(editIntentDateString)
-            val editContributions = intent.getStringExtra(editIntentContributionsString)
-            deconstructAndBuildEditContribs(editContributions)
             binding.receiptTitleEditText.setText(editTitle)
             binding.dateButton.text = editDate
-
-        } else {
-            Toast.makeText(this, "Not edit button", Toast.LENGTH_SHORT).show()
         }
-
-        sqlAccountId = intent.getStringExtra(intentSqlIdString)
-        participantList = ArrayList()
-        participantList = retrieveParticipants(this, participantList)
 
         setSupportActionBar(findViewById(R.id.toolbar))
         supportActionBar?.title = "Add expense"
@@ -142,10 +160,6 @@ class NewReceiptCreationActivity : AppCompatActivity() {
             setDisplayShowHomeEnabled(true)
             setHomeAsUpIndicator(R.drawable.vector_x_white)
         }
-
-        val pagerAdapter = ReceiptPagerAdapter(supportFragmentManager)
-        binding.receiptViewPager.adapter = pagerAdapter
-        binding.receiptTabLayout.setupWithViewPager(binding.receiptViewPager)
     }
 
     private fun deconstructAndBuildEditContribs(editContributions: String) {
@@ -206,9 +220,9 @@ class NewReceiptCreationActivity : AppCompatActivity() {
                             return true
                         } else {
                             // Update previous entry in SQL DB
-                            val sqlRow = updateSql(writeableDB, date, title, total, paidBy, contributionsString)
+                            val sqlRow = updateReceiptSql(writeableDB, date, title, total, paidBy, contributionsString)
                             dbHelper.close()
-                            intent.putExtra(ExpenseViewActivity.expenseReturnEditSql, sqlRow)
+                            intent.putExtra(ExpenseViewActivity.expenseReturnEditSql, sqlRow) //TODO: Is this necessary?
                             intent.putExtra(ExpenseViewActivity.expenseReturnEditDate, date)
                             intent.putExtra(ExpenseViewActivity.expenseReturnEditTotal, total.toString())
                             intent.putExtra(ExpenseViewActivity.expenseReturnEditTitle, title)
@@ -224,16 +238,34 @@ class NewReceiptCreationActivity : AppCompatActivity() {
                         //User is saving a scanned receipt
                         total = findViewById<EditText>(R.id.currencyAmountScan).text.toString().toFloat()
                         val itemizedProductList = SplitReceiptScanFragment.itemizedArrayList
-                        receiptFirebaseID = newFirebaseReceiptID()
                         val particBalDataList: ArrayList<ParticipantBalanceData> = productsToParticBalData(itemizedProductList)
                         val contributionsString = createContribString(particBalDataList, paidBy)
-                        val sqlRow = insertNewReceiptSql(writeableDB, receiptFirebaseID, date, title, total, paidBy, contributionsString, true)
-                        insertReceiptItemsSql(writeableDB, itemizedProductList, sqlRow)
-                        dbHelper.close()
-                        intent.putExtra(CONTRIBUTION_INTENT_DATA, contributionsString)
-                        setResult(Activity.RESULT_OK, intent)
-                        finish()
-                        return true
+
+                        if (!isEdit) {
+                            // User is inserting a new receipt expense
+                            receiptFirebaseID = newFirebaseReceiptID()
+                            val sqlRow = insertNewReceiptSql(writeableDB, receiptFirebaseID, date, title, total, paidBy, contributionsString, true)
+                            insertReceiptItemsSql(writeableDB, itemizedProductList, sqlRow)
+                            intent.putExtra(CONTRIBUTION_INTENT_DATA, contributionsString)
+                            setResult(Activity.RESULT_OK, intent)
+                            dbHelper.close()
+                            finish()
+                            return true
+                        } else {
+                            // User is editing a previously saved receipt expense
+                            val sqlRow = updateReceiptSql(writeableDB, date, title, total, paidBy, contributionsString)
+                            updateItemsSql(writeableDB, itemizedProductList, editSqlRowId)
+                            dbHelper.close()
+                            intent.putExtra(ExpenseViewActivity.expenseReturnEditTitle, title)
+                            intent.putExtra(ExpenseViewActivity.expenseReturnEditTotal, total.toString())
+                            intent.putExtra(ExpenseViewActivity.expenseReturnEditPaidBy, paidBy)
+                            intent.putExtra(ExpenseViewActivity.expenseReturnEditDate, date)
+                            intent.putExtra(ExpenseViewActivity.expenseReturnEditContributions, contributionsString)
+                            setResult(Activity.RESULT_OK, intent)
+                            isEdit = false
+                            finish()
+                            return true
+                        }
                     }
                 dbHelper.close()
                 } else
@@ -242,6 +274,40 @@ class NewReceiptCreationActivity : AppCompatActivity() {
             else -> return false
         }
         return false
+    }
+
+    private fun updateItemsSql(writeableDB: SQLiteDatabase?, itemizedProductList: ArrayList<ScannedItemizedProductData>, editSqlRowId: String) {
+        // Updates the products after user has edited and saved scanned receipt
+        for (product in itemizedProductList){
+            val productName = product.itemName
+            val productValue = product.itemValue
+            val productOwnership = product.ownership
+            val values = ContentValues().apply {
+                put(ITEMS_COL_NAME, productName)
+                put(ITEMS_COL_VALUE, productValue)
+                put(ITEMS_COL_OWNERSHIP, productOwnership)
+            }
+            val whereClause = "$ITEMS_COL_ID = ?"
+            val whereArgs = arrayOf(product.sqlRowId)
+            writeableDB!!.update(ITEMS_TABLE_NAME, values, whereClause, whereArgs)
+        }
+    }
+
+    private fun insertReceiptItemsSql(writeableDB: SQLiteDatabase, itemizedProductList: ArrayList<ScannedItemizedProductData>, receiptRowSql: Int) {
+        // Parses the scanned products out of their data classes and inserts them into SQL DB TABLE ITEMS
+        val sqlFK = receiptRowSql.toString()
+        for (product in itemizedProductList) {
+            val productName = product.itemName
+            val productValue = product.itemValue
+            val productOwnership = product.ownership
+            val values = ContentValues().apply {
+                put(ITEMS_COL_NAME, productName)
+                put(ITEMS_COL_VALUE, productValue)
+                put(ITEMS_COL_OWNERSHIP, productOwnership)
+                put(ITEMS_COL_FK_RECEIPT_ID, sqlFK)
+            }
+            writeableDB.insert(ITEMS_TABLE_NAME, null, values)
+        }
     }
 
     private fun productsToParticBalData(itemizedProductList: ArrayList<ScannedItemizedProductData>): ArrayList<ParticipantBalanceData> {
@@ -291,23 +357,6 @@ class NewReceiptCreationActivity : AppCompatActivity() {
         return particBalDataList
     }
 
-    private fun insertReceiptItemsSql(writeableDB: SQLiteDatabase, itemizedProductList: ArrayList<ScannedItemizedProductData>, receiptRowSql: Int) {
-        // Parses the scanned products out of their data classes and inserts them into SQL DB TABLE ITEMS
-        val sqlFK = receiptRowSql.toString()
-        for (product in itemizedProductList) {
-            val productName = product.itemName
-            val productValue = product.itemValue
-            val productOwnership = product.ownership
-            val values = ContentValues().apply {
-                put(ITEMS_COL_NAME, productName)
-                put(ITEMS_COL_VALUE, productValue)
-                put(ITEMS_COL_OWNERSHIP, productOwnership)
-                put(ITEMS_COL_FK_RECEIPT_ID, sqlFK)
-            }
-            writeableDB.insert(ITEMS_TABLE_NAME, null, values)
-        }
-    }
-
     private fun insertNewReceiptSql(writeableDB: SQLiteDatabase, recFirebaseId: String, date: String, title: String, total: Float, paidBy: String, contributions: String, scanned: Boolean) : Int{
         val scannedInt: Int = if (scanned) { 1 } else { 0 }
         val values = ContentValues().apply {
@@ -324,8 +373,7 @@ class NewReceiptCreationActivity : AppCompatActivity() {
         return sqlId.toInt()
     }
 
-    private fun updateSql(writeableDB: SQLiteDatabase, date: String, title: String, total: Float, paidBy: String, contributionsString: String): String {
-        val editSqlRowId = intent.getStringExtra(editIntentSqlRowIdString)
+    private fun updateReceiptSql(writeableDB: SQLiteDatabase, date: String, title: String, total: Float, paidBy: String, contributionsString: String): String {
         val values = ContentValues().apply {
             put(RECEIPT_COL_DATE, date)
             put(RECEIPT_COL_TITLE, title)
@@ -370,7 +418,6 @@ class NewReceiptCreationActivity : AppCompatActivity() {
     }
 
     private fun checkAllInputsAreValid(currentPage: Int): Boolean {
-        val currencyAmount: EditText = findViewById(R.id.currencyAmount)
         //TODO: Animate the items which need input
         if (binding.receiptTitleEditText.text!!.isEmpty()) {
             Toast.makeText(this, "Please add a title", Toast.LENGTH_SHORT).show()
@@ -378,6 +425,7 @@ class NewReceiptCreationActivity : AppCompatActivity() {
         }
         if (currentPage == 0){
             //Manual Expense
+            val currencyAmount: EditText = findViewById(R.id.currencyAmount)
              if (currencyAmount.text.isEmpty()){
                         Toast.makeText(this, "Please add an amount", Toast.LENGTH_SHORT).show()
                         return false

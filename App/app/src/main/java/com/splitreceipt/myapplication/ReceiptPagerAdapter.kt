@@ -1,14 +1,18 @@
 package com.splitreceipt.myapplication
 
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentPagerAdapter
+import androidx.lifecycle.Lifecycle
+import androidx.viewpager2.adapter.FragmentStateAdapter
 
-class ReceiptPagerAdapter(fm: FragmentManager) : FragmentPagerAdapter(fm, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT) {
+class ReceiptPagerAdapter(activity: AppCompatActivity) : FragmentStateAdapter(activity) {
 
     val pageNumber = 2
 
-    override fun getItem(position: Int): Fragment {
+    override fun createFragment(position: Int): Fragment {
         return when (position) {
             0 -> SplitReceiptManuallyFragment()
             1 -> SplitReceiptScanFragment()
@@ -16,16 +20,7 @@ class ReceiptPagerAdapter(fm: FragmentManager) : FragmentPagerAdapter(fm, BEHAVI
         }
     }
 
-    override fun getCount(): Int {
+    override fun getItemCount(): Int {
         return pageNumber
     }
-
-    override fun getPageTitle(position: Int): CharSequence? {
-        return when(position) {
-            0 -> "Split Manually"
-            1 -> "Scan Receipt"
-            else -> ""
-        }
-    }
-
 }
