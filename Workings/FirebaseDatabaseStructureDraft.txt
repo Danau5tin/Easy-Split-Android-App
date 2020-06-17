@@ -6,7 +6,7 @@ GroupId
 |	|	|
 |	|	--- Cat : xxxx
 |	|
-|	--- Balance : "xxx,£xx.xx,xxxx/xxxxxx,£x,xxxx"
+|	--- Balance : "xxx,£xx.xx/xxxxxx,£x"
 |	|
 |	--- Settlements: "xxx,£xx.xxxx/xxxx,£x.xx,xxx"
 |	|
@@ -16,9 +16,9 @@ GroupId
 |	|		|
 |	|		--- : "xxxxx"
 |	|
-|	--- Receipts
+|	--- Expenses
 |		   |
-|		   --- ReceiptID
+|		   --- ExpenseID
 |				|
 |				--- Date : xx/xx/xx
 |				|
@@ -32,13 +32,15 @@ GroupId
 |				|
 |				--- Scanned n->false
 |					 y|
-|					  --- Strawberries
-|					  |		  |
-|					  |		  --- Price : "£xx.xx"
-|					  |		  |
-|					  |		  --- Ownership: "xxx"
+|					  --- 1
+|					  |    |
+|					  |    --- Name: Strawberries
+|					  |    |
+|					  |    --- Value : "£xx.xx"
+|					  |    |
+|					  |    --- Owner: "xxx"
 |					  |
-|					  --- Tea : "£xx.xx"
+|					  --- 2 "...^^..."
 Users
     |
     ---

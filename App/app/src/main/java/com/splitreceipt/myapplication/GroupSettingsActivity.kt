@@ -6,7 +6,7 @@ import android.os.Bundle
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import com.splitreceipt.myapplication.data.DbHelper
+import com.splitreceipt.myapplication.data.SqlDbHelper
 import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_ID
 import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_TABLE_NAME
 
@@ -24,10 +24,10 @@ class GroupSettingsActivity : AppCompatActivity() {
             setMessage("This group will be deleted for ALL users involved, not just yourself.")
             setPositiveButton("Yes delete", object: DialogInterface.OnClickListener{
                 override fun onClick(dialog: DialogInterface?, which: Int) {
-                    val dbHelper = DbHelper(context)
+                    val dbHelper = SqlDbHelper(context)
                     val write = dbHelper.writableDatabase
                     val whereClause = "$GROUP_COL_ID = ?"
-                    val whereArgs = arrayOf(ReceiptOverviewActivity.getSqlGroupId)
+                    val whereArgs = arrayOf(ExpenseOverviewActivity.getSqlGroupId)
                     write.delete(GROUP_TABLE_NAME, whereClause, whereArgs)
                     dbHelper.close()
 

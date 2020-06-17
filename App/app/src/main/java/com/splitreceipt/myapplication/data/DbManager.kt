@@ -16,17 +16,17 @@ object DbManager {
         const val GROUP_COL_USER = "sql_user"
     }
 
-    object ReceiptTable: BaseColumns {
-        const val RECEIPT_TABLE_NAME = "receipts"
-        const val RECEIPT_COL_ID = BaseColumns._ID
-        const val RECEIPT_COL_UNIQUE_ID = "receipt_unique_id"
-        const val RECEIPT_COL_DATE = "date"
-        const val RECEIPT_COL_TITLE = "title"
-        const val RECEIPT_COL_TOTAL = "total_cost"
-        const val RECEIPT_COL_PAID_BY = "paid_by"
-        const val RECEIPT_COL_CONTRIBUTIONS = "contributions"
-        const val RECEIPT_COL_SCANNED = "scanned"
-        const val RECEIPT_COL_FK_GROUP_ID = "group_id"
+    object ExpenseTable: BaseColumns {
+        const val EXPENSE_TABLE_NAME = "expenses"
+        const val EXPENSE_COL_ID = BaseColumns._ID
+        const val EXPENSE_COL_UNIQUE_ID = "expense_unique_id"
+        const val EXPENSE_COL_DATE = "date"
+        const val EXPENSE_COL_TITLE = "title"
+        const val EXPENSE_COL_TOTAL = "total_cost"
+        const val EXPENSE_COL_PAID_BY = "paid_by"
+        const val EXPENSE_COL_CONTRIBUTIONS = "contributions"
+        const val EXPENSE_COL_SCANNED = "scanned"
+        const val EXPENSE_COL_FK_GROUP_ID = "group_id"
     }
 
     object ReceiptItemsTable: BaseColumns {

@@ -9,7 +9,7 @@ import android.widget.RadioGroup
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.RecyclerView
-import com.splitreceipt.myapplication.NewReceiptCreationActivity.Companion.currencySymbol
+import com.splitreceipt.myapplication.NewExpenseCreationActivity.Companion.currencySymbol
 import com.splitreceipt.myapplication.data.ScannedItemizedProductData
 
 

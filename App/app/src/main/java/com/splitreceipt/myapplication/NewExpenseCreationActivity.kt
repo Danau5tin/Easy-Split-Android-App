@@ -2,7 +2,6 @@ package com.splitreceipt.myapplication
 
 import android.app.Activity
 import android.app.DatePickerDialog
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -16,7 +15,6 @@ import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.tabs.TabLayoutMediator
 import com.splitreceipt.myapplication.SplitReceiptScanFragment.Companion.ownershipEqualString
 import com.splitreceipt.myapplication.data.*
-import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_NAME
 import com.splitreceipt.myapplication.databinding.ActivityNewReceiptCreationBinding
 import kotlinx.android.synthetic.main.fragment_split_receipt_scan.*
 import java.lang.StringBuilder
@@ -26,7 +24,7 @@ import java.util.*
 import kotlin.collections.ArrayList
 
 
-class NewReceiptCreationActivity : AppCompatActivity() {
+class NewExpenseCreationActivity : AppCompatActivity() {
 
     /*
     Activity gives the user the ability to input a new receipt/ transaction
@@ -43,6 +41,7 @@ class NewReceiptCreationActivity : AppCompatActivity() {
         lateinit var participantDataEditList: ArrayList<ParticipantData> //TODO: Currently being initialised even when it is not an edit. Fix this.
         const val CONTRIBUTION_INTENT_DATA = "contribution"
         const val intentSqlIdString = "sqlID"
+        const val intentFirebaseIdString = "firebaseID"
 
         var currencyCode = ""
         var currencySymbol = ""
@@ -67,7 +66,7 @@ class NewReceiptCreationActivity : AppCompatActivity() {
         sqlAccountId = intent.getStringExtra(intentSqlIdString)
         participantList = ArrayList()
         participantDataEditList = ArrayList()
-        participantList = DbHelper(this).retrieveParticipants(participantList, sqlAccountId!!)
+        participantList = SqlDbHelper(this).retrieveParticipants(participantList, sqlAccountId!!)
 
         val spinnerAdapter = ArrayAdapter(
             this,
@@ -75,7 +74,7 @@ class NewReceiptCreationActivity : AppCompatActivity() {
         )
         binding.paidBySpinner.adapter = spinnerAdapter
 
-        val pagerAdapter = ReceiptPagerAdapter(this)
+        val pagerAdapter = ExpensePagerAdapter(this)
         binding.receiptViewPager.adapter = pagerAdapter
         TabLayoutMediator(binding.receiptTabLayout, binding.receiptViewPager) { tab, position ->
             val tabNames = arrayOf("Split manually", "Scan receipt")
@@ -144,21 +143,23 @@ class NewReceiptCreationActivity : AppCompatActivity() {
                 val currentPage = binding.receiptViewPager.currentItem
                 val okayToProceed = checkAllInputsAreValid(currentPage)
                 if (okayToProceed) {
-                    val dbHelper = DbHelper(this)
-                    val writeableDB = dbHelper.writableDatabase
+                    val sqlDbHelper = SqlDbHelper(this)
+                    val writeableDB = sqlDbHelper.writableDatabase
+                    val firebaseGroupId = intent.getStringExtra(intentFirebaseIdString)
+                    val firebaseDbHelper = FirebaseDbHelper(firebaseGroupId)
                     //Obtain global receipt details
                     val date = getDate()
                     val title =  binding.receiptTitleEditText.text.toString()
                     val total : Float
                     val paidBy = binding.paidBySpinner.selectedItem.toString()
-                    val receiptFirebaseID: String?
+                    val expenseFirebaseID: String?
                     val scanned: Boolean
 
                     //Check where the user is
                     if (currentPage == 0) {
                         //User is saving a manual expense
                         total = findViewById<EditText>(R.id.currencyAmount).text.toString().toFloat()
-                        val participantDataList = SplitReceiptManuallyFragment.fragmentManualParticipantList
+                        val participantDataList = SplitExpenseManuallyFragment.fragmentManualParticipantList
                         val participantBalDataList: ArrayList<ParticipantBalanceData> = particDataToParticBalData(participantDataList)
                         val contributionsString = createContribString(participantBalDataList, paidBy)
                         Log.i("TEST", contributionsString)
@@ -166,17 +167,18 @@ class NewReceiptCreationActivity : AppCompatActivity() {
                         if (!isEdit) {
                             // Insert new entry to SQL DB.
                             scanned = false
-                            receiptFirebaseID = newFirebaseReceiptID()
-                            dbHelper.insertNewReceipt(sqlAccountId!!, receiptFirebaseID, date, title, total, paidBy, contributionsString, scanned)
-                            dbHelper.close()
+                            expenseFirebaseID = newFirebaseReceiptID()
+                            sqlDbHelper.insertNewExpense(sqlAccountId!!, expenseFirebaseID, date, title, total, paidBy, contributionsString, scanned)
+                            sqlDbHelper.close()
+                            firebaseDbHelper.createNewExpense(expenseFirebaseID, date, title, total, paidBy, contributionsString)
                             intent.putExtra(CONTRIBUTION_INTENT_DATA, contributionsString)
                             setResult(Activity.RESULT_OK, intent)
                             finish()
                             return true
                         } else {
                             // Update previous entry in SQL DB
-                            val sqlRow = dbHelper.updateReceiptSql(editSqlRowId, date, title, total, paidBy, contributionsString)
-                            dbHelper.close()
+                            val sqlRow = sqlDbHelper.updateExpense(editSqlRowId, date, title, total, paidBy, contributionsString)
+                            sqlDbHelper.close()
                             intent.putExtra(ExpenseViewActivity.expenseReturnEditSql, sqlRow) //TODO: Is this necessary?
                             intent.putExtra(ExpenseViewActivity.expenseReturnEditDate, date)
                             intent.putExtra(ExpenseViewActivity.expenseReturnEditTotal, total.toString())
@@ -198,18 +200,20 @@ class NewReceiptCreationActivity : AppCompatActivity() {
 
                         if (!isEdit) {
                             // User is inserting a new receipt expense
-                            receiptFirebaseID = newFirebaseReceiptID()
-                            val sqlRow = dbHelper.insertNewReceipt(sqlAccountId!!, receiptFirebaseID, date, title, total, paidBy, contributionsString, true)
-                            dbHelper.insertReceiptItems(itemizedProductList, sqlRow)
+                            expenseFirebaseID = newFirebaseReceiptID()
+                            val sqlRow = sqlDbHelper.insertNewExpense(sqlAccountId!!, expenseFirebaseID, date, title, total, paidBy, contributionsString, true)
+                            firebaseDbHelper.createNewExpense(expenseFirebaseID, date, title, total, paidBy, contributionsString)
+                            sqlDbHelper.insertReceiptItems(itemizedProductList, sqlRow)
+                            firebaseDbHelper.addReceiptItems(expenseFirebaseID, itemizedProductList)
                             intent.putExtra(CONTRIBUTION_INTENT_DATA, contributionsString)
                             setResult(Activity.RESULT_OK, intent)
-                            dbHelper.close()
+                            sqlDbHelper.close()
                             finish()
                             return true
                         } else {
                             // User is editing a previously saved receipt expense
-                            val sqlRow = dbHelper.updateReceiptSql(editSqlRowId, date, title, total, paidBy, contributionsString)
-                            dbHelper.updateItemsSql(writeableDB, itemizedProductList)
+                            val sqlRow = sqlDbHelper.updateExpense(editSqlRowId, date, title, total, paidBy, contributionsString)
+                            sqlDbHelper.updateItemsSql(writeableDB, itemizedProductList)
                             intent.putExtra(ExpenseViewActivity.expenseReturnEditTitle, title)
                             intent.putExtra(ExpenseViewActivity.expenseReturnEditTotal, total.toString())
                             intent.putExtra(ExpenseViewActivity.expenseReturnEditPaidBy, paidBy)
@@ -221,7 +225,7 @@ class NewReceiptCreationActivity : AppCompatActivity() {
                             return true
                         }
                     }
-                dbHelper.close()
+                sqlDbHelper.close()
                 } else
                 {return false}
             }
@@ -245,7 +249,7 @@ class NewReceiptCreationActivity : AppCompatActivity() {
             val itemOwnership = product.ownership
             if (itemOwnership == SplitReceiptScanFragment.ownershipEqualString) {
                 // This product is going to be split evenly between all participants
-                val equalSplit: Float = ReceiptOverviewActivity.roundToTwoDecimalPlace(itemValue / numberParticipants)
+                val equalSplit: Float = ExpenseOverviewActivity.roundToTwoDecimalPlace(itemValue / numberParticipants)
                 for (participant in particBalDataList) {
                     participant.balance += equalSplit
                 }
@@ -262,7 +266,7 @@ class NewReceiptCreationActivity : AppCompatActivity() {
         }
         for (participant in particBalDataList){
             //Round to 2dp
-            participant.balance = ReceiptOverviewActivity.roundToTwoDecimalPlace(participant.balance)
+            participant.balance = ExpenseOverviewActivity.roundToTwoDecimalPlace(participant.balance)
         }
         return particBalDataList
     }
@@ -278,15 +282,8 @@ class NewReceiptCreationActivity : AppCompatActivity() {
     }
 
     private fun newFirebaseReceiptID() : String {
-        // Confirms the correct receipt number for the receiptId in Firebase Db.
-        //TODO: What about if 2 users are offline? Then 2 users add at the same with the same receiptID? When they connect to WIFI there will be a clash.
-        //TODO: Ensure the most recent receipt in firebase is in sync with user.
-        //TODO: Ensure the firebase database is being incremented to reflect a new receipt has been added.
-        val prefix = "rec"
-        val sharedPreferences = getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE)
-        val priorRecID = sharedPreferences.getInt(ReceiptOverviewActivity.getFirebaseId, 0)
-        val newReceiptId = priorRecID + 1
-        return "$prefix$newReceiptId"
+        // Creates a timestamp for a unique identifier in the database to avoid any new receipt collisions
+        return System.currentTimeMillis().toString()
     }
 
     private fun createContribString(updatedContribList: ArrayList<ParticipantBalanceData>, paidBy: String): String {

@@ -4,7 +4,7 @@ import android.content.ContentValues
 import android.content.Context
 import android.database.Cursor
 import android.util.Log
-import com.splitreceipt.myapplication.data.DbHelper
+import com.splitreceipt.myapplication.data.SqlDbHelper
 import com.splitreceipt.myapplication.data.DbManager
 import com.splitreceipt.myapplication.data.ParticipantBalanceData
 import kotlin.math.abs
@@ -31,7 +31,7 @@ class BalanceSettlementHelper(var context: Context, var accountSqlRow: String) {
             newSettlementString = settlementAlgorithm(newBalanceString)
         }
         else {
-            newSettlementString = ReceiptOverviewActivity.balanced_string
+            newSettlementString = ExpenseOverviewActivity.balanced_string
         }
         Log.i("Algorithm", "Settlement string created after the algorithm has balanced everyones balances: $newSettlementString \n\n")
         updateSqlBalAndSettlementStrings(newBalanceString, newSettlementString)
@@ -42,7 +42,7 @@ class BalanceSettlementHelper(var context: Context, var accountSqlRow: String) {
     private fun loadPreviousBalanceToObjects(): ArrayList<ParticipantBalanceData> {
         // Loads the previous balance string from SQL and constructs each participant into an individual data class object.
         var previousBalString = ""
-        val dbHelper = DbHelper(context)
+        val dbHelper = SqlDbHelper(context)
         val reader = dbHelper.readableDatabase
         val columns = arrayOf(DbManager.GroupTable.GROUP_COL_BALANCES)
         val selectClause = "${DbManager.GroupTable.GROUP_COL_ID} = ?"
@@ -83,15 +83,15 @@ class BalanceSettlementHelper(var context: Context, var accountSqlRow: String) {
                     if (contributor == participantBalanceItem.name) {
                         participantBalanceItem.balance += contribValue
                         participantBalanceItem.balance =
-                            ReceiptOverviewActivity.roundToTwoDecimalPlace(participantBalanceItem.balance)
+                            ExpenseOverviewActivity.roundToTwoDecimalPlace(participantBalanceItem.balance)
                     }
                     else if (contributee == participantBalanceItem.name) {
                         participantBalanceItem.balance -= contribValue
                         participantBalanceItem.balance =
-                            ReceiptOverviewActivity.roundToTwoDecimalPlace(participantBalanceItem.balance)
+                            ExpenseOverviewActivity.roundToTwoDecimalPlace(participantBalanceItem.balance)
                     }
                     participantBalanceItem.balance =
-                        ReceiptOverviewActivity.errorRate(participantBalanceItem.balance)
+                        ExpenseOverviewActivity.errorRate(participantBalanceItem.balance)
                 }
             }
         }
@@ -115,7 +115,7 @@ class BalanceSettlementHelper(var context: Context, var accountSqlRow: String) {
 
     private fun checkIfBalanced(participantBalanceDataList: ArrayList<ParticipantBalanceData>): Boolean {
         for (participant in participantBalanceDataList) {
-            participant.balance = ReceiptOverviewActivity.errorRate(participant.balance)
+            participant.balance = ExpenseOverviewActivity.errorRate(participant.balance)
             if (participant.balance != 0.0F) {
                 return false
             }
@@ -136,7 +136,7 @@ class BalanceSettlementHelper(var context: Context, var accountSqlRow: String) {
             for (participant in participantBalanceDataList) {
 
                 participant.balance =
-                    ReceiptOverviewActivity.roundToTwoDecimalPlace(participant.balance)
+                    ExpenseOverviewActivity.roundToTwoDecimalPlace(participant.balance)
 
                 val participantBalance = participant.balance
                 if (participantBalance <= 0) {
@@ -220,7 +220,7 @@ class BalanceSettlementHelper(var context: Context, var accountSqlRow: String) {
     }
 
     private fun updateSqlBalAndSettlementStrings(balString: String, whoOwesWho: String) {
-        val dbHelper = DbHelper(context)
+        val dbHelper = SqlDbHelper(context)
         val writer = dbHelper.writableDatabase
         val values = ContentValues().apply {
             put(DbManager.GroupTable.GROUP_COL_BALANCES, balString)

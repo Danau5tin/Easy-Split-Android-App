@@ -40,7 +40,7 @@ class GroupScreenAdapter(val groupNameList: ArrayList<GroupData>) : RecyclerView
         }
 
         override fun onClick(v: View?) {
-            val intent = Intent(context, ReceiptOverviewActivity::class.java)
+            val intent = Intent(context, ExpenseOverviewActivity::class.java)
             intent.putExtra(GroupScreenActivity.sqlIntentString, sqlId)
             intent.putExtra(GroupScreenActivity.firebaseIntentString, firebaseId)
             intent.putExtra(GroupScreenActivity.userIntentString, sqlUser)

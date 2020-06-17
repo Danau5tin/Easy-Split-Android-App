@@ -12,21 +12,21 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.splitreceipt.myapplication.NewReceiptCreationActivity.Companion.currencyCode
-import com.splitreceipt.myapplication.NewReceiptCreationActivity.Companion.currencySymbol
-import com.splitreceipt.myapplication.NewReceiptCreationActivity.Companion.zeroCurrency
-import com.splitreceipt.myapplication.data.DbHelper
+import com.splitreceipt.myapplication.NewExpenseCreationActivity.Companion.currencyCode
+import com.splitreceipt.myapplication.NewExpenseCreationActivity.Companion.currencySymbol
+import com.splitreceipt.myapplication.NewExpenseCreationActivity.Companion.zeroCurrency
+import com.splitreceipt.myapplication.data.SqlDbHelper
 import com.splitreceipt.myapplication.data.ParticipantData
 import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_ACCOUNT_CURRENCY_CODE
 import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_ACCOUNT_CURRENCY_SYMBOL
 import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_NAME
 import com.splitreceipt.myapplication.databinding.FragmentSplitReceiptManuallyBinding
 
-class SplitReceiptManuallyFragment : Fragment(), NewManualReceiptRecyclerAdapter.onRecyRowCheked {
+class SplitExpenseManuallyFragment : Fragment(), NewManualReceiptRecyclerAdapter.onRecyRowCheked {
 
     private lateinit var binding: FragmentSplitReceiptManuallyBinding
     private lateinit var adapter: NewManualReceiptRecyclerAdapter
-    private lateinit var dbHelper: DbHelper
+    private lateinit var sqlDbHelper: SqlDbHelper
     private lateinit var contxt: Context
     private var everybodyEqual: Boolean = true
     private lateinit var sharedPreferences: SharedPreferences
@@ -92,8 +92,8 @@ class SplitReceiptManuallyFragment : Fragment(), NewManualReceiptRecyclerAdapter
             startActivityForResult(intent, CURRENCY_INTENT)
         }
 
-        if (!NewReceiptCreationActivity.isScanned){
-            binding.currencyAmount.setText(NewReceiptCreationActivity.editTotal)
+        if (!NewExpenseCreationActivity.isScanned){
+            binding.currencyAmount.setText(NewExpenseCreationActivity.editTotal)
         }
 
 
@@ -143,7 +143,7 @@ class SplitReceiptManuallyFragment : Fragment(), NewManualReceiptRecyclerAdapter
         val fixedContribution: String
         if (!activeParticipants.isEmpty()){
             val num = total / activeParticipants.size
-            contribution = ReceiptOverviewActivity.roundToTwoDecimalPlace(num).toString()
+            contribution = ExpenseOverviewActivity.roundToTwoDecimalPlace(num).toString()
             fixedContribution = addStringZerosForDecimalPlace(contribution)
         } else {
             fixedContribution = "0.00"
@@ -155,19 +155,19 @@ class SplitReceiptManuallyFragment : Fragment(), NewManualReceiptRecyclerAdapter
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
-        dbHelper = DbHelper(context)
+        sqlDbHelper = SqlDbHelper(context)
         contxt = context
     }
 
     private fun retrieveParticipants() {
         fragmentManualParticipantList.clear()
-        if (!NewReceiptCreationActivity.isEdit) {
-            for (participant in NewReceiptCreationActivity.participantList) {
+        if (!NewExpenseCreationActivity.isEdit) {
+            for (participant in NewExpenseCreationActivity.participantList) {
                 fragmentManualParticipantList.add(ParticipantData(participant, zeroCurrency, true))
             }
         } else {
             binding.currencyAmount.setText("") // Resets the amount to nothing so that if the user adds expense after editing the old edit amount will not show.
-            for (participant in NewReceiptCreationActivity.participantDataEditList) {
+            for (participant in NewExpenseCreationActivity.participantDataEditList) {
                 fragmentManualParticipantList.add(participant)
                 if (!participant.contributing) {
                     everybodyEqual = false

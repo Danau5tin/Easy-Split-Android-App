@@ -16,21 +16,21 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
-import com.splitreceipt.myapplication.data.DbHelper
+import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_COL_DATE
+import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_COL_FK_GROUP_ID
+import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_COL_ID
+import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_COL_PAID_BY
+import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_COL_SCANNED
+import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_COL_TITLE
+import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_COL_TOTAL
+import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_TABLE_NAME
 import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_ID
 import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_SETTLEMENTS
 import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_TABLE_NAME
-import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_DATE
-import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_FK_GROUP_ID
-import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_ID
-import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_PAID_BY
-import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_SCANNED
-import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_TITLE
-import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_TOTAL
-import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_TABLE_NAME
 import com.splitreceipt.myapplication.data.ReceiptData
 import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_ACCOUNT_CURRENCY_SYMBOL
 import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_NAME
+import com.splitreceipt.myapplication.data.SqlDbHelper
 import com.splitreceipt.myapplication.databinding.ActivityMainBinding
 import java.io.File
 import java.io.FileInputStream
@@ -41,7 +41,7 @@ import java.util.*
 import kotlin.collections.ArrayList
 
 
-class ReceiptOverviewActivity : AppCompatActivity(), ReceiptOverViewAdapter.onReceRowClick {
+class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onReceRowClick {
     /*
     Activity shows the interior of a group. Listing all prior expenses and
     offering the user to create a new expense.
@@ -50,7 +50,7 @@ class ReceiptOverviewActivity : AppCompatActivity(), ReceiptOverViewAdapter.onRe
     lateinit var binding: ActivityMainBinding
     lateinit var receiptList: ArrayList<ReceiptData>
     private lateinit var storageRef: StorageReference
-    private lateinit var adapter: ReceiptOverViewAdapter
+    private lateinit var adapter: ExpenseOverViewAdapter
     private val seeExpenseResult = 10
     private val addExpenseResult = 20
     private val grouptSettingsResult = 30
@@ -60,7 +60,7 @@ class ReceiptOverviewActivity : AppCompatActivity(), ReceiptOverViewAdapter.onRe
         var getSqlUser: String? = "unknown"
         var getSqlGroupId: String? = "-1"
         var getFirebaseId: String? = "-1"
-        var settlementString: String  = ""
+        var settlementString: String = ""
         var settlementArray: ArrayList<String> = ArrayList()
         const val balanced_string: String = "balanced"
         const val ImagePathIntent = "path_intent"
@@ -68,16 +68,19 @@ class ReceiptOverviewActivity : AppCompatActivity(), ReceiptOverViewAdapter.onRe
 
         fun changeNameToYou(participantName: String, capitalize: Boolean): String {
             return if (participantName == getSqlUser) {
-                if (capitalize){
+                if (capitalize) {
                     "You"
-                } else{
+                } else {
                     "you"
-                } } else {
-                if (capitalize){
+                }
+            } else {
+                if (capitalize) {
                     participantName.capitalize()
                 } else {
                     participantName
-                } } }
+                }
+            }
+        }
 
         fun roundToTwoDecimalPlace(number: Float): Float {
             val df = DecimalFormat("#.##")
@@ -85,15 +88,20 @@ class ReceiptOverviewActivity : AppCompatActivity(), ReceiptOverViewAdapter.onRe
             return df.format(number).toFloat()
         }
 
-        fun errorRate(balance: Float) : Float {
-            if (balance in -0.04..0.04){
+        fun errorRate(balance: Float): Float {
+            if (balance in -0.04..0.04) {
                 // £0.04/$0.04 error rate allowed. Likely only to ever reach 0.02 error rate.
                 return 0.0F
             }
             return balance
         }
 
-        fun loadImageFromStorage(context: Context, profile:Boolean, fileName: String, extension: String=".jpg") : Bitmap? {
+        fun loadImageFromStorage(
+            context: Context,
+            profile: Boolean,
+            fileName: String,
+            extension: String = ".jpg"
+        ): Bitmap? {
             val directory: File
             return try {
                 directory = if (profile) {
@@ -128,7 +136,7 @@ class ReceiptOverviewActivity : AppCompatActivity(), ReceiptOverViewAdapter.onRe
         settlementString = loadSqlSettlementString(getSqlGroupId)
         deconstructAndSetSettlementString(settlementString)
 
-        adapter = ReceiptOverViewAdapter(receiptList, this)
+        adapter = ExpenseOverViewAdapter(receiptList, this)
         binding.mainActivityRecycler.layoutManager = LinearLayoutManager(this)
         binding.mainActivityRecycler.adapter = adapter
 
@@ -140,7 +148,7 @@ class ReceiptOverviewActivity : AppCompatActivity(), ReceiptOverViewAdapter.onRe
             setHomeAsUpIndicator(R.drawable.vector_back_arrow_white)
         }
 
-        if (intent.getStringExtra(UriIntent) != null){
+        if (intent.getStringExtra(UriIntent) != null) {
             /*
             New Group was just created by user, load the image Uri that has been passed as String as
             the image is likely still being saved in an AsyncTask.
@@ -167,13 +175,15 @@ class ReceiptOverviewActivity : AppCompatActivity(), ReceiptOverViewAdapter.onRe
 
     private fun loadSqlSettlementString(sqlAccountId: String?): String {
         var settlementString = ""
-        val dbHelper = DbHelper(this)
+        val dbHelper = SqlDbHelper(this)
         val reader = dbHelper.readableDatabase
         val columns = arrayOf(GROUP_COL_SETTLEMENTS)
         val selectClause = "$GROUP_COL_ID = ?"
         val selectArgs = arrayOf(sqlAccountId)
-        val cursor: Cursor = reader.query(GROUP_TABLE_NAME, columns, selectClause, selectArgs,
-                        null, null, null)
+        val cursor: Cursor = reader.query(
+            GROUP_TABLE_NAME, columns, selectClause, selectArgs,
+            null, null, null
+        )
         val settlementIndex = cursor.getColumnIndexOrThrow(GROUP_COL_SETTLEMENTS)
         while (cursor.moveToNext()) {
             settlementString = cursor.getString(settlementIndex)
@@ -184,38 +194,51 @@ class ReceiptOverviewActivity : AppCompatActivity(), ReceiptOverViewAdapter.onRe
     }
 
     private fun loadPreviousReceipts(sqlId: String?) {
-        val dbHelper = DbHelper(this)
+        val dbHelper = SqlDbHelper(this)
         val reader = dbHelper.readableDatabase
-        val columns = arrayOf(RECEIPT_COL_DATE, RECEIPT_COL_TITLE, RECEIPT_COL_TOTAL,
-            RECEIPT_COL_PAID_BY, RECEIPT_COL_ID, RECEIPT_COL_SCANNED)
-        val selectClause = "$RECEIPT_COL_FK_GROUP_ID = ?"
+        val columns = arrayOf(
+            EXPENSE_COL_DATE, EXPENSE_COL_TITLE, EXPENSE_COL_TOTAL,
+            EXPENSE_COL_PAID_BY, EXPENSE_COL_ID, EXPENSE_COL_SCANNED
+        )
+        val selectClause = "$EXPENSE_COL_FK_GROUP_ID = ?"
         val selectArgs = arrayOf("$sqlId")
-        val cursor: Cursor = reader.query(RECEIPT_TABLE_NAME, columns, selectClause, selectArgs,
-                            null, null, "$RECEIPT_COL_ID DESC"
+        val cursor: Cursor = reader.query(
+            EXPENSE_TABLE_NAME, columns, selectClause, selectArgs,
+            null, null, "$EXPENSE_COL_ID DESC"
         ) //TODO: Try to sort all expenses in date order. Maybe do this before passing to the adapter?
-        val dateColIndex = cursor.getColumnIndexOrThrow(RECEIPT_COL_DATE)
-        val titleColIndex = cursor.getColumnIndexOrThrow(RECEIPT_COL_TITLE)
-        val totalColIndex = cursor.getColumnIndexOrThrow(RECEIPT_COL_TOTAL)
-        val paidByColIndex = cursor.getColumnIndexOrThrow(RECEIPT_COL_PAID_BY)
-        val idColIndex = cursor.getColumnIndexOrThrow(RECEIPT_COL_ID)
-        val scannedColIndex = cursor.getColumnIndexOrThrow(RECEIPT_COL_SCANNED)
+        val dateColIndex = cursor.getColumnIndexOrThrow(EXPENSE_COL_DATE)
+        val titleColIndex = cursor.getColumnIndexOrThrow(EXPENSE_COL_TITLE)
+        val totalColIndex = cursor.getColumnIndexOrThrow(EXPENSE_COL_TOTAL)
+        val paidByColIndex = cursor.getColumnIndexOrThrow(EXPENSE_COL_PAID_BY)
+        val idColIndex = cursor.getColumnIndexOrThrow(EXPENSE_COL_ID)
+        val scannedColIndex = cursor.getColumnIndexOrThrow(EXPENSE_COL_SCANNED)
         while (cursor.moveToNext()) {
             val receiptDate = cursor.getString(dateColIndex)
             val receiptTitle = cursor.getString(titleColIndex)
             val receiptTotal = cursor.getFloat(totalColIndex)
             val receiptPaidBy = cursor.getString(paidByColIndex)
-            val receiptSqlId =  cursor.getInt(idColIndex).toString()
+            val receiptSqlId = cursor.getInt(idColIndex).toString()
             val receiptScannedInt = cursor.getInt(scannedColIndex)
             val scanned = receiptScannedInt == 1
-            receiptList.add(ReceiptData(receiptDate, receiptTitle, receiptTotal, receiptPaidBy, receiptSqlId, scanned))
+            receiptList.add(
+                ReceiptData(
+                    receiptDate,
+                    receiptTitle,
+                    receiptTotal,
+                    receiptPaidBy,
+                    receiptSqlId,
+                    scanned
+                )
+            )
         }
         cursor.close()
         dbHelper.close()
     }
 
     fun addNewReceiptButton(view: View) {
-        val intent = Intent(this, NewReceiptCreationActivity::class.java)
-        intent.putExtra(NewReceiptCreationActivity.intentSqlIdString, getSqlGroupId)
+        val intent = Intent(this, NewExpenseCreationActivity::class.java)
+        intent.putExtra(NewExpenseCreationActivity.intentSqlIdString, getSqlGroupId)
+        intent.putExtra(NewExpenseCreationActivity.intentFirebaseIdString, getFirebaseId)
         startActivityForResult(intent, addExpenseResult)
     }
 
@@ -223,55 +246,63 @@ class ReceiptOverviewActivity : AppCompatActivity(), ReceiptOverViewAdapter.onRe
         super.onActivityResult(requestCode, resultCode, data)
         val newSettlementString: String
 
-        if (requestCode == addExpenseResult){
-            if (resultCode == Activity.RESULT_OK){
-                val contributions = data?.getStringExtra(NewReceiptCreationActivity.
-                                                            CONTRIBUTION_INTENT_DATA)
-                Log.i("Algorithm", "Contribution string returned from the recent transaction: $contributions \n\n")
+        if (requestCode == addExpenseResult) {
+            if (resultCode == Activity.RESULT_OK) {
+                val contributions = data?.getStringExtra(
+                    NewExpenseCreationActivity.CONTRIBUTION_INTENT_DATA
+                )
+                Log.i(
+                    "Algorithm",
+                    "Contribution string returned from the recent transaction: $contributions \n\n"
+                )
                 newSettlementString = newContributionUpdates(contributions!!)
                 deconstructAndSetSettlementString(newSettlementString)
             }
-        }
-        else if (requestCode == seeExpenseResult){
+        } else if (requestCode == seeExpenseResult) {
             if (resultCode == Activity.RESULT_OK) {
 
-                if (data?.getStringExtra(ExpenseViewActivity
-                        .expenseReturnNewSettlements) == null){
+                if (data?.getStringExtra(
+                        ExpenseViewActivity
+                            .expenseReturnNewSettlements
+                    ) == null
+                ) {
                     // This scenario means the user deleted the expense and re-balancing must be done
-                    val reversedContributions = data?.getStringExtra(ExpenseViewActivity
-                        .expenseReturnNewContributions)
-                    Log.i("Algorithm", "Reversed contribution string returned from the " +
-                                                    "recent deletion: $reversedContributions")
+                    val reversedContributions = data?.getStringExtra(
+                        ExpenseViewActivity
+                            .expenseReturnNewContributions
+                    )
+                    Log.i(
+                        "Algorithm", "Reversed contribution string returned from the " +
+                                "recent deletion: $reversedContributions"
+                    )
                     newSettlementString = newContributionUpdates(reversedContributions!!)
-                }
-                else {
+                } else {
                     // This scenario means the user edited the expense and re-balancing is already completed
-                    newSettlementString = data.getStringExtra(ExpenseViewActivity.
-                                                        expenseReturnNewSettlements)!!.toString()
+                    newSettlementString = data.getStringExtra(
+                        ExpenseViewActivity.expenseReturnNewSettlements
+                    )!!.toString()
                     reloadRecycler()
                 }
                 deconstructAndSetSettlementString(newSettlementString)
 
             }
-        }
-        else if (requestCode == grouptSettingsResult) {
+        } else if (requestCode == grouptSettingsResult) {
             if (resultCode == Activity.RESULT_OK) {
                 //TODO: Create functionality to handle group settings changes.
             }
         }
     }
 
-    private fun deconstructAndSetSettlementString(settlementString: String){
+    private fun deconstructAndSetSettlementString(settlementString: String) {
         // This function will deconstruct a settlementString and produce an ArrayList of individual settlement strings
         settlementArray.clear()
         val sb: StringBuilder = java.lang.StringBuilder()
-        val userDirectedSettlementIndexes: ArrayList<Int> =  ArrayList()
+        val userDirectedSettlementIndexes: ArrayList<Int> = ArrayList()
         var indexCount = 0
         if (settlementString == balanced_string) {
             settlementArray.add(getString(R.string.balanced))
             userDirectedSettlementIndexes.add(indexCount)
-        }
-        else {
+        } else {
             val sharedPref = getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE)
             val currencySymbol = sharedPref.getString(SHARED_PREF_ACCOUNT_CURRENCY_SYMBOL, "$")
             val splitIndividual = settlementString.split("/")
@@ -280,12 +311,13 @@ class ReceiptOverviewActivity : AppCompatActivity(), ReceiptOverViewAdapter.onRe
                 val debtor = changeNameToYou(splitSettlement[0], true)
                 val value = splitSettlement[1]
                 val receiver = changeNameToYou(splitSettlement[2], false)
-                val finalSettlementString = createSettlementString(debtor, value, receiver, currencySymbol!!)
+                val finalSettlementString =
+                    createSettlementString(debtor, value, receiver, currencySymbol!!)
                 settlementArray.add(finalSettlementString)
                 if ("you" in finalSettlementString.toLowerCase(Locale.ROOT)) {
                     userDirectedSettlementIndexes.add(indexCount)
                 }
-                indexCount ++
+                indexCount++
             }
         }
         for (index in userDirectedSettlementIndexes) {
@@ -297,14 +329,19 @@ class ReceiptOverviewActivity : AppCompatActivity(), ReceiptOverViewAdapter.onRe
         userSettlementString = newString
     }
 
-    private fun createSettlementString(debtor: String, value: String, receiver: String, currencySymbol: String): String {
+    private fun createSettlementString(
+        debtor: String,
+        value: String,
+        receiver: String,
+        currencySymbol: String
+    ): String {
         val finalString: String
         val you = "you"
         val debtorLow = debtor.toLowerCase(Locale.ROOT)
         val receiverLow = receiver.toLowerCase(Locale.ROOT)
         finalString = if (you == debtorLow) {
             "$debtor owe $currencySymbol$value to $receiver."
-        } else if (you == receiverLow){
+        } else if (you == receiverLow) {
             "$debtor owes $currencySymbol$value to $receiverLow."
         } else {
             "$debtor owes $currencySymbol$value to $receiver."
@@ -312,14 +349,15 @@ class ReceiptOverviewActivity : AppCompatActivity(), ReceiptOverViewAdapter.onRe
         return finalString
     }
 
-    private fun newContributionUpdates(newContributions: String) : String {
+    private fun newContributionUpdates(newContributions: String): String {
         val balanceSettlementHelper = BalanceSettlementHelper(this, getSqlGroupId.toString())
-        val settlementString = balanceSettlementHelper.recalculateBalancesAndSettlements(newContributions)
+        val settlementString =
+            balanceSettlementHelper.recalculateBalancesAndSettlements(newContributions)
         reloadRecycler()
         return settlementString
     }
 
-    private fun reloadRecycler(){
+    private fun reloadRecycler() {
         // Clears the list and refreshes receipts from SQL db back into it.
         receiptList.clear()
         loadPreviousReceipts(getSqlGroupId)

@@ -2,7 +2,6 @@ package com.splitreceipt.myapplication
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.view.MenuItem
 import androidx.appcompat.app.ActionBar
 import com.splitreceipt.myapplication.databinding.ActivityBalanceOverviewBinding
 
@@ -24,7 +23,7 @@ class BalanceOverviewActivity : AppCompatActivity() {
             setHomeAsUpIndicator(R.drawable.vector_back_arrow_white)
         }
 
-        binding.balanceScreenText.text = ReceiptOverviewActivity.settlementArray.toString()
+        binding.balanceScreenText.text = ExpenseOverviewActivity.settlementArray.toString()
     }
 
     override fun onSupportNavigateUp(): Boolean {

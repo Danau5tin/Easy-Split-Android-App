@@ -9,11 +9,11 @@ import androidx.recyclerview.widget.RecyclerView
 import com.splitreceipt.myapplication.data.ReceiptData
 import kotlin.collections.ArrayList
 
-class ReceiptOverViewAdapter(var receiptList: ArrayList<ReceiptData>, var onRecRowClick: onReceRowClick) : RecyclerView.Adapter<ReceiptOverViewAdapter.ReceiptOverviewViewHolder>(){
+class ExpenseOverViewAdapter(var receiptList: ArrayList<ReceiptData>, var onRecRowClick: onReceRowClick) : RecyclerView.Adapter<ExpenseOverViewAdapter.ReceiptOverviewViewHolder>(){
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ReceiptOverviewViewHolder {
         val inflater: LayoutInflater = LayoutInflater.from(parent.context)
-        val view = inflater.inflate(R.layout.receipt_overview_recy_row, parent, false)
+        val view = inflater.inflate(R.layout.expense_overview_recy_row, parent, false)
         return ReceiptOverviewViewHolder(parent.context, view, onRecRowClick)
     }
 
@@ -25,11 +25,11 @@ class ReceiptOverViewAdapter(var receiptList: ArrayList<ReceiptData>, var onRecR
         holder.receiptTitleTextView.text = receiptList[position].title
 
         val totalToString = receiptList[position].total.toString()
-        val totalFixedString = SplitReceiptManuallyFragment.addStringZerosForDecimalPlace(totalToString)
+        val totalFixedString = SplitExpenseManuallyFragment.addStringZerosForDecimalPlace(totalToString)
         val totalString = "£$totalFixedString" //TODO: Ensure the correct currency symbol used here is the users preference
         holder.receiptTotalTextView.text = totalString
 
-        val paidBy = ReceiptOverviewActivity.changeNameToYou(receiptList[position].paidBy, true)
+        val paidBy = ExpenseOverviewActivity.changeNameToYou(receiptList[position].paidBy, true)
         val paidByString = "$paidBy paid $totalString"
         holder.receiptPaidByTextView.text = paidByString
 

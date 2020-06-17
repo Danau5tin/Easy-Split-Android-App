@@ -6,7 +6,7 @@ import android.view.ViewGroup
 import android.widget.CheckBox
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.splitreceipt.myapplication.NewReceiptCreationActivity.Companion.currencySymbol
+import com.splitreceipt.myapplication.NewExpenseCreationActivity.Companion.currencySymbol
 import com.splitreceipt.myapplication.data.ParticipantData
 
 class NewManualReceiptRecyclerAdapter(var participantList: ArrayList<ParticipantData>, var onRecyInt: onRecyRowCheked) : RecyclerView.Adapter<NewManualReceiptRecyclerAdapter.ItemizedViewholder>() {
@@ -16,7 +16,7 @@ class NewManualReceiptRecyclerAdapter(var participantList: ArrayList<Participant
         viewType: Int
     ): ItemizedViewholder {
         val inflater: LayoutInflater = LayoutInflater.from(parent.context)
-        val view: View = inflater.inflate(R.layout.itemised_new_manual_receipt_recy_row, parent, false)
+        val view: View = inflater.inflate(R.layout.itemised_new_manual_expense_recy_row, parent, false)
         return ItemizedViewholder(view, onRecyInt)
     }
 

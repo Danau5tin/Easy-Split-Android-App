@@ -3,18 +3,13 @@ package com.splitreceipt.myapplication
 import android.app.Activity
 import android.content.DialogInterface
 import android.content.Intent
-import android.database.Cursor
-import android.database.sqlite.SQLiteDatabase
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.splitreceipt.myapplication.data.DbHelper
-import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_CONTRIBUTIONS
-import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_ID
-import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_TABLE_NAME
+import com.splitreceipt.myapplication.data.SqlDbHelper
 import com.splitreceipt.myapplication.data.ExpenseAdapterData
 import com.splitreceipt.myapplication.data.ParticipantBalanceData
 import com.splitreceipt.myapplication.data.ScannedItemizedProductData
@@ -103,14 +98,14 @@ class ExpenseViewActivity : AppCompatActivity() {
         val contributionsSplit = contributionString.split("/")
         for (contribution in contributionsSplit) {
             val individualContrib = contribution.split(",")
-            val contributor = ReceiptOverviewActivity.changeNameToYou(individualContrib[0], true)
+            val contributor = ExpenseOverviewActivity.changeNameToYou(individualContrib[0], true)
             val value = individualContrib[1]
             val newString = "$contributor contributed £$value" //TODO: Ensure the correct currency
             contributionList.add(ExpenseAdapterData(newString, value))
         }
     }
     private fun retrieveAllSqlDetails(scanned: Boolean){
-        val dbHelper = DbHelper(this)
+        val dbHelper = SqlDbHelper(this)
         dbHelper.getExpenseDetails(sqlRowId)
         if(scanned){
             itemizedProductData = ArrayList()
@@ -120,14 +115,14 @@ class ExpenseViewActivity : AppCompatActivity() {
     }
 
     fun editExpense(view: View) {
-        val intent = Intent(this, NewReceiptCreationActivity::class.java)
-        intent.putExtra(NewReceiptCreationActivity.editIntentTitleString, getTitleIntent)
-        intent.putExtra(NewReceiptCreationActivity.editIntentTotalString, getTotalIntent)
-        intent.putExtra(NewReceiptCreationActivity.editIntentPaidByString, getPaidByIntent)
-        intent.putExtra(NewReceiptCreationActivity.editIntentDateString, expenseDate)
-        intent.putExtra(NewReceiptCreationActivity.editIntentContributionsString, contributionString)
-        intent.putExtra(NewReceiptCreationActivity.editIntentSqlRowIdString, sqlRowId)
-        intent.putExtra(NewReceiptCreationActivity.editIntentScannedBoolean, getScannedIntent)
+        val intent = Intent(this, NewExpenseCreationActivity::class.java)
+        intent.putExtra(NewExpenseCreationActivity.editIntentTitleString, getTitleIntent)
+        intent.putExtra(NewExpenseCreationActivity.editIntentTotalString, getTotalIntent)
+        intent.putExtra(NewExpenseCreationActivity.editIntentPaidByString, getPaidByIntent)
+        intent.putExtra(NewExpenseCreationActivity.editIntentDateString, expenseDate)
+        intent.putExtra(NewExpenseCreationActivity.editIntentContributionsString, contributionString)
+        intent.putExtra(NewExpenseCreationActivity.editIntentSqlRowIdString, sqlRowId)
+        intent.putExtra(NewExpenseCreationActivity.editIntentScannedBoolean, getScannedIntent)
         startActivityForResult(intent, EDIT_EXPENSE_INTENT_CODE)
     }
 
@@ -138,7 +133,7 @@ class ExpenseViewActivity : AppCompatActivity() {
                 // Below code retrieves the edited intents after they have already been saved.
                 Toast.makeText(this, "Expense edited", Toast.LENGTH_SHORT).show()
                 supportActionBar?.title = data?.getStringExtra(expenseReturnEditTitle)
-                val total = SplitReceiptManuallyFragment.addStringZerosForDecimalPlace(data?.
+                val total = SplitExpenseManuallyFragment.addStringZerosForDecimalPlace(data?.
                                                 getStringExtra(expenseReturnEditTotal).toString())
                 val totalWithCurrency = "£$total" //TODO: Ensure correct user currency is displayed
                 binding.expenseValue.text = totalWithCurrency
@@ -150,7 +145,7 @@ class ExpenseViewActivity : AppCompatActivity() {
                 val prevContributionString: String = contributionString // For readability
                 val contributionsChanged: Boolean = prevContributionString != newContribString
                 var calculatedContributions: String = newContribString
-                val balSetHelper = BalanceSettlementHelper(this, ReceiptOverviewActivity.getSqlGroupId.toString())
+                val balSetHelper = BalanceSettlementHelper(this, ExpenseOverviewActivity.getSqlGroupId.toString())
 
                 if (contributionsChanged) {
                     val paidByUnchanged: Boolean = newPaidBy == getPaidByIntent
@@ -204,7 +199,7 @@ class ExpenseViewActivity : AppCompatActivity() {
                 val participantName = prevParticipant.name
                 if (participantName == newParticipant.name) {
                     val change = newParticipant.balance - prevParticipant.balance
-                    val rounded = ReceiptOverviewActivity.roundToTwoDecimalPlace(change)
+                    val rounded = ExpenseOverviewActivity.roundToTwoDecimalPlace(change)
                     stringBuilder.append("$participantName,")
                     stringBuilder.append("$rounded,")
                     stringBuilder.append("$paidBy/")
@@ -223,7 +218,7 @@ class ExpenseViewActivity : AppCompatActivity() {
             setMessage("This expense will be deleted forever.")
             setPositiveButton("Yes delete", object: DialogInterface.OnClickListener{
                 override fun onClick(dialog: DialogInterface?, which: Int) {
-                    val dbHelper = DbHelper(context)
+                    val dbHelper = SqlDbHelper(context)
                     val prevContributionString: String = dbHelper.locatePriorContributions(sqlRowId)
                     dbHelper.deleteExpense(sqlRowId)
 

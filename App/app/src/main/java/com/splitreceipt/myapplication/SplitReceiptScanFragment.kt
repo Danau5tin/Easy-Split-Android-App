@@ -30,10 +30,10 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.firebase.ml.vision.FirebaseVision
 import com.google.firebase.ml.vision.common.FirebaseVisionImage
-import com.splitreceipt.myapplication.NewReceiptCreationActivity.Companion.currencyCode
-import com.splitreceipt.myapplication.NewReceiptCreationActivity.Companion.currencySymbol
-import com.splitreceipt.myapplication.NewReceiptCreationActivity.Companion.editSqlRowId
-import com.splitreceipt.myapplication.data.DbHelper
+import com.splitreceipt.myapplication.NewExpenseCreationActivity.Companion.currencyCode
+import com.splitreceipt.myapplication.NewExpenseCreationActivity.Companion.currencySymbol
+import com.splitreceipt.myapplication.NewExpenseCreationActivity.Companion.editSqlRowId
+import com.splitreceipt.myapplication.data.SqlDbHelper
 import com.splitreceipt.myapplication.data.ScannedItemizedProductData
 import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_ACCOUNT_CURRENCY_CODE
 import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_ACCOUNT_CURRENCY_SYMBOL
@@ -109,11 +109,11 @@ class SplitReceiptScanFragment : Fragment(), NewScannedReceiptRecyclerAdapter.on
                             binding.currencyAmountScan.text?.length?.let {binding.currencyAmountScan.setSelection(it)}
                         }
                     }
-                    SplitReceiptManuallyFragment.transactionTotal = text.toString()
+                    SplitExpenseManuallyFragment.transactionTotal = text.toString()
                 }
                 else{
-                    SplitReceiptManuallyFragment.transactionTotal =
-                        NewReceiptCreationActivity.zeroCurrency
+                    SplitExpenseManuallyFragment.transactionTotal =
+                        NewExpenseCreationActivity.zeroCurrency
 
                     }}})
 
@@ -130,9 +130,9 @@ class SplitReceiptScanFragment : Fragment(), NewScannedReceiptRecyclerAdapter.on
             startActivityForResult(intent, currencyIntent)
         }
 
-        if (NewReceiptCreationActivity.isScanned) {
-            binding.currencyAmountScan.setText(NewReceiptCreationActivity.editTotal)
-            val dbHelper = DbHelper(contxt)
+        if (NewExpenseCreationActivity.isScanned) {
+            binding.currencyAmountScan.setText(NewExpenseCreationActivity.editTotal)
+            val dbHelper = SqlDbHelper(contxt)
             itemizedArrayList = dbHelper.getReceiptProductDetails(editSqlRowId, itemizedArrayList)
         }
 
@@ -396,8 +396,8 @@ class SplitReceiptScanFragment : Fragment(), NewScannedReceiptRecyclerAdapter.on
     }
 
     private fun retrieveParticipants() {
-        participantList = NewReceiptCreationActivity.participantList
-        participantAdapterList = NewReceiptCreationActivity.participantList.toMutableList()
+        participantList = NewExpenseCreationActivity.participantList
+        participantAdapterList = NewExpenseCreationActivity.participantList.toMutableList()
         participantAdapterList.add(0, ownershipEqualString)
     }
 

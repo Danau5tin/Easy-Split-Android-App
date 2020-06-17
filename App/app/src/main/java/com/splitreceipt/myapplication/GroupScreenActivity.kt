@@ -1,19 +1,12 @@
 package com.splitreceipt.myapplication
 
 import android.content.Intent
-import android.database.Cursor
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
-import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.splitreceipt.myapplication.data.GroupData
-import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_ID
-import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_NAME
-import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_FIREBASE_ID
-import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_TABLE_NAME
-import com.splitreceipt.myapplication.data.DbHelper
-import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_USER
+import com.splitreceipt.myapplication.data.SqlDbHelper
 import com.splitreceipt.myapplication.databinding.ActivityGroupScreenBinding
 
 class GroupScreenActivity : AppCompatActivity() {
@@ -36,7 +29,7 @@ class GroupScreenActivity : AppCompatActivity() {
         binding = ActivityGroupScreenBinding.inflate(layoutInflater)
         setContentView(binding.root)
         groupList = ArrayList()
-        groupList = DbHelper(this).readAllGroups()
+        groupList = SqlDbHelper(this).readAllGroups()
 
         val adapter = GroupScreenAdapter(groupList)
         binding.groupRecy.layoutManager = LinearLayoutManager(this)

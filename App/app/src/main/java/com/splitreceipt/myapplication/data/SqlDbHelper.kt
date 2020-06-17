@@ -6,7 +6,7 @@ import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import com.splitreceipt.myapplication.ExpenseViewActivity
-import com.splitreceipt.myapplication.SplitReceiptManuallyFragment
+import com.splitreceipt.myapplication.SplitExpenseManuallyFragment
 import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_BALANCES
 import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_CATEGORY
 import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_NAME
@@ -22,18 +22,18 @@ import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_COL
 import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_COL_VALUE
 import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_COL_OWNERSHIP
 import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_TABLE_NAME
-import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_CONTRIBUTIONS
-import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_DATE
-import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_FK_GROUP_ID
-import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_ID
-import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_PAID_BY
-import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_SCANNED
-import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_TITLE
-import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_TOTAL
-import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_UNIQUE_ID
-import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_TABLE_NAME
+import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_COL_CONTRIBUTIONS
+import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_COL_DATE
+import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_COL_FK_GROUP_ID
+import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_COL_ID
+import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_COL_PAID_BY
+import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_COL_SCANNED
+import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_COL_TITLE
+import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_COL_TOTAL
+import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_COL_UNIQUE_ID
+import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_TABLE_NAME
 
-class DbHelper(context: Context) : SQLiteOpenHelper(context,
+class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
     DATABASE_NAME, null,
     DATABASE_VERSION
 ) {
@@ -53,19 +53,19 @@ class DbHelper(context: Context) : SQLiteOpenHelper(context,
                 "$GROUP_COL_USER TEXT)"
         private const val DELETE_GROUP_ENTRIES = "DROP TABLE IF EXISTS $GROUP_TABLE_NAME"
 
-        private const val CREATE_RECEIPT_TABLE = "CREATE TABLE $RECEIPT_TABLE_NAME (" +
-                "$RECEIPT_COL_ID INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                "$RECEIPT_COL_UNIQUE_ID TEXT, " +
-                "$RECEIPT_COL_DATE TEXT, " +
-                "$RECEIPT_COL_TITLE TEXT, " +
-                "$RECEIPT_COL_TOTAL REAL, " +
-                "$RECEIPT_COL_PAID_BY TEXT, " +
-                "$RECEIPT_COL_FK_GROUP_ID INTEGER, " +
-                "$RECEIPT_COL_CONTRIBUTIONS TEXT, " +
-                "$RECEIPT_COL_SCANNED INTEGER, " + //Boolean: 0=False, 1=True
-                "FOREIGN KEY ($RECEIPT_COL_FK_GROUP_ID) REFERENCES $GROUP_TABLE_NAME" +
+        private const val CREATE_RECEIPT_TABLE = "CREATE TABLE $EXPENSE_TABLE_NAME (" +
+                "$EXPENSE_COL_ID INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "$EXPENSE_COL_UNIQUE_ID TEXT, " +
+                "$EXPENSE_COL_DATE TEXT, " +
+                "$EXPENSE_COL_TITLE TEXT, " +
+                "$EXPENSE_COL_TOTAL REAL, " +
+                "$EXPENSE_COL_PAID_BY TEXT, " +
+                "$EXPENSE_COL_FK_GROUP_ID INTEGER, " +
+                "$EXPENSE_COL_CONTRIBUTIONS TEXT, " +
+                "$EXPENSE_COL_SCANNED INTEGER, " + //Boolean: 0=False, 1=True
+                "FOREIGN KEY ($EXPENSE_COL_FK_GROUP_ID) REFERENCES $GROUP_TABLE_NAME" +
                 "($GROUP_COL_ID) ON DELETE CASCADE)"
-        private const val DELETE_RECEIPT_ENTRIES = "DROP TABLE IF EXISTS $RECEIPT_TABLE_NAME"
+        private const val DELETE_RECEIPT_ENTRIES = "DROP TABLE IF EXISTS $EXPENSE_TABLE_NAME"
 
         private const val CREATE_RECEIPT_ITEMS_TABLE = "CREATE TABLE $ITEMS_TABLE_NAME (" +
                 "$ITEMS_COL_ID INTEGER PRIMARY KEY AUTOINCREMENT, " +
@@ -73,8 +73,8 @@ class DbHelper(context: Context) : SQLiteOpenHelper(context,
                 "$ITEMS_COL_VALUE REAL, " +
                 "$ITEMS_COL_OWNERSHIP TEXT, " +
                 "$ITEMS_COL_FK_RECEIPT_ID INTEGER, " +
-                "FOREIGN KEY ($ITEMS_COL_FK_RECEIPT_ID) REFERENCES $RECEIPT_TABLE_NAME" +
-                "($RECEIPT_COL_ID) ON DELETE CASCADE)"
+                "FOREIGN KEY ($ITEMS_COL_FK_RECEIPT_ID) REFERENCES $EXPENSE_TABLE_NAME" +
+                "($EXPENSE_COL_ID) ON DELETE CASCADE)"
         private const val DELETE_RECEIPT_ITEMS_ENTRIES = "DROP TABLE IF EXISTS $ITEMS_TABLE_NAME"
     }
 
@@ -113,20 +113,20 @@ class DbHelper(context: Context) : SQLiteOpenHelper(context,
         return sqlRow.toInt()
     }
 
-    fun insertNewReceipt(sqlAccountId: String, recFirebaseId: String, date: String, title: String, total: Float, paidBy: String, contributions: String, scanned: Boolean) : Int{
+    fun insertNewExpense(sqlAccountId: String, recFirebaseId: String, date: String, title: String, total: Float, paidBy: String, contributions: String, scanned: Boolean) : Int{
         val write = writableDatabase
         val scannedInt: Int = if (scanned) { 1 } else { 0 }
         val values = ContentValues().apply {
-            put(RECEIPT_COL_UNIQUE_ID, recFirebaseId)
-            put(RECEIPT_COL_DATE, date)
-            put(RECEIPT_COL_TITLE, title)
-            put(RECEIPT_COL_TOTAL, total)
-            put(RECEIPT_COL_PAID_BY, paidBy)
-            put(RECEIPT_COL_CONTRIBUTIONS, contributions)
-            put(RECEIPT_COL_SCANNED, scannedInt)
-            put(RECEIPT_COL_FK_GROUP_ID, sqlAccountId)
+            put(EXPENSE_COL_UNIQUE_ID, recFirebaseId)
+            put(EXPENSE_COL_DATE, date)
+            put(EXPENSE_COL_TITLE, title)
+            put(EXPENSE_COL_TOTAL, total)
+            put(EXPENSE_COL_PAID_BY, paidBy)
+            put(EXPENSE_COL_CONTRIBUTIONS, contributions)
+            put(EXPENSE_COL_SCANNED, scannedInt)
+            put(EXPENSE_COL_FK_GROUP_ID, sqlAccountId)
         }
-        val sqlId = write.insert(RECEIPT_TABLE_NAME, null, values)
+        val sqlId = write.insert(EXPENSE_TABLE_NAME, null, values)
         return sqlId.toInt()
     }
 
@@ -165,6 +165,21 @@ class DbHelper(context: Context) : SQLiteOpenHelper(context,
         close()
     }
 
+    fun updateExpense(editSqlRowId: String, date: String, title: String, total: Float, paidBy: String, contributionsString: String): String {
+        // Update expense in Sql db
+        val write = writableDatabase
+        val values = ContentValues().apply {
+            put(EXPENSE_COL_DATE, date)
+            put(EXPENSE_COL_TITLE, title)
+            put(EXPENSE_COL_TOTAL, total)
+            put(EXPENSE_COL_PAID_BY, paidBy)
+            put(EXPENSE_COL_CONTRIBUTIONS, contributionsString)
+        }
+        val whereClause = "$EXPENSE_COL_ID = ?"
+        val whereArgs = arrayOf(editSqlRowId)
+        return write.update(EXPENSE_TABLE_NAME, values, whereClause, whereArgs).toString()
+    }
+
     fun retrieveParticipants(participantList: ArrayList<String>, sqlAccountId: String) : ArrayList<String> {
         /*
         Query the sql DB for the current group to find its participants
@@ -188,20 +203,6 @@ class DbHelper(context: Context) : SQLiteOpenHelper(context,
         cursor.close()
         close()
         return participantList
-    }
-
-    fun updateReceiptSql(editSqlRowId: String, date: String, title: String, total: Float, paidBy: String, contributionsString: String): String {
-        val write = writableDatabase
-        val values = ContentValues().apply {
-            put(RECEIPT_COL_DATE, date)
-            put(RECEIPT_COL_TITLE, title)
-            put(RECEIPT_COL_TOTAL, total)
-            put(RECEIPT_COL_PAID_BY, paidBy)
-            put(RECEIPT_COL_CONTRIBUTIONS, contributionsString)
-        }
-        val whereClause = "$RECEIPT_COL_ID = ?"
-        val whereArgs = arrayOf(editSqlRowId)
-        return write.update(RECEIPT_TABLE_NAME, values, whereClause, whereArgs).toString()
     }
 
     fun readAllGroups() : ArrayList<GroupData>{
@@ -240,7 +241,7 @@ class DbHelper(context: Context) : SQLiteOpenHelper(context,
         val sqlRowColIndex = cursor.getColumnIndexOrThrow(ITEMS_COL_ID)
         while (cursor.moveToNext()) {
             val productName = cursor.getString(nameColIndex)
-            val productValue = SplitReceiptManuallyFragment.addStringZerosForDecimalPlace(cursor.getString(valueColIndex))
+            val productValue = SplitExpenseManuallyFragment.addStringZerosForDecimalPlace(cursor.getString(valueColIndex))
             val productOwner = cursor.getString(ownershipColIndex)
             val productSqlRow = cursor.getInt(sqlRowColIndex).toString()
             itemisedProductList.add(ScannedItemizedProductData(productName, productValue,
@@ -255,12 +256,12 @@ class DbHelper(context: Context) : SQLiteOpenHelper(context,
         var date = ""
         var contributions = ""
         val reader = readableDatabase
-        val columns = arrayOf(RECEIPT_COL_DATE, RECEIPT_COL_CONTRIBUTIONS)
-        val whereClause = "$RECEIPT_COL_ID = ?"
+        val columns = arrayOf(EXPENSE_COL_DATE, EXPENSE_COL_CONTRIBUTIONS)
+        val whereClause = "$EXPENSE_COL_ID = ?"
         val whereArgs = arrayOf(sqlRowId)
-        val cursor: Cursor = reader.query(RECEIPT_TABLE_NAME, columns, whereClause, whereArgs, null, null, null)
-        val dateIndex = cursor.getColumnIndexOrThrow(RECEIPT_COL_DATE)
-        val contributionIndex = cursor.getColumnIndexOrThrow(RECEIPT_COL_CONTRIBUTIONS)
+        val cursor: Cursor = reader.query(EXPENSE_TABLE_NAME, columns, whereClause, whereArgs, null, null, null)
+        val dateIndex = cursor.getColumnIndexOrThrow(EXPENSE_COL_DATE)
+        val contributionIndex = cursor.getColumnIndexOrThrow(EXPENSE_COL_CONTRIBUTIONS)
         while(cursor.moveToNext()) {
             date = cursor.getString(dateIndex)
             contributions = cursor.getString(contributionIndex)
@@ -272,20 +273,20 @@ class DbHelper(context: Context) : SQLiteOpenHelper(context,
 
     fun deleteExpense(sqlRowId: String){
         val write = writableDatabase
-        val whereClause = "$RECEIPT_COL_ID = ?"
+        val whereClause = "$EXPENSE_COL_ID = ?"
         val whereArgs = arrayOf(sqlRowId)
-        write.delete(RECEIPT_TABLE_NAME, whereClause, whereArgs)
+        write.delete(EXPENSE_TABLE_NAME, whereClause, whereArgs)
         close()
     }
 
     fun locatePriorContributions(sqlRowId: String): String{
         val write = writableDatabase
-        val columns = arrayOf(RECEIPT_COL_CONTRIBUTIONS)
-        val selectClause = "$RECEIPT_COL_ID = ?"
+        val columns = arrayOf(EXPENSE_COL_CONTRIBUTIONS)
+        val selectClause = "$EXPENSE_COL_ID = ?"
         val selectArgs = arrayOf(sqlRowId)
-        val cursor: Cursor = write.query(RECEIPT_TABLE_NAME, columns, selectClause,
+        val cursor: Cursor = write.query(EXPENSE_TABLE_NAME, columns, selectClause,
             selectArgs, null, null, null)
-        val contributionsColIndex = cursor.getColumnIndex(RECEIPT_COL_CONTRIBUTIONS)
+        val contributionsColIndex = cursor.getColumnIndex(EXPENSE_COL_CONTRIBUTIONS)
         cursor.moveToNext()
         val priorContribs =  cursor.getString(contributionsColIndex).toString()
         cursor.close()
