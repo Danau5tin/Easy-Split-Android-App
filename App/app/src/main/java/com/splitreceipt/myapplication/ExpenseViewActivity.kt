@@ -12,14 +12,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.splitreceipt.myapplication.data.DbHelper
-import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_COL_FK_RECEIPT_ID
-import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_COL_ID
-import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_COL_NAME
-import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_COL_OWNERSHIP
-import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_COL_VALUE
-import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_TABLE_NAME
 import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_CONTRIBUTIONS
-import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_DATE
 import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_ID
 import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_TABLE_NAME
 import com.splitreceipt.myapplication.data.ExpenseAdapterData
@@ -32,8 +25,6 @@ import kotlin.collections.ArrayList
 class ExpenseViewActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityExpenseViewBinding
-    private lateinit var expenseDate: String
-    private lateinit var contributionString: String
     private lateinit var contributionList: ArrayList<ExpenseAdapterData>
     private lateinit var itemizedProductData: ArrayList<ScannedItemizedProductData>
     private var sqlRowId: String = "-1"
@@ -45,6 +36,8 @@ class ExpenseViewActivity : AppCompatActivity() {
     private lateinit var expenseProdAdapter: ExpenseViewProductAdapter
 
     companion object {
+        lateinit var expenseDate: String
+        lateinit var contributionString: String
         const val expenseSqlIntentString: String = "expense_sql_id"
         const val expenseTitleIntentString: String = "expense_title"
         const val expenseTotalIntentString: String = "expense_total"
@@ -59,30 +52,6 @@ class ExpenseViewActivity : AppCompatActivity() {
         const val expenseReturnEditPaidBy: String = "expense_edit_paid_by"
         const val expenseReturnEditContributions: String = "expense_edit_contributions"
         const val EDIT_EXPENSE_INTENT_CODE = 30
-
-        fun getReceiptProductDetails(reader: SQLiteDatabase?, sqlRowId: String, itemisedProductList: ArrayList<ScannedItemizedProductData>) : ArrayList<ScannedItemizedProductData> {
-            //Takes an initialized list, clears it and updates it with the correct product items
-            itemisedProductList.clear()
-            val columns = arrayOf(ITEMS_COL_NAME, ITEMS_COL_VALUE, ITEMS_COL_OWNERSHIP, ITEMS_COL_ID)
-            val selectClause = "$ITEMS_COL_FK_RECEIPT_ID = ?"
-            val selectArgs = arrayOf(sqlRowId)
-            val cursor: Cursor = reader!!.query(ITEMS_TABLE_NAME, columns, selectClause, selectArgs,
-                null, null, null)
-            val nameColIndex = cursor.getColumnIndexOrThrow(ITEMS_COL_NAME)
-            val valueColIndex = cursor.getColumnIndexOrThrow(ITEMS_COL_VALUE)
-            val ownershipColIndex = cursor.getColumnIndexOrThrow(ITEMS_COL_OWNERSHIP)
-            val sqlRowColIndex = cursor.getColumnIndexOrThrow(ITEMS_COL_ID)
-            while (cursor.moveToNext()) {
-                val productName = cursor.getString(nameColIndex)
-                val productValue = SplitReceiptManuallyFragment.addStringZerosForDecimalPlace(cursor.getString(valueColIndex))
-                val productOwner = cursor.getString(ownershipColIndex)
-                val productSqlRow = cursor.getInt(sqlRowColIndex).toString()
-                itemisedProductList.add(ScannedItemizedProductData(productName, productValue,
-                    false, productOwner, productSqlRow))
-            }
-            cursor.close()
-            return itemisedProductList
-        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -142,32 +111,12 @@ class ExpenseViewActivity : AppCompatActivity() {
     }
     private fun retrieveAllSqlDetails(scanned: Boolean){
         val dbHelper = DbHelper(this)
-        val reader = dbHelper.readableDatabase
-        getReceiptSqlDetails(reader)
+        dbHelper.getExpenseDetails(sqlRowId)
         if(scanned){
             itemizedProductData = ArrayList()
-            itemizedProductData = getReceiptProductDetails(reader, sqlRowId, itemizedProductData)
+            itemizedProductData = dbHelper.getReceiptProductDetails(sqlRowId, itemizedProductData)
         }
         dbHelper.close()
-    }
-
-    private fun getReceiptSqlDetails(reader: SQLiteDatabase) {
-        // Retrieves the date and contributions of the selected expense.
-        var date = ""
-        var contributions = ""
-        val columns = arrayOf(RECEIPT_COL_DATE, RECEIPT_COL_CONTRIBUTIONS)
-        val whereClause = "$RECEIPT_COL_ID = ?"
-        val whereArgs = arrayOf(sqlRowId)
-        val cursor: Cursor = reader.query(RECEIPT_TABLE_NAME, columns, whereClause, whereArgs, null, null, null)
-        val dateIndex = cursor.getColumnIndexOrThrow(RECEIPT_COL_DATE)
-        val contributionIndex = cursor.getColumnIndexOrThrow(RECEIPT_COL_CONTRIBUTIONS)
-        while(cursor.moveToNext()) {
-            date = cursor.getString(dateIndex)
-            contributions = cursor.getString(contributionIndex)
-        }
-        cursor.close()
-        expenseDate = date
-        contributionString = contributions
     }
 
     fun editExpense(view: View) {
@@ -275,13 +224,8 @@ class ExpenseViewActivity : AppCompatActivity() {
             setPositiveButton("Yes delete", object: DialogInterface.OnClickListener{
                 override fun onClick(dialog: DialogInterface?, which: Int) {
                     val dbHelper = DbHelper(context)
-                    val write = dbHelper.writableDatabase
-                    val prevContributionString: String = locatePriorContributions(write)
-
-                    val whereClause = "$RECEIPT_COL_ID = ?"
-                    val whereArgs = arrayOf(sqlRowId)
-                    write.delete(RECEIPT_TABLE_NAME, whereClause, whereArgs)
-                    dbHelper.close()
+                    val prevContributionString: String = dbHelper.locatePriorContributions(sqlRowId)
+                    dbHelper.deleteExpense(sqlRowId)
 
                     Toast.makeText(context, "Deleted successfully", Toast.LENGTH_SHORT).show()
                     reversePriorExpenseAfterDeletion(prevContributionString)
@@ -321,19 +265,6 @@ class ExpenseViewActivity : AppCompatActivity() {
             // User has edited the expense and also changed the person who paid so we must null the initial contributions.
             return newContribs
         }
-    }
-
-    private fun locatePriorContributions(readWriteDB: SQLiteDatabase?): String {
-        val columns = arrayOf(RECEIPT_COL_CONTRIBUTIONS)
-        val selectClause = "$RECEIPT_COL_ID = ?"
-        val selectArgs = arrayOf(sqlRowId)
-        val cursor: Cursor = readWriteDB!!.query(RECEIPT_TABLE_NAME, columns, selectClause,
-                                            selectArgs, null, null, null)
-        val contributionsColIndex = cursor.getColumnIndex(RECEIPT_COL_CONTRIBUTIONS)
-        cursor.moveToNext()
-        val priorContribs =  cursor.getString(contributionsColIndex).toString()
-        cursor.close()
-        return priorContribs
     }
 
     override fun onSupportNavigateUp(): Boolean {

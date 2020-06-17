@@ -2,11 +2,8 @@ package com.splitreceipt.myapplication
 
 import android.app.Activity
 import android.app.DatePickerDialog
-import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
-import android.database.Cursor
-import android.database.sqlite.SQLiteDatabase
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
@@ -17,25 +14,9 @@ import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.tabs.TabLayoutMediator
-import com.splitreceipt.myapplication.CurrencySelectorActivity.Companion.SHARED_PREF_NAME
 import com.splitreceipt.myapplication.SplitReceiptScanFragment.Companion.ownershipEqualString
 import com.splitreceipt.myapplication.data.*
-import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_DATE
-import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_FK_GROUP_ID
-import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_PAID_BY
-import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_TITLE
-import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_TOTAL
-import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_UNIQUE_ID
-import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_TABLE_NAME
-import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_COL_FK_RECEIPT_ID
-import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_COL_ID
-import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_COL_NAME
-import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_COL_OWNERSHIP
-import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_COL_VALUE
-import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_TABLE_NAME
-import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_CONTRIBUTIONS
-import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_ID
-import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_SCANNED
+import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_NAME
 import com.splitreceipt.myapplication.databinding.ActivityNewReceiptCreationBinding
 import kotlinx.android.synthetic.main.fragment_split_receipt_scan.*
 import java.lang.StringBuilder
@@ -77,32 +58,6 @@ class NewReceiptCreationActivity : AppCompatActivity() {
         var isScanned: Boolean = false
         var editTotal: String = ""
 
-        fun retrieveParticipants(context: Context, participantList: ArrayList<String>) : ArrayList<String> {
-            /*
-            Query the sql DB for the current group to find its participants
-             */
-            participantList.clear()
-            val dbHelper = DbHelper(context)
-            sqlAccountId = ReceiptOverviewActivity.getSqlGroupId
-            val reader = dbHelper.readableDatabase
-            val columns = arrayOf(DbManager.GroupTable.GROUP_COL_PARTICIPANTS)
-            val selectClause = "${DbManager.GroupTable.GROUP_COL_ID} = ?"
-            val selectArgs = arrayOf(sqlAccountId)
-            val cursor: Cursor = reader.query(
-                DbManager.GroupTable.GROUP_TABLE_NAME, columns, selectClause, selectArgs,
-                null, null, null)
-            val particColIndex = cursor.getColumnIndexOrThrow(DbManager.GroupTable.GROUP_COL_PARTICIPANTS)
-            while (cursor.moveToNext()){
-                val participantsString = cursor.getString(particColIndex)
-                val splitParticipants = participantsString.split(",")
-                for (participant in splitParticipants) {
-                    participantList.add(participant)
-                }
-            }
-            cursor.close()
-            dbHelper.close()
-            return participantList
-        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -112,7 +67,7 @@ class NewReceiptCreationActivity : AppCompatActivity() {
         sqlAccountId = intent.getStringExtra(intentSqlIdString)
         participantList = ArrayList()
         participantDataEditList = ArrayList()
-        participantList = retrieveParticipants(this, participantList)
+        participantList = DbHelper(this).retrieveParticipants(participantList, sqlAccountId!!)
 
         val spinnerAdapter = ArrayAdapter(
             this,
@@ -212,7 +167,7 @@ class NewReceiptCreationActivity : AppCompatActivity() {
                             // Insert new entry to SQL DB.
                             scanned = false
                             receiptFirebaseID = newFirebaseReceiptID()
-                            insertNewReceiptSql(writeableDB, receiptFirebaseID, date, title, total, paidBy, contributionsString, scanned)
+                            dbHelper.insertNewReceipt(sqlAccountId!!, receiptFirebaseID, date, title, total, paidBy, contributionsString, scanned)
                             dbHelper.close()
                             intent.putExtra(CONTRIBUTION_INTENT_DATA, contributionsString)
                             setResult(Activity.RESULT_OK, intent)
@@ -220,7 +175,7 @@ class NewReceiptCreationActivity : AppCompatActivity() {
                             return true
                         } else {
                             // Update previous entry in SQL DB
-                            val sqlRow = updateReceiptSql(writeableDB, date, title, total, paidBy, contributionsString)
+                            val sqlRow = dbHelper.updateReceiptSql(editSqlRowId, date, title, total, paidBy, contributionsString)
                             dbHelper.close()
                             intent.putExtra(ExpenseViewActivity.expenseReturnEditSql, sqlRow) //TODO: Is this necessary?
                             intent.putExtra(ExpenseViewActivity.expenseReturnEditDate, date)
@@ -244,8 +199,8 @@ class NewReceiptCreationActivity : AppCompatActivity() {
                         if (!isEdit) {
                             // User is inserting a new receipt expense
                             receiptFirebaseID = newFirebaseReceiptID()
-                            val sqlRow = insertNewReceiptSql(writeableDB, receiptFirebaseID, date, title, total, paidBy, contributionsString, true)
-                            insertReceiptItemsSql(writeableDB, itemizedProductList, sqlRow)
+                            val sqlRow = dbHelper.insertNewReceipt(sqlAccountId!!, receiptFirebaseID, date, title, total, paidBy, contributionsString, true)
+                            dbHelper.insertReceiptItems(itemizedProductList, sqlRow)
                             intent.putExtra(CONTRIBUTION_INTENT_DATA, contributionsString)
                             setResult(Activity.RESULT_OK, intent)
                             dbHelper.close()
@@ -253,9 +208,8 @@ class NewReceiptCreationActivity : AppCompatActivity() {
                             return true
                         } else {
                             // User is editing a previously saved receipt expense
-                            val sqlRow = updateReceiptSql(writeableDB, date, title, total, paidBy, contributionsString)
-                            updateItemsSql(writeableDB, itemizedProductList, editSqlRowId)
-                            dbHelper.close()
+                            val sqlRow = dbHelper.updateReceiptSql(editSqlRowId, date, title, total, paidBy, contributionsString)
+                            dbHelper.updateItemsSql(writeableDB, itemizedProductList)
                             intent.putExtra(ExpenseViewActivity.expenseReturnEditTitle, title)
                             intent.putExtra(ExpenseViewActivity.expenseReturnEditTotal, total.toString())
                             intent.putExtra(ExpenseViewActivity.expenseReturnEditPaidBy, paidBy)
@@ -274,40 +228,6 @@ class NewReceiptCreationActivity : AppCompatActivity() {
             else -> return false
         }
         return false
-    }
-
-    private fun updateItemsSql(writeableDB: SQLiteDatabase?, itemizedProductList: ArrayList<ScannedItemizedProductData>, editSqlRowId: String) {
-        // Updates the products after user has edited and saved scanned receipt
-        for (product in itemizedProductList){
-            val productName = product.itemName
-            val productValue = product.itemValue
-            val productOwnership = product.ownership
-            val values = ContentValues().apply {
-                put(ITEMS_COL_NAME, productName)
-                put(ITEMS_COL_VALUE, productValue)
-                put(ITEMS_COL_OWNERSHIP, productOwnership)
-            }
-            val whereClause = "$ITEMS_COL_ID = ?"
-            val whereArgs = arrayOf(product.sqlRowId)
-            writeableDB!!.update(ITEMS_TABLE_NAME, values, whereClause, whereArgs)
-        }
-    }
-
-    private fun insertReceiptItemsSql(writeableDB: SQLiteDatabase, itemizedProductList: ArrayList<ScannedItemizedProductData>, receiptRowSql: Int) {
-        // Parses the scanned products out of their data classes and inserts them into SQL DB TABLE ITEMS
-        val sqlFK = receiptRowSql.toString()
-        for (product in itemizedProductList) {
-            val productName = product.itemName
-            val productValue = product.itemValue
-            val productOwnership = product.ownership
-            val values = ContentValues().apply {
-                put(ITEMS_COL_NAME, productName)
-                put(ITEMS_COL_VALUE, productValue)
-                put(ITEMS_COL_OWNERSHIP, productOwnership)
-                put(ITEMS_COL_FK_RECEIPT_ID, sqlFK)
-            }
-            writeableDB.insert(ITEMS_TABLE_NAME, null, values)
-        }
     }
 
     private fun productsToParticBalData(itemizedProductList: ArrayList<ScannedItemizedProductData>): ArrayList<ParticipantBalanceData> {
@@ -357,48 +277,16 @@ class NewReceiptCreationActivity : AppCompatActivity() {
         return particBalDataList
     }
 
-    private fun insertNewReceiptSql(writeableDB: SQLiteDatabase, recFirebaseId: String, date: String, title: String, total: Float, paidBy: String, contributions: String, scanned: Boolean) : Int{
-        val scannedInt: Int = if (scanned) { 1 } else { 0 }
-        val values = ContentValues().apply {
-            put(RECEIPT_COL_UNIQUE_ID, recFirebaseId)
-            put(RECEIPT_COL_DATE, date)
-            put(RECEIPT_COL_TITLE, title)
-            put(RECEIPT_COL_TOTAL, total)
-            put(RECEIPT_COL_PAID_BY, paidBy)
-            put(RECEIPT_COL_CONTRIBUTIONS, contributions)
-            put(RECEIPT_COL_SCANNED, scannedInt)
-            put(RECEIPT_COL_FK_GROUP_ID, sqlAccountId)
-        }
-        val sqlId = writeableDB.insert(RECEIPT_TABLE_NAME, null, values)
-        return sqlId.toInt()
-    }
-
-    private fun updateReceiptSql(writeableDB: SQLiteDatabase, date: String, title: String, total: Float, paidBy: String, contributionsString: String): String {
-        val values = ContentValues().apply {
-            put(RECEIPT_COL_DATE, date)
-            put(RECEIPT_COL_TITLE, title)
-            put(RECEIPT_COL_TOTAL, total)
-            put(RECEIPT_COL_PAID_BY, paidBy)
-            put(RECEIPT_COL_CONTRIBUTIONS, contributionsString)
-        }
-        val whereClause = "$RECEIPT_COL_ID = ?"
-        val whereArgs = arrayOf(editSqlRowId)
-        return writeableDB.update(RECEIPT_TABLE_NAME, values, whereClause, whereArgs).toString()
-    }
-
-    private fun newFirebaseReceiptID() : String{
+    private fun newFirebaseReceiptID() : String {
+        // Confirms the correct receipt number for the receiptId in Firebase Db.
+        //TODO: What about if 2 users are offline? Then 2 users add at the same with the same receiptID? When they connect to WIFI there will be a clash.
+        //TODO: Ensure the most recent receipt in firebase is in sync with user.
+        //TODO: Ensure the firebase database is being incremented to reflect a new receipt has been added.
         val prefix = "rec"
         val sharedPreferences = getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE)
-        /*
-        This will need multiple sharedPreferences for each account. When a new account is opened then
-        a new shared pref file is created for this account.
-        The accounts shared pref name will be stored as a companion object variable. Initialised as
-        the current Account Sql ID is initialised.
-        When initialized then we will check the most recent receipt number and see if we match this.
-        We will repeat this just before inserting a new receipt.
-         */
-
-        return "rec0001" // TODO:(LOGIC THOUGHT OUT ALREADY) Find a way to increment this receipt number for the group.
+        val priorRecID = sharedPreferences.getInt(ReceiptOverviewActivity.getFirebaseId, 0)
+        val newReceiptId = priorRecID + 1
+        return "$prefix$newReceiptId"
     }
 
     private fun createContribString(updatedContribList: ArrayList<ParticipantBalanceData>, paidBy: String): String {

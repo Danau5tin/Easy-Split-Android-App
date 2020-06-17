@@ -32,10 +32,14 @@ import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_FIREBA
 import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_USER
 import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_TABLE_NAME
 import com.splitreceipt.myapplication.data.ParticipantNewGroupData
+import com.splitreceipt.myapplication.data.SharedPrefManager
+import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_NAME
 import com.splitreceipt.myapplication.databinding.ActivityNewGroupCreationBinding
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileNotFoundException
+import java.util.*
+import kotlin.collections.ArrayList
 
 
 class NewGroupCreation : AppCompatActivity(), NewGroupParticipantAdapter.onPartRowClick {
@@ -138,9 +142,8 @@ class NewGroupCreation : AppCompatActivity(), NewGroupParticipantAdapter.onPartR
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.addGroupSave -> {
-                // TODO: Save the below results to Firebase and to an SQL db
+                // TODO: Save the below results to Firebase db
                 val title: String = binding.groupTitleEditText.text.toString()
-                val groupFirebaseId = "Pbhbdy46218" // TODO: Create an effective & secure way to create a Unique identifier
                 val category = "House" // TODO: Get the toggle buttons value
 
                 val sqlUser: String = binding.yourNameEditText.text.toString()
@@ -150,39 +153,44 @@ class NewGroupCreation : AppCompatActivity(), NewGroupParticipantAdapter.onPartR
                 val balances: String = participantData.balanceString
                 val settlementString = "balanced"
 
-                val dbHelper = DbHelper(this)
-                val values: ContentValues = ContentValues().apply {
-                    put(GROUP_COL_FIREBASE_ID, groupFirebaseId)
-                    put(GROUP_COL_NAME, title)
-                    put(GROUP_COL_CATEGORY, category)
-                    put(GROUP_COL_PARTICIPANTS, participants)
-                    put(GROUP_COL_BALANCES, balances)
-                    put(GROUP_COL_SETTLEMENTS, settlementString)
-                    put(GROUP_COL_USER, sqlUser)
+                var groupFirebaseId: String? = null
+                try {
+                    val titleChar = title[0]
+                    val sqlUserChar = sqlUser[0]
+                    val timeStamp = System.currentTimeMillis().toString()
+                    val randomUUID: String = UUID.randomUUID().toString().replace("-", "").substring(0, 5)
+                    groupFirebaseId = "$titleChar$timeStamp/$sqlUserChar$randomUUID"
+                    Log.i("Account", groupFirebaseId)
+                } catch (e: Exception){
+                    Toast.makeText(this, "Please enter valid characters (A-Z)", Toast.LENGTH_LONG).show()
                 }
-                val write = dbHelper.writableDatabase
-                val sqlRes = write.insert(GROUP_TABLE_NAME, null, values)
-                if (sqlRes.toInt() == -1) {
-                    Toast.makeText(this, "Error #INSQ01. Contact Us", Toast.LENGTH_LONG).show()
-                } else {
-                    val intent = Intent(this, ReceiptOverviewActivity::class.java)
-                    if (newBitmap == null){
-                        //User has not uploaded an group profile image
-                        //TODO: Set a standard image depending on which category button was pressed
-                    } else {
-                        //User has uploaded a group profile image
-                        val async = ASyncSaveImage(true, this, groupFirebaseId)
-                        path = async.execute(newBitmap!!).get()
 
-                        intent.putExtra(ReceiptOverviewActivity.ImagePathIntent, path)
+                if (groupFirebaseId != null) {
+                    val sqlRow = DbHelper(this).insertNewGroup(groupFirebaseId, title,
+                        category, participants, balances, settlementString, sqlUser)
+
+                    if (sqlRow == -1) {
+                        Toast.makeText(this, "Error #INSQ01. Contact Us", Toast.LENGTH_LONG).show()
                     }
-                    intent.putExtra(GroupScreenActivity.sqlIntentString, sqlRes.toString())
-                    intent.putExtra(GroupScreenActivity.firebaseIntentString, groupFirebaseId)
-                    intent.putExtra(GroupScreenActivity.userIntentString, sqlUser)
-                    intent.putExtra(GroupScreenActivity.groupNameIntentString, title)
-                    intent.putExtra(ReceiptOverviewActivity.ImagePathIntent, path)
-                    startActivity(intent)
-                    finish()
+                    else {
+                        val intent = Intent(this, ReceiptOverviewActivity::class.java)
+                        if (newBitmap == null){
+                            //User has not uploaded an group profile image
+                            //TODO: Set a standard image depending on which category button was pressed
+                        } else {
+                            //User has uploaded a group profile image
+                            val async = ASyncSaveImage(true, this, groupFirebaseId)
+                            path = async.execute(newBitmap!!).get()
+                            intent.putExtra(ReceiptOverviewActivity.ImagePathIntent, path)
+                        }
+                        intent.putExtra(GroupScreenActivity.sqlIntentString, sqlRow.toString())
+                        intent.putExtra(GroupScreenActivity.firebaseIntentString, groupFirebaseId)
+                        intent.putExtra(GroupScreenActivity.userIntentString, sqlUser)
+                        intent.putExtra(GroupScreenActivity.groupNameIntentString, title)
+                        intent.putExtra(ReceiptOverviewActivity.ImagePathIntent, path)
+                        startActivity(intent)
+                        finish()
+                    }
                 }
             }
             else -> return false

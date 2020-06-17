@@ -32,8 +32,12 @@ import com.google.firebase.ml.vision.FirebaseVision
 import com.google.firebase.ml.vision.common.FirebaseVisionImage
 import com.splitreceipt.myapplication.NewReceiptCreationActivity.Companion.currencyCode
 import com.splitreceipt.myapplication.NewReceiptCreationActivity.Companion.currencySymbol
+import com.splitreceipt.myapplication.NewReceiptCreationActivity.Companion.editSqlRowId
 import com.splitreceipt.myapplication.data.DbHelper
 import com.splitreceipt.myapplication.data.ScannedItemizedProductData
+import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_ACCOUNT_CURRENCY_CODE
+import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_ACCOUNT_CURRENCY_SYMBOL
+import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_NAME
 import com.splitreceipt.myapplication.databinding.FragmentSplitReceiptScanBinding
 import kotlinx.android.synthetic.main.alert_dialog_scanned_product_edit.view.*
 import java.io.File
@@ -71,7 +75,7 @@ class SplitReceiptScanFragment : Fragment(), NewScannedReceiptRecyclerAdapter.on
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         binding = FragmentSplitReceiptScanBinding.inflate(inflater, container, false)
         numberOfItemsProvided = false
-        sharedPreferences = contxt.getSharedPreferences(CurrencySelectorActivity.SHARED_PREF_NAME, Context.MODE_PRIVATE)
+        sharedPreferences = contxt.getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE)
         itemizedArrayList = ArrayList()
         participantList = ArrayList()
         updateUICurrency()
@@ -128,8 +132,8 @@ class SplitReceiptScanFragment : Fragment(), NewScannedReceiptRecyclerAdapter.on
 
         if (NewReceiptCreationActivity.isScanned) {
             binding.currencyAmountScan.setText(NewReceiptCreationActivity.editTotal)
-            val reader = DbHelper(contxt).readableDatabase
-            itemizedArrayList = ExpenseViewActivity.getReceiptProductDetails(reader, NewReceiptCreationActivity.editSqlRowId, itemizedArrayList)
+            val dbHelper = DbHelper(contxt)
+            itemizedArrayList = dbHelper.getReceiptProductDetails(editSqlRowId, itemizedArrayList)
         }
 
         return binding.root
@@ -239,10 +243,8 @@ class SplitReceiptScanFragment : Fragment(), NewScannedReceiptRecyclerAdapter.on
     }
 
     private fun updateUICurrency(adapterInitialised: Boolean = false) {
-        currencySymbol = sharedPreferences.getString(
-            CurrencySelectorActivity.SHARED_PREF_ACCOUNT_CURRENCY_SYMBOL, "$").toString()
-        currencyCode = sharedPreferences.getString(
-            CurrencySelectorActivity.SHARED_PREF_ACCOUNT_CURRENCY_CODE, "US").toString()
+        currencySymbol = sharedPreferences.getString(SHARED_PREF_ACCOUNT_CURRENCY_SYMBOL, "$").toString()
+        currencyCode = sharedPreferences.getString(SHARED_PREF_ACCOUNT_CURRENCY_CODE, "US").toString()
         binding.currencyButtonScan.text = currencyCode
         if (adapterInitialised) {
             //TODO: Update the adapter with the correct currency code

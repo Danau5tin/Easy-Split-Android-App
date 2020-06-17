@@ -5,15 +5,12 @@ import android.content.Context
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_ACCOUNT_CURRENCY_CODE
+import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_ACCOUNT_CURRENCY_SYMBOL
+import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_NAME
 import com.splitreceipt.myapplication.databinding.ActivityCurrencySelectorBinding
 
 class CurrencySelectorActivity : AppCompatActivity(), CurrencySelectorAdapter.onCureClick {
-
-    companion object {
-        const val SHARED_PREF_NAME = "SharedPref"
-        const val SHARED_PREF_ACCOUNT_CURRENCY_SYMBOL = "currency_symbol"
-        const val SHARED_PREF_ACCOUNT_CURRENCY_CODE = "currency_code"
-    }
 
     private lateinit var binding: ActivityCurrencySelectorBinding
     private var currencyList: MutableList<String> = mutableListOf(

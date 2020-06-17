@@ -16,8 +16,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
-import com.splitreceipt.myapplication.CurrencySelectorActivity.Companion.SHARED_PREF_ACCOUNT_CURRENCY_SYMBOL
-import com.splitreceipt.myapplication.CurrencySelectorActivity.Companion.SHARED_PREF_NAME
 import com.splitreceipt.myapplication.data.DbHelper
 import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_ID
 import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_SETTLEMENTS
@@ -31,6 +29,8 @@ import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_TI
 import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_COL_TOTAL
 import com.splitreceipt.myapplication.data.DbManager.ReceiptTable.RECEIPT_TABLE_NAME
 import com.splitreceipt.myapplication.data.ReceiptData
+import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_ACCOUNT_CURRENCY_SYMBOL
+import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_NAME
 import com.splitreceipt.myapplication.databinding.ActivityMainBinding
 import java.io.File
 import java.io.FileInputStream
@@ -59,6 +59,7 @@ class ReceiptOverviewActivity : AppCompatActivity(), ReceiptOverViewAdapter.onRe
     companion object {
         var getSqlUser: String? = "unknown"
         var getSqlGroupId: String? = "-1"
+        var getFirebaseId: String? = "-1"
         var settlementString: String  = ""
         var settlementArray: ArrayList<String> = ArrayList()
         const val balanced_string: String = "balanced"
@@ -121,7 +122,7 @@ class ReceiptOverviewActivity : AppCompatActivity(), ReceiptOverViewAdapter.onRe
         getSqlUser = intent.getStringExtra(GroupScreenActivity.userIntentString)
         val getAccountName = intent.getStringExtra(GroupScreenActivity.groupNameIntentString)
         binding.accountNameTitleText.text = getAccountName
-        val getFirebaseId = intent.getStringExtra(GroupScreenActivity.firebaseIntentString)
+        getFirebaseId = intent.getStringExtra(GroupScreenActivity.firebaseIntentString)
 
         loadPreviousReceipts(getSqlGroupId)
         settlementString = loadSqlSettlementString(getSqlGroupId)

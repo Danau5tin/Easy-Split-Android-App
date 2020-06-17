@@ -10,17 +10,16 @@ import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.splitreceipt.myapplication.CurrencySelectorActivity.Companion.SHARED_PREF_ACCOUNT_CURRENCY_CODE
-import com.splitreceipt.myapplication.CurrencySelectorActivity.Companion.SHARED_PREF_ACCOUNT_CURRENCY_SYMBOL
-import com.splitreceipt.myapplication.CurrencySelectorActivity.Companion.SHARED_PREF_NAME
 import com.splitreceipt.myapplication.NewReceiptCreationActivity.Companion.currencyCode
 import com.splitreceipt.myapplication.NewReceiptCreationActivity.Companion.currencySymbol
 import com.splitreceipt.myapplication.NewReceiptCreationActivity.Companion.zeroCurrency
 import com.splitreceipt.myapplication.data.DbHelper
 import com.splitreceipt.myapplication.data.ParticipantData
+import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_ACCOUNT_CURRENCY_CODE
+import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_ACCOUNT_CURRENCY_SYMBOL
+import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_NAME
 import com.splitreceipt.myapplication.databinding.FragmentSplitReceiptManuallyBinding
 
 class SplitReceiptManuallyFragment : Fragment(), NewManualReceiptRecyclerAdapter.onRecyRowCheked {

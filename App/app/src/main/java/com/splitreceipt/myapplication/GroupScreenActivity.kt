@@ -36,43 +36,15 @@ class GroupScreenActivity : AppCompatActivity() {
         binding = ActivityGroupScreenBinding.inflate(layoutInflater)
         setContentView(binding.root)
         groupList = ArrayList()
-        val groupsAlready = readGroups()
-        if (!groupsAlready) {
-            Toast.makeText(this, "No Groups", Toast.LENGTH_SHORT).show()
-        }
+        groupList = DbHelper(this).readAllGroups()
 
         val adapter = GroupScreenAdapter(groupList)
         binding.groupRecy.layoutManager = LinearLayoutManager(this)
         binding.groupRecy.adapter = adapter
     }
 
-    private fun readGroups() : Boolean{
-        var groupsFound = false
-        val dbHelper = DbHelper(this)
-        val reader = dbHelper.readableDatabase
-        val columns = arrayOf(GROUP_COL_ID, GROUP_COL_NAME, GROUP_COL_FIREBASE_ID, GROUP_COL_USER)
-        val cursor: Cursor = reader.query(GROUP_TABLE_NAME, columns, null, null, null, null, null)
-        val groupNameColIndex = cursor.getColumnIndexOrThrow(GROUP_COL_NAME)
-        val groupSqlIdIndex = cursor.getColumnIndexOrThrow(GROUP_COL_ID)
-        val groupFirebaseIdIndex = cursor.getColumnIndexOrThrow(GROUP_COL_FIREBASE_ID)
-        val groupSqlUserIndex = cursor.getColumnIndexOrThrow(GROUP_COL_USER)
-        while (cursor.moveToNext()) {
-            groupsFound = true
-            val groupName = cursor.getString(groupNameColIndex)
-            val groupSqlID = cursor.getString(groupSqlIdIndex)
-            val groupFirebaseID = cursor.getString(groupFirebaseIdIndex)
-            val groupSqlUser = cursor.getString(groupSqlUserIndex)
-            groupList.add(GroupData(groupName, groupSqlID, groupFirebaseID, groupSqlUser))
-        }
-        cursor.close()
-        return groupsFound
-    }
-
-
     fun addNewGroupButton(view: View) {
         val intent = Intent(this, NewGroupCreation::class.java)
         startActivity(intent)
     }
-
-
 }
