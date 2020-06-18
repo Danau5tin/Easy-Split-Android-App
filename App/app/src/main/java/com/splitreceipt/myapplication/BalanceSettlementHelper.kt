@@ -9,7 +9,7 @@ import com.splitreceipt.myapplication.data.DbManager
 import com.splitreceipt.myapplication.data.ParticipantBalanceData
 import kotlin.math.abs
 
-class BalanceSettlementHelper(var context: Context, var accountSqlRow: String) {
+class BalanceSettlementHelper(var context: Context, var groupSqlRow: String) {
 
     fun recalculateBalancesAndSettlements(newContributions: String) : String {
         /*
@@ -46,7 +46,7 @@ class BalanceSettlementHelper(var context: Context, var accountSqlRow: String) {
         val reader = dbHelper.readableDatabase
         val columns = arrayOf(DbManager.GroupTable.GROUP_COL_BALANCES)
         val selectClause = "${DbManager.GroupTable.GROUP_COL_ID} = ?"
-        val selectArgs = arrayOf(accountSqlRow)
+        val selectArgs = arrayOf(groupSqlRow)
         val cursor: Cursor = reader.query(DbManager.GroupTable.GROUP_TABLE_NAME, columns, selectClause, selectArgs, null, null, null)
         val balColInd = cursor.getColumnIndexOrThrow(DbManager.GroupTable.GROUP_COL_BALANCES)
         while (cursor.moveToNext()) {
@@ -227,7 +227,7 @@ class BalanceSettlementHelper(var context: Context, var accountSqlRow: String) {
             put(DbManager.GroupTable.GROUP_COL_SETTLEMENTS, whoOwesWho)
         }
         val where = "${DbManager.GroupTable.GROUP_COL_ID} = ?"
-        val whereargs = arrayOf(accountSqlRow)
+        val whereargs = arrayOf(groupSqlRow)
         val id = writer.update(DbManager.GroupTable.GROUP_TABLE_NAME, values, where, whereargs)
         if (id != -1) {
             Log.i("TEST", "Successful upload of new balance string & settlement string")

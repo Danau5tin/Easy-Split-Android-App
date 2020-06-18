@@ -19,7 +19,7 @@ object DbManager {
     object ExpenseTable: BaseColumns {
         const val EXPENSE_TABLE_NAME = "expenses"
         const val EXPENSE_COL_ID = BaseColumns._ID
-        const val EXPENSE_COL_UNIQUE_ID = "expense_unique_id"
+        const val EXPENSE_COL_FIREBASE_ID = "expense_unique_id" //TODO: Change this string to firebase ID
         const val EXPENSE_COL_DATE = "date"
         const val EXPENSE_COL_TITLE = "title"
         const val EXPENSE_COL_TOTAL = "total_cost"

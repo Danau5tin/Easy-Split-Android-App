@@ -3,7 +3,6 @@ package com.splitreceipt.myapplication
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
-import android.database.Cursor
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
@@ -12,25 +11,17 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.ValueEventListener
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
-import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_COL_DATE
-import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_COL_FK_GROUP_ID
-import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_COL_ID
-import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_COL_PAID_BY
-import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_COL_SCANNED
-import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_COL_TITLE
-import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_COL_TOTAL
-import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_TABLE_NAME
-import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_ID
-import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_SETTLEMENTS
-import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_TABLE_NAME
-import com.splitreceipt.myapplication.data.ReceiptData
+import com.splitreceipt.myapplication.data.*
 import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_ACCOUNT_CURRENCY_SYMBOL
 import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_NAME
-import com.splitreceipt.myapplication.data.SqlDbHelper
 import com.splitreceipt.myapplication.databinding.ActivityMainBinding
 import java.io.File
 import java.io.FileInputStream
@@ -132,8 +123,9 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
         binding.accountNameTitleText.text = getAccountName
         getFirebaseId = intent.getStringExtra(GroupScreenActivity.firebaseIntentString)
 
-        loadPreviousReceipts(getSqlGroupId)
-        settlementString = loadSqlSettlementString(getSqlGroupId)
+        val sqlHelper = SqlDbHelper(this)
+        receiptList = sqlHelper.loadPreviousReceipts(getSqlGroupId)
+        settlementString = sqlHelper.loadSqlSettlementString(getSqlGroupId)
         deconstructAndSetSettlementString(settlementString)
 
         adapter = ExpenseOverViewAdapter(receiptList, this)
@@ -161,78 +153,77 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
             binding.groupProfileImage.setImageBitmap(b)
         }
 
-//        val localFile = File.createTempFile("images", "jpg")
-//        val userStorageRef = storageRef.child("userID")
-//        userStorageRef.getFile(localFile)
-//            .addOnSuccessListener {
-//                val my_image: Bitmap = BitmapFactory.decodeFile(localFile.absolutePath)
-//                binding.groupProfileImage.setImageBitmap(my_image)
-//            }.addOnFailureListener {
-//                Toast.makeText(this, "Failed", Toast.LENGTH_SHORT).show()
-//            }
-    }
+        val firebaseDbHelper = FirebaseDbHelper(getFirebaseId!!)
 
+        val accountInfoDbRef = firebaseDbHelper.getAccountInfoListeningRef()
+        accountInfoDbRef.addValueEventListener(object : ValueEventListener {
+            //Listens for changes to the account information
+            override fun onCancelled(p0: DatabaseError) {
+                Toast.makeText(baseContext, "Failed to sync changes", Toast.LENGTH_SHORT).show()
+            }
+            override fun onDataChange(data: DataSnapshot) {
+                val account = data.getValue(FirebaseAccountData::class.java)!!
+                Log.i("Fbase", "name: ${account.accountName}")
+                Log.i("Fbase", "bal: ${account.accountBal}")
+                Log.i("Fbase", "--------------")
+                //TODO: Handle the incoming data from the database
+            }
+        })
 
-    private fun loadSqlSettlementString(sqlAccountId: String?): String {
-        var settlementString = ""
-        val dbHelper = SqlDbHelper(this)
-        val reader = dbHelper.readableDatabase
-        val columns = arrayOf(GROUP_COL_SETTLEMENTS)
-        val selectClause = "$GROUP_COL_ID = ?"
-        val selectArgs = arrayOf(sqlAccountId)
-        val cursor: Cursor = reader.query(
-            GROUP_TABLE_NAME, columns, selectClause, selectArgs,
-            null, null, null
-        )
-        val settlementIndex = cursor.getColumnIndexOrThrow(GROUP_COL_SETTLEMENTS)
-        while (cursor.moveToNext()) {
-            settlementString = cursor.getString(settlementIndex)
-        }
-        cursor.close()
-        dbHelper.close()
-        return settlementString
-    }
+        val expenseInfoDbRef = firebaseDbHelper.getExpensesListeningRef()
+        expenseInfoDbRef.addListenerForSingleValueEvent(object : ValueEventListener{
+            override fun onCancelled(p0: DatabaseError) {
+                Toast.makeText(baseContext, "Failed to sync changes", Toast.LENGTH_SHORT).show()
+            }
+            override fun onDataChange(data: DataSnapshot) {
+                /*
+                 Check if any of the expenses in Firebase are not in the users SQL db.
+                 If they are not then we will recalculate the expenses.
+                 */
+                val sqlFirebaseIds = SqlDbHelper(baseContext).showAllFirebaseIds(getSqlGroupId!!)
+                var settlementString: String? = null
+                for (expense in data.children){
+                    val firebaseID = expense.key
+                    var exists = false
 
-    private fun loadPreviousReceipts(sqlId: String?) {
-        val dbHelper = SqlDbHelper(this)
-        val reader = dbHelper.readableDatabase
-        val columns = arrayOf(
-            EXPENSE_COL_DATE, EXPENSE_COL_TITLE, EXPENSE_COL_TOTAL,
-            EXPENSE_COL_PAID_BY, EXPENSE_COL_ID, EXPENSE_COL_SCANNED
-        )
-        val selectClause = "$EXPENSE_COL_FK_GROUP_ID = ?"
-        val selectArgs = arrayOf("$sqlId")
-        val cursor: Cursor = reader.query(
-            EXPENSE_TABLE_NAME, columns, selectClause, selectArgs,
-            null, null, "$EXPENSE_COL_ID DESC"
-        ) //TODO: Try to sort all expenses in date order. Maybe do this before passing to the adapter?
-        val dateColIndex = cursor.getColumnIndexOrThrow(EXPENSE_COL_DATE)
-        val titleColIndex = cursor.getColumnIndexOrThrow(EXPENSE_COL_TITLE)
-        val totalColIndex = cursor.getColumnIndexOrThrow(EXPENSE_COL_TOTAL)
-        val paidByColIndex = cursor.getColumnIndexOrThrow(EXPENSE_COL_PAID_BY)
-        val idColIndex = cursor.getColumnIndexOrThrow(EXPENSE_COL_ID)
-        val scannedColIndex = cursor.getColumnIndexOrThrow(EXPENSE_COL_SCANNED)
-        while (cursor.moveToNext()) {
-            val receiptDate = cursor.getString(dateColIndex)
-            val receiptTitle = cursor.getString(titleColIndex)
-            val receiptTotal = cursor.getFloat(totalColIndex)
-            val receiptPaidBy = cursor.getString(paidByColIndex)
-            val receiptSqlId = cursor.getInt(idColIndex).toString()
-            val receiptScannedInt = cursor.getInt(scannedColIndex)
-            val scanned = receiptScannedInt == 1
-            receiptList.add(
-                ReceiptData(
-                    receiptDate,
-                    receiptTitle,
-                    receiptTotal,
-                    receiptPaidBy,
-                    receiptSqlId,
-                    scanned
-                )
-            )
-        }
-        cursor.close()
-        dbHelper.close()
+                    for (firebaseSQLId in sqlFirebaseIds) {
+                        if (firebaseID == firebaseSQLId){
+                            // Receipt IS in the users SQL db
+                            Log.i("Fbase-E", "Receipt $firebaseID IS in Sql db")
+                            exists = true
+                            break
+                        }
+                    }
+
+                    if (!exists) {
+                        // Receipt is NOT in the users SQL db
+                        Log.i("Fbase-E", "Receipt $firebaseID is NOT in Sql db")
+
+                        val expen = data.child(firebaseID!!)
+                        val newExpense = expen.getValue(FirebaseExpenseData::class.java)!!
+                        val date = newExpense.expenseDate
+                        val title = newExpense.expenseTitle
+                        val total = newExpense.expenseTotal
+                        val paidBy = newExpense.expensePaidBy
+                        val contribs = newExpense.expenseContribs
+                        val dbHelper = SqlDbHelper(baseContext)
+                        //Save expense into SQL
+                        dbHelper.insertNewExpense(getSqlGroupId!!, firebaseID, date, title, total, paidBy, contribs, false) //TODO: Scanned is set to false as default, this will need editing at a later stage to accommodate for scanned receipts.
+                        //Run the new contributions through the algorithm
+                        val balanceSettlementHelper = BalanceSettlementHelper(applicationContext, getSqlGroupId!!)
+                        settlementString = balanceSettlementHelper.recalculateBalancesAndSettlements(contribs)
+                    }
+                }
+
+                if (settlementString != null) {
+                    // If user has downloaded and updated new expenses from Firebase then set the settlementString
+                    deconstructAndSetSettlementString(settlementString!!)
+                    //TODO: Update the settlement and balance strings.
+                    reloadRecycler()
+                }
+            }
+        })
+
     }
 
     fun addNewReceiptButton(view: View) {
@@ -257,6 +248,7 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
                 )
                 newSettlementString = newContributionUpdates(contributions!!)
                 deconstructAndSetSettlementString(newSettlementString)
+                reloadRecycler()
             }
         } else if (requestCode == seeExpenseResult) {
             if (resultCode == Activity.RESULT_OK) {
@@ -294,7 +286,10 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
     }
 
     private fun deconstructAndSetSettlementString(settlementString: String) {
-        // This function will deconstruct a settlementString and produce an ArrayList of individual settlement strings
+        /*
+         This function will deconstruct a settlementString and produce an ArrayList of individual settlement strings.
+         After this it will identify any strings relevant to the current user and add them to a separate list which will be showcased in UI
+         */
         settlementArray.clear()
         val sb: StringBuilder = java.lang.StringBuilder()
         val userDirectedSettlementIndexes: ArrayList<Int> = ArrayList()
@@ -351,16 +346,13 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
 
     private fun newContributionUpdates(newContributions: String): String {
         val balanceSettlementHelper = BalanceSettlementHelper(this, getSqlGroupId.toString())
-        val settlementString =
-            balanceSettlementHelper.recalculateBalancesAndSettlements(newContributions)
-        reloadRecycler()
-        return settlementString
+        return balanceSettlementHelper.recalculateBalancesAndSettlements(newContributions)
     }
 
     private fun reloadRecycler() {
         // Clears the list and refreshes receipts from SQL db back into it.
         receiptList.clear()
-        loadPreviousReceipts(getSqlGroupId)
+        receiptList = SqlDbHelper(this).loadPreviousReceipts(getSqlGroupId)
         adapter.notifyDataSetChanged()
     }
 

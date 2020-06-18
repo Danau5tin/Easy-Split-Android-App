@@ -464,6 +464,7 @@ class SplitReceiptScanFragment : Fragment(), NewScannedReceiptRecyclerAdapter.on
         }
         diagView.dialogDeleteButton.setOnClickListener {
             itemizedArrayList.remove(product)
+            SqlDbHelper(contxt).deleteReceiptProduct(product.sqlRowId)
             flagAndRefresh()
         }
         diagView.dialogCancelButton.setOnClickListener {

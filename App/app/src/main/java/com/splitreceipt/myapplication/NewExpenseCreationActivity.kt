@@ -13,11 +13,13 @@ import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.tabs.TabLayoutMediator
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.ValueEventListener
 import com.splitreceipt.myapplication.SplitReceiptScanFragment.Companion.ownershipEqualString
 import com.splitreceipt.myapplication.data.*
 import com.splitreceipt.myapplication.databinding.ActivityNewReceiptCreationBinding
 import kotlinx.android.synthetic.main.fragment_split_receipt_scan.*
-import java.lang.StringBuilder
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.*
@@ -32,6 +34,7 @@ class NewExpenseCreationActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityNewReceiptCreationBinding
     private var editPaidBy: String = ""
+    private var firebaseGroupId: String = ""
 
     companion object {
         var sqlAccountId: String? = "-1"
@@ -114,6 +117,8 @@ class NewExpenseCreationActivity : AppCompatActivity() {
             setDisplayShowHomeEnabled(true)
             setHomeAsUpIndicator(R.drawable.vector_x_white)
         }
+        firebaseGroupId = intent.getStringExtra(intentFirebaseIdString)!!
+
     }
 
     private fun deconstructAndBuildEditContribs(editContributions: String) {
@@ -145,7 +150,6 @@ class NewExpenseCreationActivity : AppCompatActivity() {
                 if (okayToProceed) {
                     val sqlDbHelper = SqlDbHelper(this)
                     val writeableDB = sqlDbHelper.writableDatabase
-                    val firebaseGroupId = intent.getStringExtra(intentFirebaseIdString)
                     val firebaseDbHelper = FirebaseDbHelper(firebaseGroupId)
                     //Obtain global receipt details
                     val date = getDate()
@@ -204,7 +208,9 @@ class NewExpenseCreationActivity : AppCompatActivity() {
                             val sqlRow = sqlDbHelper.insertNewExpense(sqlAccountId!!, expenseFirebaseID, date, title, total, paidBy, contributionsString, true)
                             firebaseDbHelper.createNewExpense(expenseFirebaseID, date, title, total, paidBy, contributionsString)
                             sqlDbHelper.insertReceiptItems(itemizedProductList, sqlRow)
-                            firebaseDbHelper.addReceiptItems(expenseFirebaseID, itemizedProductList)
+
+//                            firebaseDbHelper.addReceiptItems(expenseFirebaseID, itemizedProductList)
+
                             intent.putExtra(CONTRIBUTION_INTENT_DATA, contributionsString)
                             setResult(Activity.RESULT_OK, intent)
                             sqlDbHelper.close()
