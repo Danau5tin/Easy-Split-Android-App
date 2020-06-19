@@ -1,16 +1,20 @@
 GroupId
 |	|
-|	---Info
+|	--- Info
 |	|	|
 |	|	--- Name : xxxxxxxx
 |	|	|
 |	|	--- Cat : xxxx
 |	|	|
-|	|	--- Balance : "xxx,£xx.xx/xxxxxx,£x"
-|	|	|
-|	|	--- Settlements: "xxx,£xx.xxxx/xxxx,£x.xx,xxx"
-|	|	|
 |	|	--- Participants: "xxxx,xxxxx,xxxx"
+|	|	
+|	|	
+|	--- Finances
+|	|	   |
+|	|	   |
+|	|	   --- Balance : "xxx,£xx.xx/xxxxxx,£x"
+|	|	   |
+|	|	   --- Settlements: "xxx,£xx.xxxx/xxxx,£x.xx,xxx"
 |	|
 |	|
 |	--- Expenses

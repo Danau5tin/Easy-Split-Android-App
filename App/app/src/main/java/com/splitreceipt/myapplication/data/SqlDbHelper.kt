@@ -224,8 +224,7 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
         return settlementString
     }
 
-    fun loadPreviousReceipts(sqlId: String?) : ArrayList<ReceiptData>{
-        val receiptList: ArrayList<ReceiptData> = ArrayList()
+    fun loadPreviousReceipts(sqlId: String?, receiptList: ArrayList<ReceiptData>){
         val reader = readableDatabase
         val columns = arrayOf(
             EXPENSE_COL_DATE, EXPENSE_COL_TITLE, EXPENSE_COL_TOTAL,
@@ -263,7 +262,6 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
             )
         }
         cursor.close()
-        return receiptList
     }
 
     fun readAllGroups() : ArrayList<GroupData>{

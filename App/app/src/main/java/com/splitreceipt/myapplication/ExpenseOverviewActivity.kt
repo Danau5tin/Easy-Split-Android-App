@@ -1,5 +1,6 @@
 package com.splitreceipt.myapplication
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
@@ -51,12 +52,12 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
         var getSqlUser: String? = "unknown"
         var getSqlGroupId: String? = "-1"
         var getFirebaseId: String? = "-1"
-        var settlementString: String = ""
         var settlementArray: ArrayList<String> = ArrayList()
         const val balanced_string: String = "balanced"
         const val ImagePathIntent = "path_intent"
         const val UriIntent = "uri_intent"
 
+        @SuppressLint("DefaultLocale")
         fun changeNameToYou(participantName: String, capitalize: Boolean): String {
             return if (participantName == getSqlUser) {
                 if (capitalize) {
@@ -122,15 +123,7 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
         val getAccountName = intent.getStringExtra(GroupScreenActivity.groupNameIntentString)
         binding.accountNameTitleText.text = getAccountName
         getFirebaseId = intent.getStringExtra(GroupScreenActivity.firebaseIntentString)
-
         val sqlHelper = SqlDbHelper(this)
-        receiptList = sqlHelper.loadPreviousReceipts(getSqlGroupId)
-        settlementString = sqlHelper.loadSqlSettlementString(getSqlGroupId)
-        deconstructAndSetSettlementString(settlementString)
-
-        adapter = ExpenseOverViewAdapter(receiptList, this)
-        binding.mainActivityRecycler.layoutManager = LinearLayoutManager(this)
-        binding.mainActivityRecycler.adapter = adapter
 
         setSupportActionBar(findViewById(R.id.toolbar))
         supportActionBar?.title = "Your group"
@@ -141,20 +134,16 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
         }
 
         if (intent.getStringExtra(UriIntent) != null) {
-            /*
-            New Group was just created by user, load the image Uri that has been passed as String as
-            the image is likely still being saved in an AsyncTask.
-             */
+            // New Group was just created by user, load the image Uri as image is likely still being saved in an AsyncTask.
             val uriImage: Uri = Uri.parse(intent.getStringExtra(UriIntent))
             binding.groupProfileImage.setImageURI(uriImage)
         } else {
-            //Group has already been created and user is re-entering the group, load internally saved image
+            // Group has already been created and user is re-entering the group, load internally saved image
             val b = loadImageFromStorage(this, true, getFirebaseId!!)
             binding.groupProfileImage.setImageBitmap(b)
         }
 
         val firebaseDbHelper = FirebaseDbHelper(getFirebaseId!!)
-
         val accountInfoDbRef = firebaseDbHelper.getAccountInfoListeningRef()
         accountInfoDbRef.addValueEventListener(object : ValueEventListener {
             //Listens for changes to the account information
@@ -162,11 +151,10 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
                 Toast.makeText(baseContext, "Failed to sync changes", Toast.LENGTH_SHORT).show()
             }
             override fun onDataChange(data: DataSnapshot) {
-                val account = data.getValue(FirebaseAccountData::class.java)!!
-                Log.i("Fbase", "name: ${account.accountName}")
-                Log.i("Fbase", "bal: ${account.accountBal}")
+                val account = data.getValue(FirebaseAccountInfoData::class.java)!!
+                Log.i("Fbase", "name: ${account.accName}")
+                Log.i("Fbase", "bal: ${account.accParticipants}")
                 Log.i("Fbase", "--------------")
-                //TODO: Handle the incoming data from the database
             }
         })
 
@@ -182,6 +170,7 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
                  */
                 val sqlFirebaseIds = SqlDbHelper(baseContext).showAllFirebaseIds(getSqlGroupId!!)
                 var settlementString: String? = null
+                val balanceSettlementHelper = BalanceSettlementHelper(applicationContext, getSqlGroupId!!)
                 for (expense in data.children){
                     val firebaseID = expense.key
                     var exists = false
@@ -206,24 +195,28 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
                         val total = newExpense.expenseTotal
                         val paidBy = newExpense.expensePaidBy
                         val contribs = newExpense.expenseContribs
-                        val dbHelper = SqlDbHelper(baseContext)
+                        val sqlDbHelper = SqlDbHelper(baseContext)
                         //Save expense into SQL
-                        dbHelper.insertNewExpense(getSqlGroupId!!, firebaseID, date, title, total, paidBy, contribs, false) //TODO: Scanned is set to false as default, this will need editing at a later stage to accommodate for scanned receipts.
+                        sqlDbHelper.insertNewExpense(getSqlGroupId!!, firebaseID, date, title, total, paidBy, contribs, false) //TODO: Scanned is set to false as default, this will need editing at a later stage to accommodate for scanned receipts.
                         //Run the new contributions through the algorithm
-                        val balanceSettlementHelper = BalanceSettlementHelper(applicationContext, getSqlGroupId!!)
-                        settlementString = balanceSettlementHelper.recalculateBalancesAndSettlements(contribs)
+                        settlementString = balanceSettlementHelper.balanceAndSettlementsFromSql(contribs)
                     }
                 }
 
                 if (settlementString != null) {
-                    // If user has downloaded and updated new expenses from Firebase then set the settlementString
-                    deconstructAndSetSettlementString(settlementString!!)
-                    //TODO: Update the settlement and balance strings.
-                    reloadRecycler()
+                    // User has updated new expenses from Firebase so update Firebase with new balance, settlement strings.
+                    balanceSettlementHelper.updateFirebaseBalAndSettle(firebaseDbHelper)
+                } else {
+                    // User has no new updated expenses downloaded from the firebase database
+                    settlementString = sqlHelper.loadSqlSettlementString(getSqlGroupId)
                 }
+                deconstructAndSetSettlementString(settlementString)
             }
         })
-
+        sqlHelper.loadPreviousReceipts(getSqlGroupId, receiptList)
+        adapter = ExpenseOverViewAdapter(receiptList, this)
+        binding.mainActivityRecycler.layoutManager = LinearLayoutManager(this)
+        binding.mainActivityRecycler.adapter = adapter
     }
 
     fun addNewReceiptButton(view: View) {
@@ -334,25 +327,26 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
         val you = "you"
         val debtorLow = debtor.toLowerCase(Locale.ROOT)
         val receiverLow = receiver.toLowerCase(Locale.ROOT)
+        val fixedVal = SplitExpenseManuallyFragment.addStringZerosForDecimalPlace(value)
         finalString = if (you == debtorLow) {
-            "$debtor owe $currencySymbol$value to $receiver."
+            "$debtor owe $currencySymbol$fixedVal to $receiver."
         } else if (you == receiverLow) {
-            "$debtor owes $currencySymbol$value to $receiverLow."
+            "$debtor owes $currencySymbol$fixedVal to $receiverLow."
         } else {
-            "$debtor owes $currencySymbol$value to $receiver."
+            "$debtor owes $currencySymbol$fixedVal to $receiver."
         }
         return finalString
     }
 
     private fun newContributionUpdates(newContributions: String): String {
         val balanceSettlementHelper = BalanceSettlementHelper(this, getSqlGroupId.toString())
-        return balanceSettlementHelper.recalculateBalancesAndSettlements(newContributions)
+        return balanceSettlementHelper.balanceAndSettlementsFromSql(newContributions)
     }
 
     private fun reloadRecycler() {
         // Clears the list and refreshes receipts from SQL db back into it.
         receiptList.clear()
-        receiptList = SqlDbHelper(this).loadPreviousReceipts(getSqlGroupId)
+        SqlDbHelper(this).loadPreviousReceipts(getSqlGroupId, receiptList)
         adapter.notifyDataSetChanged()
     }
 

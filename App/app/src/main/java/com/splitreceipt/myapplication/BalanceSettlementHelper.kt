@@ -6,17 +6,21 @@ import android.database.Cursor
 import android.util.Log
 import com.splitreceipt.myapplication.data.SqlDbHelper
 import com.splitreceipt.myapplication.data.DbManager
+import com.splitreceipt.myapplication.data.FirebaseDbHelper
 import com.splitreceipt.myapplication.data.ParticipantBalanceData
 import kotlin.math.abs
 
 class BalanceSettlementHelper(var context: Context, var groupSqlRow: String) {
 
-    fun recalculateBalancesAndSettlements(newContributions: String) : String {
+    private var balanceString: String? = null
+    private var settlementString: String? = null
+
+    fun balanceAndSettlementsFromSql(newContributions: String) : String {
         /*
         Step 1: Convert prior balance string in SQL to data class objects.
         Step 2: Use the contribution string from the returned intent to update the objects balance values.
         Step 3: Convert those objects back to a balance string.
-        Step 4: Workout who owes who via the algorithm.
+        Step 4: Workout who owes who via the algorithm and output a settlement string.
         Step 5: Update SQL with new balances and settlement strings
         Step 6: return the newSettlementString for receipt overview Balance
          */
@@ -35,8 +39,18 @@ class BalanceSettlementHelper(var context: Context, var groupSqlRow: String) {
         }
         Log.i("Algorithm", "Settlement string created after the algorithm has balanced everyones balances: $newSettlementString \n\n")
         updateSqlBalAndSettlementStrings(newBalanceString, newSettlementString)
-        Log.i("ClassTest", "Exited")
+
         return newSettlementString
+    }
+
+    fun updateFirebaseBalAndSettle(firebaseDbHelper: FirebaseDbHelper){
+        /*
+        This will take the most recent balance & settlement strings that're already in the
+        SQL database and upload them to the Firebase DB.
+         */
+        if (settlementString != null && balanceString != null){
+            firebaseDbHelper.setAccountFinance(settlementString!!, balanceString!!)
+        }
     }
 
     private fun loadPreviousBalanceToObjects(): ArrayList<ParticipantBalanceData> {
@@ -219,12 +233,16 @@ class BalanceSettlementHelper(var context: Context, var groupSqlRow: String) {
         return participantBalanceDataList
     }
 
-    private fun updateSqlBalAndSettlementStrings(balString: String, whoOwesWho: String) {
+    private fun updateSqlBalAndSettlementStrings(balString: String, settlementStr: String) {
+
+        balanceString = balString
+        settlementString = settlementStr
+
         val dbHelper = SqlDbHelper(context)
         val writer = dbHelper.writableDatabase
         val values = ContentValues().apply {
             put(DbManager.GroupTable.GROUP_COL_BALANCES, balString)
-            put(DbManager.GroupTable.GROUP_COL_SETTLEMENTS, whoOwesWho)
+            put(DbManager.GroupTable.GROUP_COL_SETTLEMENTS, settlementStr)
         }
         val where = "${DbManager.GroupTable.GROUP_COL_ID} = ?"
         val whereargs = arrayOf(groupSqlRow)

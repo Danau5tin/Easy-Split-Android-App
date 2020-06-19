@@ -10,6 +10,7 @@ class FirebaseDbHelper(private var firebaseGroupId: String) {
 
     //Slightly common end paths
     private var groupInfo = "/info"
+    private var groupFin = "/finance"
     private var expenses = "/expenses"
     private var scanned = "/scanned"
 
@@ -19,8 +20,21 @@ class FirebaseDbHelper(private var firebaseGroupId: String) {
 
     fun createNewAccount(groupName: String, groupCat: String,
                         groupBalance: String, groupSettlement: String, participantString: String){
+
+        setAccountInfo(groupName, groupCat, participantString)
+        setAccountFinance(groupSettlement, groupBalance)
+    }
+
+    fun setAccountFinance(groupSettlement: String, groupBalance: String) {
+        val groupFinancePath = "$firebaseGroupId$groupFin"
+        val accountData = FirebaseAccountFinancialData(groupSettlement, groupBalance)
+        currentPath = database.getReference(groupFinancePath)
+        currentPath.setValue(accountData)
+    }
+
+    private fun setAccountInfo(groupName: String, groupCat: String, participantString: String) {
         val groupInfoPath = "$firebaseGroupId$groupInfo"
-        val accountData = FirebaseAccountData(groupName, groupCat, groupBalance, groupSettlement, participantString)
+        val accountData = FirebaseAccountInfoData(groupName, groupCat, participantString)
         currentPath = database.getReference(groupInfoPath)
         currentPath.setValue(accountData)
     }

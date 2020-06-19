@@ -159,12 +159,12 @@ class ExpenseViewActivity : AppCompatActivity() {
                         // Contributions have changed. Paid by has changed also.
                         val reverseContribs = reversePriorExpenseAfterDeletion(prevContributionString, edit = true)
                         // Update balances after reversing the previous contributions.
-                        balSetHelper.recalculateBalancesAndSettlements(reverseContribs)
+                        balSetHelper.balanceAndSettlementsFromSql(reverseContribs)
                     }
 
                 }
                 // Set new contributions
-                val settlementString = balSetHelper.recalculateBalancesAndSettlements(calculatedContributions)
+                val settlementString = balSetHelper.balanceAndSettlementsFromSql(calculatedContributions)
                 contributionString = calculatedContributions
                 intent.putExtra(expenseReturnNewSettlements, settlementString)
                 setResult(Activity.RESULT_OK, intent)
