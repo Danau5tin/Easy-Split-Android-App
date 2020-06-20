@@ -49,6 +49,8 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
     private var userSettlementString = ""
 
     companion object {
+        var firebaseDbHelper: FirebaseDbHelper? = null // Globally used throughout the application
+
         var getSqlUser: String? = "unknown"
         var getSqlGroupId: String? = "-1"
         var getFirebaseId: String? = "-1"
@@ -123,6 +125,17 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
         val getAccountName = intent.getStringExtra(GroupScreenActivity.groupNameIntentString)
         binding.accountNameTitleText.text = getAccountName
         getFirebaseId = intent.getStringExtra(GroupScreenActivity.firebaseIntentString)
+
+        firebaseDbHelper = null
+        firebaseDbHelper = if (NewGroupCreation.firebaseDbHelper != null) {
+            NewGroupCreation.firebaseDbHelper!!
+        } else if (GroupScreenActivity.firebaseDbHelper != null){
+            GroupScreenActivity.firebaseDbHelper!!
+        }
+        else {
+            FirebaseDbHelper(getFirebaseId!!)
+        }
+
         val sqlHelper = SqlDbHelper(this)
 
         setSupportActionBar(findViewById(R.id.toolbar))
@@ -143,7 +156,7 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
             binding.groupProfileImage.setImageBitmap(b)
         }
 
-        val firebaseDbHelper = FirebaseDbHelper(getFirebaseId!!)
+
         //TODO: Implement the below code in the best way
 //        val accountInfoDbRef = firebaseDbHelper.getAccountInfoListeningRef()
 //        accountInfoDbRef.addValueEventListener(object : ValueEventListener {
@@ -159,7 +172,7 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
 //            }
 //        })
 
-        val expenseInfoDbRef = firebaseDbHelper.getExpensesListeningRef()
+        val expenseInfoDbRef = firebaseDbHelper!!.getExpensesListeningRef()
         expenseInfoDbRef.addListenerForSingleValueEvent(object : ValueEventListener{
             override fun onCancelled(p0: DatabaseError) {
                 Toast.makeText(baseContext, "Failed to sync changes", Toast.LENGTH_SHORT).show()
@@ -206,7 +219,7 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
 
                 if (settlementString != null) {
                     // User has updated new expenses from Firebase so update Firebase with new balance, settlement strings.
-                    balanceSettlementHelper.updateFirebaseBalAndSettle(firebaseDbHelper)
+                    balanceSettlementHelper.updateFirebaseBalAndSettle(firebaseDbHelper!!)
                 } else {
                     // User has no new updated expenses downloaded from the firebase database
                     settlementString = sqlHelper.loadSqlSettlementString(getSqlGroupId)
@@ -253,9 +266,7 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
                     ) == null
                 ) {
                     // This scenario means the user deleted the expense and re-balancing must be done
-                    val reversedContributions = data?.getStringExtra(
-                        ExpenseViewActivity
-                            .expenseReturnNewContributions
+                    val reversedContributions = data?.getStringExtra(ExpenseViewActivity.expenseReturnNewContributions
                     )
                     Log.i(
                         "Algorithm", "Reversed contribution string returned from the " +
@@ -264,8 +275,7 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
                     newSettlementString = newContributionUpdates(reversedContributions!!)
                 } else {
                     // This scenario means the user edited the expense and re-balancing is already completed
-                    newSettlementString = data.getStringExtra(
-                        ExpenseViewActivity.expenseReturnNewSettlements
+                    newSettlementString = data.getStringExtra(ExpenseViewActivity.expenseReturnNewSettlements
                     )!!.toString()
                     reloadRecycler()
                 }
@@ -341,7 +351,9 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
 
     private fun newContributionUpdates(newContributions: String): String {
         val balanceSettlementHelper = BalanceSettlementHelper(this, getSqlGroupId.toString())
-        return balanceSettlementHelper.balanceAndSettlementsFromSql(newContributions)
+        val settlementString = balanceSettlementHelper.balanceAndSettlementsFromSql(newContributions)
+        firebaseDbHelper!!.setAccountFinance(settlementString, balanceSettlementHelper.balanceString!!)
+        return settlementString
     }
 
     private fun reloadRecycler() {

@@ -44,6 +44,7 @@ class NewGroupCreation : AppCompatActivity(), NewGroupParticipantAdapter.onPartR
     private var newBitmap: Bitmap? = null
 
     companion object {
+        var firebaseDbHelper: FirebaseDbHelper? = null
         var profileImageSavedLocally: Boolean = false
     }
 
@@ -145,8 +146,9 @@ class NewGroupCreation : AppCompatActivity(), NewGroupParticipantAdapter.onPartR
                     // Save to SQL and upload to firebase
                     val sqlRow = SqlDbHelper(this).insertNewGroup(groupFirebaseId, title,
                         category, participants, balances, settlementString, sqlUser)
-                    FirebaseDbHelper(groupFirebaseId).createNewAccount(title, category, balances,
-                        settlementString, participants)
+                    firebaseDbHelper = FirebaseDbHelper(groupFirebaseId)
+                    firebaseDbHelper!!.createNewAccount(title, category, balances,
+                        settlementString, participants) //TODO: Again here, how do i pass through the fbHelper class to ExpenseOverview?
 
                     if (sqlRow == -1) {
                         Toast.makeText(this, "Error #INSQ01. Contact Us", Toast.LENGTH_LONG).show()

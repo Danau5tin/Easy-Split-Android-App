@@ -9,10 +9,7 @@ import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.splitreceipt.myapplication.data.SqlDbHelper
-import com.splitreceipt.myapplication.data.ExpenseAdapterData
-import com.splitreceipt.myapplication.data.ParticipantBalanceData
-import com.splitreceipt.myapplication.data.ScannedItemizedProductData
+import com.splitreceipt.myapplication.data.*
 import com.splitreceipt.myapplication.databinding.ActivityExpenseViewBinding
 import java.util.*
 import kotlin.collections.ArrayList
@@ -165,6 +162,7 @@ class ExpenseViewActivity : AppCompatActivity() {
                 }
                 // Set new contributions
                 val settlementString = balSetHelper.balanceAndSettlementsFromSql(calculatedContributions)
+                ExpenseOverviewActivity.firebaseDbHelper!!.setAccountFinance(settlementString, balSetHelper.balanceString!!)
                 contributionString = calculatedContributions
                 intent.putExtra(expenseReturnNewSettlements, settlementString)
                 setResult(Activity.RESULT_OK, intent)

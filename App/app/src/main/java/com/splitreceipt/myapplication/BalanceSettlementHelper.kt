@@ -12,7 +12,7 @@ import kotlin.math.abs
 
 class BalanceSettlementHelper(var context: Context, var groupSqlRow: String) {
 
-    private var balanceString: String? = null
+    var balanceString: String? = null
     private var settlementString: String? = null
 
     fun balanceAndSettlementsFromSql(newContributions: String) : String {

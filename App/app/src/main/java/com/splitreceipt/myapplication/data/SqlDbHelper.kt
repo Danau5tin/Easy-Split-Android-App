@@ -130,6 +130,17 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
         return sqlId.toInt()
     }
 
+    fun setSqlUser(sqlUser: String, sqlAccountId: String){
+        val write = writableDatabase
+        val values = ContentValues().apply {
+            put(GROUP_COL_USER, sqlUser)
+        }
+        val where = "$GROUP_COL_ID = ?"
+        val whereArgs = arrayOf(sqlAccountId)
+        write.update(GROUP_TABLE_NAME, values, where, whereArgs)
+        close()
+    }
+
     fun insertReceiptItems(itemisedProductList: ArrayList<ScannedItemizedProductData>, receiptRowSql: Int){
         val write = writableDatabase
         val sqlFK = receiptRowSql.toString()

@@ -1,5 +1,6 @@
 package com.splitreceipt.myapplication
 
+import android.content.Context
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -8,6 +9,7 @@ import android.view.LayoutInflater
 import android.view.View
 import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.firebase.database.FirebaseDatabase
 import com.splitreceipt.myapplication.data.FirebaseDbHelper
 import com.splitreceipt.myapplication.data.GroupData
 import com.splitreceipt.myapplication.data.SqlDbHelper
@@ -23,6 +25,8 @@ class GroupScreenActivity : AppCompatActivity() {
     lateinit var groupList: ArrayList<GroupData>
 
     companion object {
+        var firebaseDbHelper: FirebaseDbHelper? = null
+
         var sqlIntentString: String = "sqlID"
         var firebaseIntentString: String = "fireBaseId"
         var userIntentString: String = "user"
@@ -31,6 +35,7 @@ class GroupScreenActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        FirebaseDatabase.getInstance().setPersistenceEnabled(true)
         binding = ActivityGroupScreenBinding.inflate(layoutInflater)
         setContentView(binding.root)
         groupList = ArrayList()
@@ -56,7 +61,9 @@ class GroupScreenActivity : AppCompatActivity() {
         diagView.joinButton.setOnClickListener {
             Log.i("Join", "clicked")
             val identifier = diagView.groupIdentifierText.text.toString()
-            FirebaseDbHelper(identifier).checkJoin(this)
+            firebaseDbHelper = FirebaseDbHelper(identifier)
+            firebaseDbHelper!!.checkJoin(this)
+            builder.dismiss()
             }
     }
 

@@ -47,5 +47,6 @@ class GroupScreenAdapter(val groupNameList: ArrayList<GroupData>) : RecyclerView
             intent.putExtra(GroupScreenActivity.groupNameIntentString, titleText.text.toString())
             context.startActivity(intent)
         }
+
     }
 }

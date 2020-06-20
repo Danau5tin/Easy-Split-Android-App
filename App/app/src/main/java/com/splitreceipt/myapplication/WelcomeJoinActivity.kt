@@ -1,21 +1,26 @@
 package com.splitreceipt.myapplication
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.widget.RadioButton
 import android.widget.Toast
-import com.splitreceipt.myapplication.data.FirebaseAccountInfoData
+import com.splitreceipt.myapplication.data.FirebaseDbHelper
+import com.splitreceipt.myapplication.data.SqlDbHelper
 import com.splitreceipt.myapplication.databinding.ActivityWelcomeJoinBinding
 
 class WelcomeJoinActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityWelcomeJoinBinding
+    private lateinit var firebaseId: String
+    private lateinit var fBaseName: String
 
     companion object {
-        var joinFireBaseIdIntent: String = "firebaseID"
         var joinFireBaseParticipants: String = "firebasePartic"
         var joinFireBaseName: String = "firebaseName"
+        var joinFireBaseId: String = "firebaseId"
+        var sqlRow = "-1"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -23,9 +28,12 @@ class WelcomeJoinActivity : AppCompatActivity() {
         binding = ActivityWelcomeJoinBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val firebaseID = intent.getStringExtra(joinFireBaseIdIntent)
         val fBaseParticipants = intent.getStringExtra(joinFireBaseParticipants)!!
-        val fBaseName = intent.getStringExtra(joinFireBaseName)!!
+        fBaseName = intent.getStringExtra(joinFireBaseName)!!
+        firebaseId = intent.getStringExtra(joinFireBaseId)!!
+
+        val firebaseDbHelper: FirebaseDbHelper = GroupScreenActivity.firebaseDbHelper!!
+        firebaseDbHelper.downloadToSql(this)
 
         val welcome = "Welcome to: '$fBaseName'"
         binding.joinWelcome.text = welcome
@@ -44,6 +52,17 @@ class WelcomeJoinActivity : AppCompatActivity() {
             } else {
                 val sqlUser = participants[checkedRadio]
                 Log.i("Join", sqlUser)
+
+                val sqlDbHelper = SqlDbHelper(this)
+                sqlDbHelper.setSqlUser(sqlUser, sqlRow)
+
+                val intent = Intent(this, ExpenseOverviewActivity::class.java)
+                intent.putExtra(GroupScreenActivity.sqlIntentString, sqlRow)
+                intent.putExtra(GroupScreenActivity.firebaseIntentString, firebaseId)
+                intent.putExtra(GroupScreenActivity.userIntentString, sqlUser)
+                intent.putExtra(GroupScreenActivity.groupNameIntentString, fBaseName)
+                startActivity(intent)
+                finish()
             }
         }
     }

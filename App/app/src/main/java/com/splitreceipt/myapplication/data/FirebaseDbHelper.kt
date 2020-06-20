@@ -37,8 +37,8 @@ class FirebaseDbHelper(private var firebaseGroupId: String) {
                     val groupData = snapshot.getValue(FirebaseAccountInfoData::class.java)
                     if (groupData != null) {
                         val intent = Intent(context, WelcomeJoinActivity::class.java)
-                        intent.putExtra(WelcomeJoinActivity.joinFireBaseIdIntent, firebaseGroupId)
                         intent.putExtra(WelcomeJoinActivity.joinFireBaseParticipants, groupData.accParticipants)
+                        intent.putExtra(WelcomeJoinActivity.joinFireBaseId, firebaseGroupId)
                         intent.putExtra(WelcomeJoinActivity.joinFireBaseName, groupData.accName)
                         context.startActivity(intent)
                     }else {
@@ -50,9 +50,39 @@ class FirebaseDbHelper(private var firebaseGroupId: String) {
                 } } })
     }
 
+    fun downloadToSql(context: Context){
+        currentPath = database.getReference(firebaseGroupId)
+        currentPath.addListenerForSingleValueEvent(object : ValueEventListener{
+            override fun onCancelled(p0: DatabaseError) {
+                Log.i("Join", "joinGroupDownload failed: ${p0.details}")
+            }
+
+            override fun onDataChange(snapshot: DataSnapshot) {
+                //Substring is to remove the "/" path indicator in the strings.
+                val infoChild = snapshot.child(groupInfo.substring(1))
+                val financeChild = snapshot.child(groupFin.substring(1))
+                val expensesChild = snapshot.child(expenses.substring(1))
+                val infoData = infoChild.getValue(FirebaseAccountInfoData::class.java)!!
+                val financeData = financeChild.getValue(FirebaseAccountFinancialData::class.java)!!
+                val sqlHelper = SqlDbHelper(context)
+                val sqlRow = sqlHelper.insertNewGroup(firebaseGroupId, infoData.accName, infoData.accCat,
+                    infoData.accParticipants, financeData.accBal, financeData.accSettle, "u")
+
+                val sqlRowString = sqlRow.toString()
+                WelcomeJoinActivity.sqlRow = sqlRowString
+
+                for (expense in expensesChild.children) {
+                    val expenseData = expense.getValue(FirebaseExpenseData::class.java)!!
+                    sqlHelper.insertNewExpense(sqlRowString, expense.key!!, expenseData.expenseDate,
+                        expenseData.expenseTitle, expenseData.expenseTotal, expenseData.expensePaidBy,
+                        expenseData.expenseContribs, false) //TODO: Ensure this is not just defaulted to false.
+                }
+            }
+        })
+    }
+
     fun createNewAccount(groupName: String, groupCat: String,
                         groupBalance: String, groupSettlement: String, participantString: String){
-
         setAccountInfo(groupName, groupCat, participantString)
         setAccountFinance(groupSettlement, groupBalance)
     }
@@ -110,14 +140,6 @@ class FirebaseDbHelper(private var firebaseGroupId: String) {
 
     //TODO: Are any of the below functions required?
 
-
-    //    fun setSettlementString(settlementString: String){
-//        //Sets the group settlement string
-//        val settlementPath = "$firebaseGroupId$groupInfo"
-//        currentPath = database.getReference(settlementPath)
-//        currentPath.setValue(settlementString)
-//    }
-
 //    fun setDate(){
 //        val datePath = "$expensePath/date"
 //        currentPath = database.getReference(datePath)
@@ -148,21 +170,11 @@ class FirebaseDbHelper(private var firebaseGroupId: String) {
 //        currentPath.setValue(contributions)
 //    }
 
-
 //    private fun setParticipants(participantString: String) {
 //        //Sets the group participants
 //        val participantPath = "$firebaseGroupId/participants"
 //        currentPath = database.getReference(participantPath)
 //        currentPath.setValue(participantString)
-//    }
-//
-
-//
-//    fun setBalanceString(groupBalance: String) {
-//        //Sets the group balance string
-//        val balanceBranchPath = "$firebaseGroupId/balance"
-//        currentPath = database.getReference(balanceBranchPath)
-//        currentPath.setValue(groupBalance)
 //    }
 
 }
