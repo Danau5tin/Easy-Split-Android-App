@@ -9,7 +9,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.splitreceipt.myapplication.NewExpenseCreationActivity.Companion.currencySymbol
 import com.splitreceipt.myapplication.data.ParticipantData
 
-class NewManualReceiptRecyclerAdapter(var participantList: ArrayList<ParticipantData>, var onRecyInt: onRecyRowCheked) : RecyclerView.Adapter<NewManualReceiptRecyclerAdapter.ItemizedViewholder>() {
+class NewManualExpenseRecyclerAdapter(var participantList: ArrayList<ParticipantData>, var onRecyInt: onRecyRowCheked) : RecyclerView.Adapter<NewManualExpenseRecyclerAdapter.ItemizedViewholder>() {
 
     override fun onCreateViewHolder(
         parent: ViewGroup,

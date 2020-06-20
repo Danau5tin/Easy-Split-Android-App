@@ -1,14 +1,22 @@
 package com.splitreceipt.myapplication.data
 
-import com.google.firebase.database.DatabaseReference
-import com.google.firebase.database.FirebaseDatabase
+import android.content.Context
+import android.content.Intent
+import android.util.Log
+import android.view.View
+import android.widget.RadioButton
+import android.widget.Toast
+import com.google.firebase.database.*
+import com.splitreceipt.myapplication.GroupScreenActivity
+import com.splitreceipt.myapplication.WelcomeJoinActivity
+import kotlinx.android.synthetic.main.alert_dialog_join_group.view.*
 
 class FirebaseDbHelper(private var firebaseGroupId: String) {
 
     var database = FirebaseDatabase.getInstance()
     private lateinit var currentPath : DatabaseReference
 
-    //Slightly common end paths
+    //Common paths
     private var groupInfo = "/info"
     private var groupFin = "/finance"
     private var expenses = "/expenses"
@@ -16,6 +24,30 @@ class FirebaseDbHelper(private var firebaseGroupId: String) {
 
     init{
         database = FirebaseDatabase.getInstance()
+    }
+
+    fun checkJoin(context: Context){
+        val groupInfoPath = "$firebaseGroupId$groupInfo"
+        currentPath = database.getReference(groupInfoPath)
+        currentPath.addListenerForSingleValueEvent(object: ValueEventListener{
+            override fun onCancelled(error: DatabaseError) {Log.i("Join", "Failed due to ${error.message}")}
+            override fun onDataChange(snapshot: DataSnapshot) {
+                try {
+                    Log.i("Join", "SUCCESS")
+                    val groupData = snapshot.getValue(FirebaseAccountInfoData::class.java)
+                    if (groupData != null) {
+                        val intent = Intent(context, WelcomeJoinActivity::class.java)
+                        intent.putExtra(WelcomeJoinActivity.joinFireBaseIdIntent, firebaseGroupId)
+                        intent.putExtra(WelcomeJoinActivity.joinFireBaseParticipants, groupData.accParticipants)
+                        intent.putExtra(WelcomeJoinActivity.joinFireBaseName, groupData.accName)
+                        context.startActivity(intent)
+                    }else {
+                        Toast.makeText(context, "No group exists. Check group identifier", Toast.LENGTH_SHORT).show()
+                        Log.i("Join", "No group exists for $firebaseGroupId")
+                    } }
+                catch (e: Exception){
+                    Log.i("Join", "Failed because of ${e.message}")
+                } } })
     }
 
     fun createNewAccount(groupName: String, groupCat: String,

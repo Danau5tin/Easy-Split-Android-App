@@ -22,10 +22,10 @@ import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_ACCOUNT
 import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_NAME
 import com.splitreceipt.myapplication.databinding.FragmentSplitReceiptManuallyBinding
 
-class SplitExpenseManuallyFragment : Fragment(), NewManualReceiptRecyclerAdapter.onRecyRowCheked {
+class SplitExpenseManuallyFragment : Fragment(), NewManualExpenseRecyclerAdapter.onRecyRowCheked {
 
     private lateinit var binding: FragmentSplitReceiptManuallyBinding
-    private lateinit var adapter: NewManualReceiptRecyclerAdapter
+    private lateinit var adapter: NewManualExpenseRecyclerAdapter
     private lateinit var sqlDbHelper: SqlDbHelper
     private lateinit var contxt: Context
     private var everybodyEqual: Boolean = true
@@ -56,7 +56,7 @@ class SplitExpenseManuallyFragment : Fragment(), NewManualReceiptRecyclerAdapter
         retrieveParticipants()
         updateUICurrency()
 
-        adapter = NewManualReceiptRecyclerAdapter(fragmentManualParticipantList, this)
+        adapter = NewManualExpenseRecyclerAdapter(fragmentManualParticipantList, this)
         binding.fragManualRecy.layoutManager = LinearLayoutManager(activity)
         binding.fragManualRecy.adapter = adapter
 

@@ -4,7 +4,7 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
         android:allowBackup="true"
@@ -13,8 +13,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".GroupSettingsActivity"></activity>
-        <activity android:name=".ExpenseViewActivity"></activity>
+        <activity android:name=".WelcomeJoinActivity"></activity>
+        <activity android:name=".GroupSettingsActivity" />
+        <activity android:name=".ExpenseViewActivity" />
         <activity android:name=".BalanceOverviewActivity" />
         <activity android:name=".CurrencySelectorActivity" />
         <activity android:name=".NewGroupCreation" />
@@ -29,14 +30,14 @@
         <activity android:name=".NewExpenseCreationActivity" />
 
         <provider
-            android:authorities="com.splitreceipt.myapplication.fileprovider"
             android:name="androidx.core.content.FileProvider"
+            android:authorities="com.splitreceipt.myapplication.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">
-            <meta-data android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/file_paths"/>
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
         </provider>
-
     </application>
 
 </manifest>

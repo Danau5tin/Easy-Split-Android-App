@@ -3,11 +3,16 @@ package com.splitreceipt.myapplication
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
+import android.view.LayoutInflater
 import android.view.View
+import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.splitreceipt.myapplication.data.FirebaseDbHelper
 import com.splitreceipt.myapplication.data.GroupData
 import com.splitreceipt.myapplication.data.SqlDbHelper
 import com.splitreceipt.myapplication.databinding.ActivityGroupScreenBinding
+import kotlinx.android.synthetic.main.alert_dialog_join_group.view.*
 
 class GroupScreenActivity : AppCompatActivity() {
     /*
@@ -40,4 +45,19 @@ class GroupScreenActivity : AppCompatActivity() {
         val intent = Intent(this, NewGroupCreation::class.java)
         startActivity(intent)
     }
+
+    fun joinNewGroupButton(view: View){
+        val diagView = LayoutInflater.from(this).inflate(R.layout.alert_dialog_join_group, null)
+        val builder = AlertDialog.Builder(this)
+            .setView(diagView).setTitle("Join existing group").show()
+        diagView.exitJoinButton.setOnClickListener {
+            builder.cancel()
+        }
+        diagView.joinButton.setOnClickListener {
+            Log.i("Join", "clicked")
+            val identifier = diagView.groupIdentifierText.text.toString()
+            FirebaseDbHelper(identifier).checkJoin(this)
+            }
+    }
+
 }

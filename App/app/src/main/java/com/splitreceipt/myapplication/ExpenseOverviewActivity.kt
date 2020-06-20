@@ -144,19 +144,20 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
         }
 
         val firebaseDbHelper = FirebaseDbHelper(getFirebaseId!!)
-        val accountInfoDbRef = firebaseDbHelper.getAccountInfoListeningRef()
-        accountInfoDbRef.addValueEventListener(object : ValueEventListener {
-            //Listens for changes to the account information
-            override fun onCancelled(p0: DatabaseError) {
-                Toast.makeText(baseContext, "Failed to sync changes", Toast.LENGTH_SHORT).show()
-            }
-            override fun onDataChange(data: DataSnapshot) {
-                val account = data.getValue(FirebaseAccountInfoData::class.java)!!
-                Log.i("Fbase", "name: ${account.accName}")
-                Log.i("Fbase", "bal: ${account.accParticipants}")
-                Log.i("Fbase", "--------------")
-            }
-        })
+        //TODO: Implement the below code in the best way
+//        val accountInfoDbRef = firebaseDbHelper.getAccountInfoListeningRef()
+//        accountInfoDbRef.addValueEventListener(object : ValueEventListener {
+//            //Listens for changes to the account information
+//            override fun onCancelled(p0: DatabaseError) {
+//                Toast.makeText(baseContext, "Failed to sync changes", Toast.LENGTH_SHORT).show()
+//            }
+//            override fun onDataChange(data: DataSnapshot) {
+//                val account = data.getValue(FirebaseAccountInfoData::class.java)!!
+//                Log.i("Fbase", "name: ${account.accName}")
+//                Log.i("Fbase", "bal: ${account.accParticipants}")
+//                Log.i("Fbase", "--------------")
+//            }
+//        })
 
         val expenseInfoDbRef = firebaseDbHelper.getExpensesListeningRef()
         expenseInfoDbRef.addListenerForSingleValueEvent(object : ValueEventListener{
