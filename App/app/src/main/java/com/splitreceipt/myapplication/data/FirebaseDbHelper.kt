@@ -3,13 +3,10 @@ package com.splitreceipt.myapplication.data
 import android.content.Context
 import android.content.Intent
 import android.util.Log
-import android.view.View
-import android.widget.RadioButton
 import android.widget.Toast
 import com.google.firebase.database.*
-import com.splitreceipt.myapplication.GroupScreenActivity
 import com.splitreceipt.myapplication.WelcomeJoinActivity
-import kotlinx.android.synthetic.main.alert_dialog_join_group.view.*
+import kotlin.system.exitProcess
 
 class FirebaseDbHelper(private var firebaseGroupId: String) {
 
@@ -62,6 +59,7 @@ class FirebaseDbHelper(private var firebaseGroupId: String) {
                 val infoChild = snapshot.child(groupInfo.substring(1))
                 val financeChild = snapshot.child(groupFin.substring(1))
                 val expensesChild = snapshot.child(expenses.substring(1))
+                val scannedChild = snapshot.child(scanned.substring(1))
                 val infoData = infoChild.getValue(FirebaseAccountInfoData::class.java)!!
                 val financeData = financeChild.getValue(FirebaseAccountFinancialData::class.java)!!
                 val sqlHelper = SqlDbHelper(context)
@@ -73,9 +71,23 @@ class FirebaseDbHelper(private var firebaseGroupId: String) {
 
                 for (expense in expensesChild.children) {
                     val expenseData = expense.getValue(FirebaseExpenseData::class.java)!!
-                    sqlHelper.insertNewExpense(sqlRowString, expense.key!!, expenseData.expenseDate,
-                        expenseData.expenseTitle, expenseData.expenseTotal, expenseData.expensePaidBy,
-                        expenseData.expenseContribs, false) //TODO: Ensure this is not just defaulted to false.
+                    val expenseId = expense.key!!
+                    val expenseSqlRow = sqlHelper.insertNewExpense(sqlRowString, expenseId, expenseData.expDate,
+                        expenseData.expTitle, expenseData.expTotal, expenseData.expPaidBy,
+                        expenseData.expContribs, expenseData.expScanned)
+
+                    if (expenseData.expScanned) {
+                        for (receipt in scannedChild.children) {
+                            val scannedRecExpId = receipt.key
+                            if (scannedRecExpId == expenseId) {
+                                for (product in receipt.children){
+                                    val productData = product.getValue(FirebaseProductData::class.java)!!
+                                    sqlHelper.insertReceiptItems(productData.productName, productData.productValue, productData.productOwner, expenseSqlRow)
+                                }
+                                break
+                            }
+                        }
+                    }
                 }
             }
         })
@@ -102,9 +114,9 @@ class FirebaseDbHelper(private var firebaseGroupId: String) {
     }
 
     fun createNewExpense(expenseId: String, date: String, title: String, total: Float,
-                    paidBy: String, contributions: String) {
+                    paidBy: String, contributions: String, scanned: Boolean) {
         //Creates a new expense
-        val expenseData = FirebaseExpenseData(date, title, total, paidBy, contributions)
+        val expenseData = FirebaseExpenseData(date, title, total, paidBy, contributions, scanned)
         val expensePath = "$firebaseGroupId$expenses/$expenseId"
         currentPath = database.getReference(expensePath)
         currentPath.setValue(expenseData)
@@ -120,10 +132,15 @@ class FirebaseDbHelper(private var firebaseGroupId: String) {
         return currentPath
     }
 
+    fun getScannedListeningRef(firebaseExpenseId: String) : DatabaseReference {
+        val path = "$firebaseGroupId$scanned/$firebaseExpenseId"
+        currentPath = database.getReference(path)
+        return currentPath
+    }
 
     fun addReceiptItems(expenseId: String, itemizedProductData: ArrayList<ScannedItemizedProductData>){
         //Add all new receipt items
-        val receiptPath = "$firebaseGroupId/$expenses/$expenseId$scanned"
+        val receiptPath = "$firebaseGroupId$scanned/$expenseId"
         var count = 1
         for (product in itemizedProductData){
             val productPath = "$receiptPath/$count"
@@ -133,9 +150,6 @@ class FirebaseDbHelper(private var firebaseGroupId: String) {
             count ++
         }
     }
-
-
-
 
 
     //TODO: Are any of the below functions required?

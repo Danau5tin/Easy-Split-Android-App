@@ -18,33 +18,31 @@ GroupId
 |	|
 |	|
 |	--- Expenses
-|		   |
-|		   --- ExpenseID
-|				|
-|				--- Date : xx/xx/xx
-|				|
-|				--- Title : xxxxx
-|				|
-|				--- Total : "£xx.xx"
-|				|
-|				--- PaidBy : "xxxxx"
-|				|
-|				--- Contributions : "xxx,£x.xx,xxx/xxx,£x.xx,xxx"
-|				|
-|				--- Scanned n->false
-|					 y|
-|					  --- 1
-|					  |    |
-|					  |    --- Name: Strawberries
-|					  |    |
-|					  |    --- Value : "£xx.xx"
-|					  |    |
-|					  |    --- Owner: "xxx"
-|					  |
-|					  --- 2 "...^^..."
-Users
-    |
-    ---
+|	|	   |
+|	|	   --- ExpenseID
+|	|			|
+|	|			--- Date : xx/xx/xx
+|	|			|
+|	|			--- Title : xxxxx
+|	|			|
+|	|			--- Total : "£xx.xx"
+|	|			|
+|	|			--- PaidBy : "xxxxx"
+|	|			|
+|	|			--- Contributions : "xxx,£x.xx,xxx/xxx,£x.xx,xxx"
+|	|			|
+|	|			--- Scanned : xxxx
+|	---Scanned
+|		 |
+|		 --- ExpenseID
+|		 	     |
+|		 	     --- 1
+|		      	         |
+|		      	         --- productName: "xxxxx"
+|		      	         |
+|		      	         --- productValue: "x.xx"
+|		      	         |
+|		      	         --- productOwner: "xxx"
 
 
 

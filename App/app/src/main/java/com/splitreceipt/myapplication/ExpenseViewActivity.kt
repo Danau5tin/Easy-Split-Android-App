@@ -188,8 +188,8 @@ class ExpenseViewActivity : AppCompatActivity() {
         return participantList
     }
 
-    fun generateNewContributions(prevContrib: ArrayList<ParticipantBalanceData>,
-                                 newContrib: ArrayList<ParticipantBalanceData>, paidBy: String) : String{
+    private fun generateNewContributions(prevContrib: ArrayList<ParticipantBalanceData>,
+                                         newContrib: ArrayList<ParticipantBalanceData>, paidBy: String) : String{
 
         val stringBuilder = StringBuilder()
         for (prevParticipant in prevContrib) {

@@ -204,14 +204,29 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
 
                         val expen = data.child(firebaseID!!)
                         val newExpense = expen.getValue(FirebaseExpenseData::class.java)!!
-                        val date = newExpense.expenseDate
-                        val title = newExpense.expenseTitle
-                        val total = newExpense.expenseTotal
-                        val paidBy = newExpense.expensePaidBy
-                        val contribs = newExpense.expenseContribs
+                        val date = newExpense.expDate
+                        val title = newExpense.expTitle
+                        val total = newExpense.expTotal
+                        val paidBy = newExpense.expPaidBy
+                        val contribs = newExpense.expContribs
+                        val scanned = newExpense.expScanned
                         val sqlDbHelper = SqlDbHelper(baseContext)
                         //Save expense into SQL
-                        sqlDbHelper.insertNewExpense(getSqlGroupId!!, firebaseID, date, title, total, paidBy, contribs, false) //TODO: Scanned is set to false as default, this will need editing at a later stage to accommodate for scanned receipts.
+                        val expenseSqlRow = sqlDbHelper.insertNewExpense(getSqlGroupId!!, firebaseID, date, title, total, paidBy, contribs, scanned)
+                        //TODO: if the receipt is scanned then lets download it and save it to Sql.
+                        if (scanned){
+                            // If the expense is a scanned receipt then download and add this receipt to sql
+                            val scannedRef = firebaseDbHelper!!.getScannedListeningRef(firebaseID)
+                            scannedRef.addListenerForSingleValueEvent(object : ValueEventListener{
+                                override fun onCancelled(p0: DatabaseError) {}
+                                override fun onDataChange(snapshot: DataSnapshot) {
+                                    for (product in snapshot.children) {
+                                        val productData = product.getValue(FirebaseProductData::class.java)!!
+                                        sqlDbHelper.insertReceiptItems(productData.productName, productData.productValue, productData.productOwner, expenseSqlRow)
+                                    }
+                                }
+                            })
+                        }
                         //Run the new contributions through the algorithm
                         settlementString = balanceSettlementHelper.balanceAndSettlementsFromSql(contribs)
                     }

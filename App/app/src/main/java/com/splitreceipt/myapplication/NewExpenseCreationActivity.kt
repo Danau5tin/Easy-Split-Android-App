@@ -174,7 +174,7 @@ class NewExpenseCreationActivity : AppCompatActivity() {
                             expenseFirebaseID = newFirebaseReceiptID()
                             sqlDbHelper.insertNewExpense(sqlAccountId!!, expenseFirebaseID, date, title, total, paidBy, contributionsString, scanned)
                             sqlDbHelper.close()
-                            firebaseDbHelper!!.createNewExpense(expenseFirebaseID, date, title, total, paidBy, contributionsString)
+                            firebaseDbHelper!!.createNewExpense(expenseFirebaseID, date, title, total, paidBy, contributionsString, false)
                             intent.putExtra(CONTRIBUTION_INTENT_DATA, contributionsString)
                             setResult(Activity.RESULT_OK, intent)
                             finish()
@@ -206,10 +206,10 @@ class NewExpenseCreationActivity : AppCompatActivity() {
                             // User is inserting a new receipt expense
                             expenseFirebaseID = newFirebaseReceiptID()
                             val sqlRow = sqlDbHelper.insertNewExpense(sqlAccountId!!, expenseFirebaseID, date, title, total, paidBy, contributionsString, true)
-                            firebaseDbHelper!!.createNewExpense(expenseFirebaseID, date, title, total, paidBy, contributionsString)
+                            firebaseDbHelper!!.createNewExpense(expenseFirebaseID, date, title, total, paidBy, contributionsString, true)
                             sqlDbHelper.insertReceiptItems(itemizedProductList, sqlRow)
 
-//                            firebaseDbHelper.addReceiptItems(expenseFirebaseID, itemizedProductList)
+                            firebaseDbHelper!!.addReceiptItems(expenseFirebaseID, itemizedProductList)
 
                             intent.putExtra(CONTRIBUTION_INTENT_DATA, contributionsString)
                             setResult(Activity.RESULT_OK, intent)

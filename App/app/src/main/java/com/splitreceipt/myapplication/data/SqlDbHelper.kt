@@ -16,7 +16,7 @@ import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_FIREBA
 import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_SETTLEMENTS
 import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_USER
 import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_TABLE_NAME
-import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_COL_FK_RECEIPT_ID
+import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_COL_FK_EXPENSE_ID
 import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_COL_ID
 import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_COL_NAME
 import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_COL_VALUE
@@ -72,8 +72,8 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
                 "$ITEMS_COL_NAME TEXT, " +
                 "$ITEMS_COL_VALUE REAL, " +
                 "$ITEMS_COL_OWNERSHIP TEXT, " +
-                "$ITEMS_COL_FK_RECEIPT_ID INTEGER, " +
-                "FOREIGN KEY ($ITEMS_COL_FK_RECEIPT_ID) REFERENCES $EXPENSE_TABLE_NAME" +
+                "$ITEMS_COL_FK_EXPENSE_ID INTEGER, " +
+                "FOREIGN KEY ($ITEMS_COL_FK_EXPENSE_ID) REFERENCES $EXPENSE_TABLE_NAME" +
                 "($EXPENSE_COL_ID) ON DELETE CASCADE)"
         private const val DELETE_RECEIPT_ITEMS_ENTRIES = "DROP TABLE IF EXISTS $ITEMS_TABLE_NAME"
     }
@@ -141,9 +141,9 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
         close()
     }
 
-    fun insertReceiptItems(itemisedProductList: ArrayList<ScannedItemizedProductData>, receiptRowSql: Int){
+    fun insertReceiptItems(itemisedProductList: ArrayList<ScannedItemizedProductData>, expenseRowSql: Int){
         val write = writableDatabase
-        val sqlFK = receiptRowSql.toString()
+        val sqlFK = expenseRowSql.toString()
         for (product in itemisedProductList) {
             val productName = product.itemName
             val productValue = product.itemValue
@@ -152,10 +152,22 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
                 put(ITEMS_COL_NAME, productName)
                 put(ITEMS_COL_VALUE, productValue)
                 put(ITEMS_COL_OWNERSHIP, productOwnership)
-                put(ITEMS_COL_FK_RECEIPT_ID, sqlFK)
+                put(ITEMS_COL_FK_EXPENSE_ID, sqlFK)
             }
             write.insert(ITEMS_TABLE_NAME, null, values)
         }
+    }
+
+    fun insertReceiptItems(productName:String, productValue: String, productOwnership: String, expenseRowSql: Int) {
+        val write = writableDatabase
+        val sqlFK = expenseRowSql.toString()
+        val values = ContentValues().apply {
+            put(ITEMS_COL_NAME, productName)
+            put(ITEMS_COL_VALUE, productValue)
+            put(ITEMS_COL_OWNERSHIP, productOwnership)
+            put(ITEMS_COL_FK_EXPENSE_ID, sqlFK)
+        }
+        write.insert(ITEMS_TABLE_NAME, null, values)
     }
 
     fun updateItemsSql(writeableDB: SQLiteDatabase?, itemizedProductList: ArrayList<ScannedItemizedProductData>) {
@@ -301,7 +313,7 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
         val reader = readableDatabase
         itemisedProductList.clear()
         val columns = arrayOf(ITEMS_COL_NAME, ITEMS_COL_VALUE, ITEMS_COL_OWNERSHIP, ITEMS_COL_ID)
-        val selectClause = "$ITEMS_COL_FK_RECEIPT_ID = ?"
+        val selectClause = "$ITEMS_COL_FK_EXPENSE_ID = ?"
         val selectArgs = arrayOf(sqlRowId)
         val cursor: Cursor = reader.query(ITEMS_TABLE_NAME, columns, selectClause, selectArgs,
             null, null, null)

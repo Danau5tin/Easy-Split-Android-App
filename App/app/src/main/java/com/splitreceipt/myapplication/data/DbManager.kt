@@ -35,7 +35,7 @@ object DbManager {
         const val ITEMS_COL_NAME = "item_name"
         const val ITEMS_COL_VALUE = "item_value"
         const val ITEMS_COL_OWNERSHIP = "ownership"
-        const val ITEMS_COL_FK_RECEIPT_ID = "receipt_id"
+        const val ITEMS_COL_FK_EXPENSE_ID = "receipt_id"
     }
 
 }

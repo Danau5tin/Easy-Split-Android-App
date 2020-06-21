@@ -2,18 +2,20 @@ package com.splitreceipt.myapplication.data
 
 class FirebaseExpenseData () {
 
-    var expenseDate: String = ""
-    var expenseTitle: String = ""
-    var expenseTotal: Float = 0.0F
-    var expensePaidBy: String = ""
-    var expenseContribs: String = ""
+    var expDate: String = ""
+    var expTitle: String = ""
+    var expTotal: Float = 0.0F
+    var expPaidBy: String = ""
+    var expContribs: String = ""
+    var expScanned: Boolean = false
 
     constructor(date: String, title: String, total: Float,
-                paidBy: String, contributions: String) : this(){
-        expenseDate = date
-        expenseTitle = title
-        expenseTotal = total
-        expensePaidBy = paidBy
-        expenseContribs = contributions
+                paidBy: String, contributions: String, scanned: Boolean) : this(){
+        expDate = date
+        expTitle = title
+        expTotal = total
+        expPaidBy = paidBy
+        expContribs = contributions
+        expScanned = scanned
     }
 }
