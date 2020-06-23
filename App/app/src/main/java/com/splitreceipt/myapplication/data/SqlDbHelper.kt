@@ -8,7 +8,6 @@ import android.database.sqlite.SQLiteOpenHelper
 import com.splitreceipt.myapplication.ExpenseViewActivity
 import com.splitreceipt.myapplication.SplitExpenseManuallyFragment
 import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_BALANCES
-import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_CATEGORY
 import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_NAME
 import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_ID
 import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_PARTICIPANTS
@@ -33,6 +32,7 @@ import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_COL_TO
 import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_COL_FIREBASE_ID
 import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_COL_LAST_EDIT
 import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_TABLE_NAME
+import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_LAST_IMAGE_EDIT
 
 class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
     DATABASE_NAME, null,
@@ -47,11 +47,11 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
                 "$GROUP_COL_ID INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "$GROUP_COL_FIREBASE_ID TEXT, " +
                 "$GROUP_COL_NAME TEXT, " +
-                "$GROUP_COL_CATEGORY TEXT, " +
                 "$GROUP_COL_PARTICIPANTS TEXT, " +
                 "$GROUP_COL_BALANCES TEXT, " +
                 "$GROUP_COL_SETTLEMENTS TEXT, " +
-                "$GROUP_COL_USER TEXT)"
+                "$GROUP_COL_USER TEXT, " +
+                "$GROUP_COL_LAST_IMAGE_EDIT TEXT)"
         private const val DELETE_GROUP_ENTRIES = "DROP TABLE IF EXISTS $GROUP_TABLE_NAME"
 
         private const val CREATE_RECEIPT_TABLE = "CREATE TABLE $EXPENSE_TABLE_NAME (" +
@@ -98,21 +98,32 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
         db.execSQL(DELETE_RECEIPT_ITEMS_ENTRIES)
     }
 
-    fun insertNewGroup(fireBaseId: String, title: String, category: String, participants: String,
-                       balances: String, settlements: String, sqlUser: String) : Int{
+    fun insertNewGroup(fireBaseId: String, title: String, participants: String,
+                       balances: String, settlements: String, sqlUser: String, lastImageEdit: String) : Int{
         val values: ContentValues = ContentValues().apply {
             put(GROUP_COL_FIREBASE_ID, fireBaseId)
             put(GROUP_COL_NAME, title)
-            put(GROUP_COL_CATEGORY, category)
             put(GROUP_COL_PARTICIPANTS, participants)
             put(GROUP_COL_BALANCES, balances)
             put(GROUP_COL_SETTLEMENTS, settlements)
             put(GROUP_COL_USER, sqlUser)
+            put(GROUP_COL_LAST_IMAGE_EDIT, lastImageEdit)
         }
         val writer = writableDatabase
         val sqlRow = writer.insert(GROUP_TABLE_NAME, null, values)
         close()
         return sqlRow.toInt()
+    }
+
+    fun setLastImageEdit(lastEdit: String, sqlGroupId: String?){
+        val values = ContentValues().apply {
+            put(GROUP_COL_LAST_IMAGE_EDIT, lastEdit)
+        }
+        val write = writableDatabase
+        val where = "$GROUP_COL_ID = ?"
+        val whereArgs = arrayOf(sqlGroupId)
+        write.update(GROUP_TABLE_NAME, values, where, whereArgs)
+        close()
     }
 
     fun insertNewExpense(sqlGroupId: String, recFirebaseId: String, date: String, title: String,

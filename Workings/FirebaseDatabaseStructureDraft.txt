@@ -1,12 +1,12 @@
 GroupId
 |	|
-|	--- LastEdit :  xxxxxxxxx
+|	|
 |	|
 |	--- Info
 |	|	|
-|	|	--- Name : xxxxxxxx
+|	|	--- LastImageEdit : xxxxxxxxx
 |	|	|
-|	|	--- Cat : xxxx
+|	|	--- Name : xxxxxxxx
 |	|	|
 |	|	--- Participants: "xxxx,xxxxx,xxxx"
 |	|	
@@ -22,6 +22,8 @@ GroupId
 |	--- Expenses
 |	|	   |
 |	|	   --- ExpenseID
+|	|			|
+|	|			--- LastExpenseEdit : xxxxxxxxx
 |	|			|
 |	|			--- Date : xx/xx/xx
 |	|			|
@@ -57,9 +59,7 @@ Spec:
 	- Users do not have to sign up to the use the app so no authid should be considered 
 	in rules.
 
-	- Users will update both the firebase database on creation/ update and the sql 
-	database in their phone, this way the user will always primarliy load the data 
-	from the sql database and avoid consistently downloading from FB database, only
-	downloading when another user has updated something.
+	- Users will update both Firebase and Sql on creation/edits. Users will download other group
+	creations/edits from firebase when this has happened. Users phone will primarily use the sqlDB.
 
 

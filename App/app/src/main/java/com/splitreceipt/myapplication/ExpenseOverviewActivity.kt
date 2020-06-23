@@ -4,16 +4,20 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.provider.MediaStore
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -45,7 +49,9 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
     private lateinit var adapter: ExpenseOverViewAdapter
     private val seeExpenseResult = 10
     private val addExpenseResult = 20
-    private val grouptSettingsResult = 30
+    private val settingsResult = 30
+    private val requestStorage = 40
+    private val pickImage = 50
     private var userSettlementString = ""
 
     companion object {
@@ -54,6 +60,7 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
         var getSqlUser: String? = "unknown"
         var getSqlGroupId: String? = "-1"
         var getFirebaseId: String? = "-1"
+        var getAccountName: String? = "?"
         var settlementArray: ArrayList<String> = ArrayList()
         const val balanced_string: String = "balanced"
         const val ImagePathIntent = "path_intent"
@@ -122,7 +129,7 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
         storageRef = FirebaseStorage.getInstance().reference
         getSqlGroupId = intent.getStringExtra(GroupScreenActivity.sqlIntentString)
         getSqlUser = intent.getStringExtra(GroupScreenActivity.userIntentString)
-        val getAccountName = intent.getStringExtra(GroupScreenActivity.groupNameIntentString)
+        getAccountName = intent.getStringExtra(GroupScreenActivity.groupNameIntentString)
         binding.accountNameTitleText.text = getAccountName
         getFirebaseId = intent.getStringExtra(GroupScreenActivity.firebaseIntentString)
 
@@ -156,8 +163,16 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
             binding.groupProfileImage.setImageBitmap(b)
         }
 
+        binding.groupProfileImage.setOnClickListener {
+            if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED){
+                ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.WRITE_EXTERNAL_STORAGE), requestStorage)
+            } else {
+                openGallery()
+            }
+        }
 
-        //TODO: Implement the below code in the best way
+
+        //TODO: Implement the below code in the best way. Check profile image, participant names, group title
 //        val accountInfoDbRef = firebaseDbHelper.getAccountInfoListeningRef()
 //        accountInfoDbRef.addValueEventListener(object : ValueEventListener {
 //            //Listens for changes to the account information
@@ -257,6 +272,11 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
         binding.mainActivityRecycler.adapter = adapter
     }
 
+    private fun openGallery() {
+        val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+        startActivityForResult(intent, pickImage)
+    }
+
     fun addNewReceiptButton(view: View) {
         val intent = Intent(this, NewExpenseCreationActivity::class.java)
         intent.putExtra(NewExpenseCreationActivity.intentSqlExpenseIdString, getSqlGroupId)
@@ -309,9 +329,28 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
                 deconstructAndSetSettlementString(newSettlementString!!)
 
             }
-        } else if (requestCode == grouptSettingsResult) {
+        } else if (requestCode == settingsResult) {
             if (resultCode == Activity.RESULT_OK) {
                 //TODO: Create functionality to handle group settings changes.
+            }
+        } else if (requestCode == pickImage) {
+            if (resultCode == Activity.RESULT_OK) {
+                val uri: Uri? = data!!.data
+                binding.groupProfileImage.setImageURI(uri!!)
+                val bitmap = MediaStore.Images.Media.getBitmap(contentResolver, uri)
+                val bitmapRotationFixHelper = BitmapRotationFixHelper()
+                val newBitmap: Bitmap
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    newBitmap = bitmapRotationFixHelper.rotateBitmap(this, uri, bitmap)!!
+                } else {
+                    newBitmap = bitmap
+                }
+                firebaseDbHelper!!.uploadGroupProfileImage(newBitmap)
+                val aSyncSaveImage = ASyncSaveImage(true, this, getFirebaseId!!)
+                aSyncSaveImage.execute(newBitmap)
+                val lastEdit = System.currentTimeMillis().toString()
+                firebaseDbHelper!!.setGroupImageLastEdit(lastEdit)
+                SqlDbHelper(this).setLastImageEdit(lastEdit, getSqlGroupId)
             }
         }
     }
@@ -421,7 +460,7 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
         when (item.itemId) {
             R.id.groupSettings -> {
                 val intent = Intent(this, GroupSettingsActivity::class.java)
-                startActivityForResult(intent, grouptSettingsResult)
+                startActivityForResult(intent, settingsResult)
                 return true
             }
             R.id.groupBalances -> {

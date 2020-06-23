@@ -2,10 +2,16 @@ package com.splitreceipt.myapplication.data
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.util.Log
 import android.widget.Toast
 import com.google.firebase.database.*
+import com.google.firebase.storage.FirebaseStorage
+import com.splitreceipt.myapplication.ASyncSaveImage
 import com.splitreceipt.myapplication.WelcomeJoinActivity
+import de.hdodenhof.circleimageview.CircleImageView
+import java.io.ByteArrayOutputStream
 
 class FirebaseDbHelper(private var firebaseGroupId: String) {
 
@@ -63,8 +69,8 @@ class FirebaseDbHelper(private var firebaseGroupId: String) {
                 val infoData = infoChild.getValue(FirebaseAccountInfoData::class.java)!!
                 val financeData = financeChild.getValue(FirebaseAccountFinancialData::class.java)!!
                 val sqlHelper = SqlDbHelper(context)
-                val sqlRow = sqlHelper.insertNewGroup(firebaseGroupId, infoData.accName, infoData.accCat,
-                    infoData.accParticipants, financeData.accBal, financeData.accSettle, "u")
+                val sqlRow = sqlHelper.insertNewGroup(firebaseGroupId, infoData.accName,
+                    infoData.accParticipants, financeData.accBal, financeData.accSettle, "u", infoData.accLastImage)
 
                 val sqlRowString = sqlRow.toString()
                 WelcomeJoinActivity.sqlRow = sqlRowString
@@ -93,9 +99,8 @@ class FirebaseDbHelper(private var firebaseGroupId: String) {
         })
     }
 
-    fun createNewGroup(groupName: String, groupCat: String,
-                       groupBalance: String, groupSettlement: String, participantString: String){
-        setGroupInfo(groupName, groupCat, participantString)
+    fun createNewGroup(groupName: String, groupBalance: String, groupSettlement: String, participantString: String, lastImageEdit: String){
+        setGroupInfo(groupName, participantString, lastImageEdit)
         setGroupFinance(groupSettlement, groupBalance)
     }
 
@@ -106,9 +111,15 @@ class FirebaseDbHelper(private var firebaseGroupId: String) {
         currentPath.setValue(accountData)
     }
 
-    private fun setGroupInfo(groupName: String, groupCat: String, participantString: String) {
+    fun setGroupImageLastEdit(lastEdit: String) {
         val groupInfoPath = "$firebaseGroupId$groupInfo"
-        val accountData = FirebaseAccountInfoData(groupName, groupCat, participantString)
+        currentPath = database.getReference(groupInfoPath).child("accLastImage")
+        currentPath.setValue(lastEdit)
+    }
+
+    fun setGroupInfo(groupName: String, participantString: String, lastImageEdit: String) {
+        val groupInfoPath = "$firebaseGroupId$groupInfo"
+        val accountData = FirebaseAccountInfoData(groupName, participantString, lastImageEdit)
         currentPath = database.getReference(groupInfoPath)
         currentPath.setValue(accountData)
     }
@@ -153,44 +164,34 @@ class FirebaseDbHelper(private var firebaseGroupId: String) {
         }
     }
 
+    fun uploadGroupProfileImage(imageRef: Bitmap?) {
+        val storageReference = FirebaseStorage.getInstance().getReference(firebaseGroupId)
+        val userStorageRef = storageReference.child(firebaseGroupId)
 
-    //TODO: Are any of the below functions required?
+        val stream = ByteArrayOutputStream()
+        imageRef!!.compress(Bitmap.CompressFormat.JPEG, 80, stream)
+        val byteArray: ByteArray = stream.toByteArray()
 
-//    fun setDate(){
-//        val datePath = "$expensePath/date"
-//        currentPath = database.getReference(datePath)
-//        currentPath.setValue(date)
-//    }
-//
-//    fun setTitle() {
-//        val titlePath = "$expensePath/title"
-//        currentPath = database.getReference(titlePath)
-//        currentPath.setValue(title)
-//    }
-//
-//    fun setTotal(){
-//        val totalPath = "$expensePath/total"
-//        currentPath = database.getReference(totalPath)
-//        currentPath.setValue(total)
-//    }
-//
-//    fun setPaidBy(){
-//        val paidByPath = "$expensePath/paidBy"
-//        currentPath = database.getReference(paidByPath)
-//        currentPath.setValue(paidBy)
-//    }
-//
-//    fun setContributions(){
-//        val contribPath = "$expensePath/contribs"
-//        currentPath = database.getReference(contribPath)
-//        currentPath.setValue(contributions)
-//    }
+        val uploadTask = userStorageRef.putBytes(byteArray)
+        uploadTask.addOnSuccessListener {
+            Log.i("FirebaseImages", "Successful upload of new profile image")
+        }
+    }
 
-//    private fun setParticipants(participantString: String) {
-//        //Sets the group participants
-//        val participantPath = "$firebaseGroupId/participants"
-//        currentPath = database.getReference(participantPath)
-//        currentPath.setValue(participantString)
-//    }
+    fun downloadGroupProfileImage(context: Context, circleImageView: CircleImageView) {
+        val storageReference = FirebaseStorage.getInstance().getReference(firebaseGroupId)
+        val userStorageRef = storageReference.child(firebaseGroupId)
+        val downloadTask = userStorageRef.getBytes(1000000000)
+        downloadTask.addOnSuccessListener{
+            val async = ASyncSaveImage(true, context, firebaseGroupId)
+            val bitmap = BitmapFactory.decodeByteArray(it, 0, it.size)
+            async.execute(bitmap)
+            circleImageView.setImageBitmap(bitmap)
+            Log.i("FirebaseImages", "Successful download of existing profile image")
+        }
+        downloadTask.addOnFailureListener {
+            Log.i("FirebaseImages", "Failed ${it.printStackTrace()}")
+        }
+    }
 
 }

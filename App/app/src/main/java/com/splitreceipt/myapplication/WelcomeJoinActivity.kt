@@ -34,6 +34,7 @@ class WelcomeJoinActivity : AppCompatActivity() {
 
         val firebaseDbHelper: FirebaseDbHelper = GroupScreenActivity.firebaseDbHelper!!
         firebaseDbHelper.downloadToSql(this)
+        firebaseDbHelper.downloadGroupProfileImage(this, binding.circleImageViewWelcome)
 
         val welcome = "Welcome to: '$fBaseName'"
         binding.joinWelcome.text = welcome

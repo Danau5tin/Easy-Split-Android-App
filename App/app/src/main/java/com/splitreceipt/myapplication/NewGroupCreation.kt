@@ -41,6 +41,7 @@ class NewGroupCreation : AppCompatActivity(), NewGroupParticipantAdapter.onPartR
     private val REQUEST_STORAGE = 20
     private var path = ""
     private var newBitmap: Bitmap? = null
+    private lateinit var groupFirebaseId: String
 
     companion object {
         var firebaseDbHelper: FirebaseDbHelper? = null
@@ -57,6 +58,9 @@ class NewGroupCreation : AppCompatActivity(), NewGroupParticipantAdapter.onPartR
         adapter = NewGroupParticipantAdapter(participantList, this)
         binding.newParticipantRecy.layoutManager = LinearLayoutManager(this)
         binding.newParticipantRecy.adapter = adapter
+
+        groupFirebaseId = createFirebaseGroupId()!!
+        firebaseDbHelper = FirebaseDbHelper(groupFirebaseId)
 
         setSupportActionBar(findViewById(R.id.toolbar))
         supportActionBar?.title = "Add group"
@@ -130,7 +134,6 @@ class NewGroupCreation : AppCompatActivity(), NewGroupParticipantAdapter.onPartR
             R.id.addGroupSave -> {
                 // TODO: Save the below results to Firebase db
                 val title: String = binding.groupTitleEditText.text.toString()
-                val category = "House" // TODO: Get the toggle buttons value
 
                 val sqlUser: String = binding.yourNameEditText.text.toString()
                 checkIfUserForgotToAddPartic()
@@ -138,39 +141,37 @@ class NewGroupCreation : AppCompatActivity(), NewGroupParticipantAdapter.onPartR
                 val participants: String = participantData.participantString
                 val balances: String = participantData.balanceString
                 val settlementString = "balanced"
+                val imageUploadLastEditTime = System.currentTimeMillis().toString()
 
-                val groupFirebaseId: String? = createFirebaseGroupId(sqlUser)
+                // Save to SQL and upload to firebase
+                val sqlRow = SqlDbHelper(this).insertNewGroup(groupFirebaseId, title,
+                    participants, balances, settlementString, sqlUser, imageUploadLastEditTime)
 
-                if (groupFirebaseId != null) {
-                    // Save to SQL and upload to firebase
-                    val sqlRow = SqlDbHelper(this).insertNewGroup(groupFirebaseId, title,
-                        category, participants, balances, settlementString, sqlUser)
-                    firebaseDbHelper = FirebaseDbHelper(groupFirebaseId)
-                    firebaseDbHelper!!.createNewGroup(title, category, balances,
-                        settlementString, participants) //TODO: Again here, how do i pass through the fbHelper class to ExpenseOverview?
 
-                    if (sqlRow == -1) {
-                        Toast.makeText(this, "Error #INSQ01. Contact Us", Toast.LENGTH_LONG).show()
-                    }
-                    else {
-                        val intent = Intent(this, ExpenseOverviewActivity::class.java)
-                        if (newBitmap == null){
-                            //User has not uploaded an group profile image
-                            //TODO: Set a standard image depending on which category button was pressed
-                        } else {
-                            //User has uploaded a group profile image
-                            val async = ASyncSaveImage(true, this, groupFirebaseId)
-                            path = async.execute(newBitmap!!).get()
-                            intent.putExtra(ExpenseOverviewActivity.ImagePathIntent, path)
-                        }
-                        intent.putExtra(GroupScreenActivity.sqlIntentString, sqlRow.toString())
-                        intent.putExtra(GroupScreenActivity.firebaseIntentString, groupFirebaseId)
-                        intent.putExtra(GroupScreenActivity.userIntentString, sqlUser)
-                        intent.putExtra(GroupScreenActivity.groupNameIntentString, title)
+                firebaseDbHelper!!.createNewGroup(title, balances,
+                    settlementString, participants, imageUploadLastEditTime)
+
+                if (sqlRow == -1) {
+                    Toast.makeText(this, "Error #INSQ01. Contact Us", Toast.LENGTH_LONG).show()
+                }
+                else {
+                    val intent = Intent(this, ExpenseOverviewActivity::class.java)
+                    if (newBitmap == null){
+                        //User has not uploaded an group profile image
+                        //TODO: Set a standard image depending on which category button was pressed
+                    } else {
+                        //User has uploaded a group profile image
+                        val async = ASyncSaveImage(true, this, groupFirebaseId)
+                        path = async.execute(newBitmap!!).get()
                         intent.putExtra(ExpenseOverviewActivity.ImagePathIntent, path)
-                        startActivity(intent)
-                        finish()
                     }
+                    intent.putExtra(GroupScreenActivity.sqlIntentString, sqlRow.toString())
+                    intent.putExtra(GroupScreenActivity.firebaseIntentString, groupFirebaseId)
+                    intent.putExtra(GroupScreenActivity.userIntentString, sqlUser)
+                    intent.putExtra(GroupScreenActivity.groupNameIntentString, title)
+                    intent.putExtra(ExpenseOverviewActivity.ImagePathIntent, path)
+                    startActivity(intent)
+                    finish()
                 }
             }
             else -> return false
@@ -178,19 +179,19 @@ class NewGroupCreation : AppCompatActivity(), NewGroupParticipantAdapter.onPartR
         return super.onOptionsItemSelected(item)
     }
 
-    private fun createFirebaseGroupId(sqlUser: String): String? {
+    private fun createFirebaseGroupId(): String? {
         val groupFirebaseId: String?
         return try {
             val titleChar = title[0]
-            val sqlUserChar = sqlUser[0]
+            val persistentChar = "a"
             val timeStamp = System.currentTimeMillis().toString()
             val randomUUID: String = UUID.randomUUID().toString().replace("-", "").substring(0, 5)
-            groupFirebaseId = "$titleChar$timeStamp$sqlUserChar$randomUUID"
+            groupFirebaseId = "$titleChar$timeStamp$persistentChar$randomUUID"
             Log.i("Account", groupFirebaseId)
             groupFirebaseId
         } catch (e: Exception){
             Toast.makeText(this, "Please enter valid characters (A-Z)", Toast.LENGTH_LONG).show()
-            null
+            return null
         }
     }
 
@@ -223,7 +224,7 @@ class NewGroupCreation : AppCompatActivity(), NewGroupParticipantAdapter.onPartR
         startActivityForResult(intent, PICK_IMAGE)
     }
 
-    @RequiresApi(Build.VERSION_CODES.Q)
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == PICK_IMAGE) {
@@ -232,25 +233,15 @@ class NewGroupCreation : AppCompatActivity(), NewGroupParticipantAdapter.onPartR
                 binding.newGroupImage.setImageURI(uri)
                 val bitmap: Bitmap = MediaStore.Images.Media.getBitmap(contentResolver, uri)
                 val bitmapHelper = BitmapRotationFixHelper()
-                newBitmap = bitmapHelper.rotateBitmap(this, uri, bitmap)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    newBitmap = bitmapHelper.rotateBitmap(this, uri, bitmap)
+                } else {
+                    newBitmap = bitmap
+                }
+                firebaseDbHelper!!.uploadGroupProfileImage(newBitmap)
                 intent.putExtra(ExpenseOverviewActivity.UriIntent, uri.toString())
                 //TODO: Store the image with Firebase and create logic in DB so that all members of the group can download a new image if profile picture is ever changed.
             }
-        }
-    }
-
-
-    fun uploadImage(imageRef: Uri?) {
-        val storageReference = FirebaseStorage.getInstance().reference
-        val userStorageRef = storageReference.child("userID")
-        val uploadTask = userStorageRef.putFile(imageRef!!)
-        uploadTask.addOnSuccessListener { taskSnapshot ->
-            val downloadUrl =
-                taskSnapshot.metadata!!.reference!!.downloadUrl.toString()
-        }
-        uploadTask.addOnProgressListener { taskSnapshot ->
-            val b = taskSnapshot.bytesTransferred
-            Log.i("Firebase", "$b")
         }
     }
 

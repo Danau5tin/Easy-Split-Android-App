@@ -3,14 +3,13 @@ package com.splitreceipt.myapplication.data
 class FirebaseAccountInfoData() {
 
     var accName: String = ""
-    var accCat: String = ""
     var accParticipants: String = ""
+    var accLastImage: String = ""
 
-
-    constructor(name: String, cat: String, participants: String): this(){
+    constructor(name: String, participants: String, lastImageEdit: String): this(){
         accName = name
-        accCat = cat
         accParticipants = participants
+        accLastImage = lastImageEdit
     }
 
 }

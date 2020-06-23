@@ -9,11 +9,11 @@ object DbManager {
         const val GROUP_COL_ID = BaseColumns._ID
         const val GROUP_COL_FIREBASE_ID = "group_unique_id"
         const val GROUP_COL_NAME = "group_name"
-        const val GROUP_COL_CATEGORY = "category"
         const val GROUP_COL_PARTICIPANTS = "items"
         const val GROUP_COL_BALANCES = "balances_string"
         const val GROUP_COL_SETTLEMENTS = "settlements"
         const val GROUP_COL_USER = "sql_user"
+        const val GROUP_COL_LAST_IMAGE_EDIT = "last_image_edit"
     }
 
     object ExpenseTable: BaseColumns {
