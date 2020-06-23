@@ -6,7 +6,6 @@ import android.util.Log
 import android.widget.Toast
 import com.google.firebase.database.*
 import com.splitreceipt.myapplication.WelcomeJoinActivity
-import kotlin.system.exitProcess
 
 class FirebaseDbHelper(private var firebaseGroupId: String) {
 
@@ -15,6 +14,7 @@ class FirebaseDbHelper(private var firebaseGroupId: String) {
 
     //Common paths
     private var groupInfo = "/info"
+    private var groupLastEdit = "/lastEdit"
     private var groupFin = "/finance"
     private var expenses = "/expenses"
     private var scanned = "/scanned"
@@ -74,7 +74,7 @@ class FirebaseDbHelper(private var firebaseGroupId: String) {
                     val expenseId = expense.key!!
                     val expenseSqlRow = sqlHelper.insertNewExpense(sqlRowString, expenseId, expenseData.expDate,
                         expenseData.expTitle, expenseData.expTotal, expenseData.expPaidBy,
-                        expenseData.expContribs, expenseData.expScanned)
+                        expenseData.expContribs, expenseData.expScanned, expenseData.expLastEdit)
 
                     if (expenseData.expScanned) {
                         for (receipt in scannedChild.children) {
@@ -93,30 +93,30 @@ class FirebaseDbHelper(private var firebaseGroupId: String) {
         })
     }
 
-    fun createNewAccount(groupName: String, groupCat: String,
-                        groupBalance: String, groupSettlement: String, participantString: String){
-        setAccountInfo(groupName, groupCat, participantString)
-        setAccountFinance(groupSettlement, groupBalance)
+    fun createNewGroup(groupName: String, groupCat: String,
+                       groupBalance: String, groupSettlement: String, participantString: String){
+        setGroupInfo(groupName, groupCat, participantString)
+        setGroupFinance(groupSettlement, groupBalance)
     }
 
-    fun setAccountFinance(groupSettlement: String, groupBalance: String) {
+    fun setGroupFinance(groupSettlement: String, groupBalance: String) {
         val groupFinancePath = "$firebaseGroupId$groupFin"
         val accountData = FirebaseAccountFinancialData(groupSettlement, groupBalance)
         currentPath = database.getReference(groupFinancePath)
         currentPath.setValue(accountData)
     }
 
-    private fun setAccountInfo(groupName: String, groupCat: String, participantString: String) {
+    private fun setGroupInfo(groupName: String, groupCat: String, participantString: String) {
         val groupInfoPath = "$firebaseGroupId$groupInfo"
         val accountData = FirebaseAccountInfoData(groupName, groupCat, participantString)
         currentPath = database.getReference(groupInfoPath)
         currentPath.setValue(accountData)
     }
 
-    fun createNewExpense(expenseId: String, date: String, title: String, total: Float,
-                    paidBy: String, contributions: String, scanned: Boolean) {
-        //Creates a new expense
-        val expenseData = FirebaseExpenseData(date, title, total, paidBy, contributions, scanned)
+    fun createUpdateNewExpense(expenseId: String, date: String, title: String, total: Float,
+                               paidBy: String, contributions: String, scanned: Boolean, lastEdit: String) {
+        //Creates a new expense if not exists and if exists updates.
+        val expenseData = FirebaseExpenseData(date, title, total, paidBy, contributions, scanned, lastEdit)
         val expensePath = "$firebaseGroupId$expenses/$expenseId"
         currentPath = database.getReference(expensePath)
         currentPath.setValue(expenseData)
@@ -138,9 +138,11 @@ class FirebaseDbHelper(private var firebaseGroupId: String) {
         return currentPath
     }
 
-    fun addReceiptItems(expenseId: String, itemizedProductData: ArrayList<ScannedItemizedProductData>){
-        //Add all new receipt items
+    fun addUpdateReceiptItems(expenseId: String, itemizedProductData: ArrayList<ScannedItemizedProductData>){
+        //Add all new receipt items if not exists. If exists remove prior receipts and add new updates.
         val receiptPath = "$firebaseGroupId$scanned/$expenseId"
+        currentPath = database.getReference(receiptPath)
+        currentPath.removeValue()
         var count = 1
         for (product in itemizedProductData){
             val productPath = "$receiptPath/$count"

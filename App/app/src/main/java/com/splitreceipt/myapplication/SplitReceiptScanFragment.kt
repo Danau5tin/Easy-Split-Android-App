@@ -65,6 +65,7 @@ class SplitReceiptScanFragment : Fragment(), NewScannedReceiptRecyclerAdapter.on
         private const val takePictureIntent = 2
         lateinit var itemizedArrayList: ArrayList<ScannedItemizedProductData>
         const val ownershipEqualString = "Equal"
+        var errorsCleared = true
     }
 
     override fun onAttach(context: Context) {
@@ -421,11 +422,12 @@ class SplitReceiptScanFragment : Fragment(), NewScannedReceiptRecyclerAdapter.on
         /*
         Flags any potential issues with the current product list and refreshes adapter
          */
+        errorsCleared = true
         for (product in itemizedArrayList){
             val itemName = product.itemName
             val itemValue = product.itemValue
             // Flag any potential errors in the items name
-            product.potentialError = itemName.length < 7
+            product.potentialError = itemName.length < 4
             // Flag any potential errors in the value
             if (!product.potentialError){
                 val regex = "[0-9]+\\.[0-9][0-9]".toRegex()
@@ -435,11 +437,17 @@ class SplitReceiptScanFragment : Fragment(), NewScannedReceiptRecyclerAdapter.on
                     product.potentialError = true
                 } else product.potentialError = !itemValue.matches(regex)
             }
+            if (product.potentialError){
+                errorsCleared = false
+            }
         }
         adapter.notifyDataSetChanged()
     }
 
     override fun editProduct(position: Int) {
+        /*
+        Opens up a dialog to edit the product in further detail
+         */
         //TODO: The product name and the product price should have delete buttons which clear the text and set the selector ready to go on the line to type the correct values
         val product = itemizedArrayList[position]
         val productName = product.itemName
@@ -450,7 +458,7 @@ class SplitReceiptScanFragment : Fragment(), NewScannedReceiptRecyclerAdapter.on
         val builder = AlertDialog.Builder(contxt).setView(diagView).setTitle("Edit product").show()
         diagView.dialogProductName.setText(productName)
         diagView.dialogProductValue.setText(productValue)
-        val spinnerAdapter = ArrayAdapter(contxt, R.layout.support_simple_spinner_dropdown_item, participantList)
+        val spinnerAdapter = ArrayAdapter(contxt, R.layout.support_simple_spinner_dropdown_item, participantAdapterList)
         diagView.dialogSpinner.adapter = spinnerAdapter
         val spinPosition = spinnerAdapter.getPosition(itemOwnership)
         diagView.dialogSpinner.setSelection(spinPosition)

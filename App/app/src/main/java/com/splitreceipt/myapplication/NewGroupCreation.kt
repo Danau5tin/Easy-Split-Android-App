@@ -17,7 +17,6 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
 import com.splitreceipt.myapplication.data.FirebaseDbHelper
@@ -147,7 +146,7 @@ class NewGroupCreation : AppCompatActivity(), NewGroupParticipantAdapter.onPartR
                     val sqlRow = SqlDbHelper(this).insertNewGroup(groupFirebaseId, title,
                         category, participants, balances, settlementString, sqlUser)
                     firebaseDbHelper = FirebaseDbHelper(groupFirebaseId)
-                    firebaseDbHelper!!.createNewAccount(title, category, balances,
+                    firebaseDbHelper!!.createNewGroup(title, category, balances,
                         settlementString, participants) //TODO: Again here, how do i pass through the fbHelper class to ExpenseOverview?
 
                     if (sqlRow == -1) {

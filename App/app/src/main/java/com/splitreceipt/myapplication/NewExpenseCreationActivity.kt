@@ -13,10 +13,8 @@ import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.tabs.TabLayoutMediator
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.ValueEventListener
 import com.splitreceipt.myapplication.ExpenseOverviewActivity.Companion.firebaseDbHelper
+import com.splitreceipt.myapplication.ExpenseOverviewActivity.Companion.roundToTwoDecimalPlace
 import com.splitreceipt.myapplication.SplitReceiptScanFragment.Companion.ownershipEqualString
 import com.splitreceipt.myapplication.data.*
 import com.splitreceipt.myapplication.databinding.ActivityNewReceiptCreationBinding
@@ -35,16 +33,17 @@ class NewExpenseCreationActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityNewReceiptCreationBinding
     private var editPaidBy: String = ""
-    private var firebaseGroupId: String = ""
+    private var firebaseEditExpenseID: String = ""
 
     companion object {
-        var sqlAccountId: String? = "-1"
+        var sqlGroupId: String? = "-1"
         var editSqlRowId: String = "-1"
         const val zeroCurrency: String = "0.00"
         lateinit var participantList: ArrayList<String>
         lateinit var participantDataEditList: ArrayList<ParticipantData> //TODO: Currently being initialised even when it is not an edit. Fix this.
         const val CONTRIBUTION_INTENT_DATA = "contribution"
-        const val intentSqlIdString = "sqlID"
+        const val intentSqlExpenseIdString = "sqlExpenseID"
+        const val intentSqlGroupIdString = "sqlGroupID"
         const val intentFirebaseIdString = "firebaseID"
 
         var currencyCode = ""
@@ -56,6 +55,8 @@ class NewExpenseCreationActivity : AppCompatActivity() {
         const val editIntentDateString = "edit_date"
         const val editIntentContributionsString = "edit_contributions"
         const val editIntentSqlRowIdString = "edit_sql_id"
+
+        const val editIntentFirebaseExpenseIdString = "edit_firebase_id"
         const val editIntentScannedBoolean = "edit_scanned"
         var isEdit: Boolean = false
         var isScanned: Boolean = false
@@ -67,10 +68,12 @@ class NewExpenseCreationActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityNewReceiptCreationBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        sqlAccountId = intent.getStringExtra(intentSqlIdString)
+
+        sqlGroupId = intent.getStringExtra(intentSqlGroupIdString)
+
         participantList = ArrayList()
         participantDataEditList = ArrayList()
-        participantList = SqlDbHelper(this).retrieveParticipants(participantList, sqlAccountId!!)
+        participantList = SqlDbHelper(this).retrieveParticipants(participantList, sqlGroupId!!)
 
         val spinnerAdapter = ArrayAdapter(
             this,
@@ -90,7 +93,8 @@ class NewExpenseCreationActivity : AppCompatActivity() {
         val editTitle = intent.getStringExtra(editIntentTitleString)
         if (editTitle != null) {
             isEdit = true
-            editSqlRowId = intent.getStringExtra(editIntentSqlRowIdString)!!
+            firebaseEditExpenseID = intent.getStringExtra(editIntentFirebaseExpenseIdString)!!
+            editSqlRowId = intent.getStringExtra(intentSqlExpenseIdString)!!
             val editScanned = intent.getBooleanExtra(editIntentScannedBoolean, false)
             if (editScanned) {
                 // User is editing a scanned receipt. Split receipt fragment will see this and load the itemised products accordingly
@@ -118,7 +122,7 @@ class NewExpenseCreationActivity : AppCompatActivity() {
             setDisplayShowHomeEnabled(true)
             setHomeAsUpIndicator(R.drawable.vector_x_white)
         }
-        firebaseGroupId = intent.getStringExtra(intentFirebaseIdString)!!
+
 
     }
 
@@ -158,6 +162,7 @@ class NewExpenseCreationActivity : AppCompatActivity() {
                     val paidBy = binding.paidBySpinner.selectedItem.toString()
                     val expenseFirebaseID: String?
                     val scanned: Boolean
+                    val lastEdit: String = System.currentTimeMillis().toString()
 
                     //Check where the user is
                     if (currentPage == 0) {
@@ -172,17 +177,18 @@ class NewExpenseCreationActivity : AppCompatActivity() {
                             // Insert new entry to SQL DB.
                             scanned = false
                             expenseFirebaseID = newFirebaseReceiptID()
-                            sqlDbHelper.insertNewExpense(sqlAccountId!!, expenseFirebaseID, date, title, total, paidBy, contributionsString, scanned)
+                            sqlDbHelper.insertNewExpense(sqlGroupId!!, expenseFirebaseID, date, title, total, paidBy, contributionsString, scanned, lastEdit)
                             sqlDbHelper.close()
-                            firebaseDbHelper!!.createNewExpense(expenseFirebaseID, date, title, total, paidBy, contributionsString, false)
+                            firebaseDbHelper!!.createUpdateNewExpense(expenseFirebaseID, date, title, total, paidBy, contributionsString, false, lastEdit)
                             intent.putExtra(CONTRIBUTION_INTENT_DATA, contributionsString)
                             setResult(Activity.RESULT_OK, intent)
                             finish()
                             return true
                         } else {
                             // Update previous entry in SQL DB
-                            val sqlRow = sqlDbHelper.updateExpense(editSqlRowId, date, title, total, paidBy, contributionsString)
+                            val sqlRow = sqlDbHelper.updateExpense(editSqlRowId, date, title, total, paidBy, contributionsString, lastEdit)
                             sqlDbHelper.close()
+                            firebaseDbHelper!!.createUpdateNewExpense(firebaseEditExpenseID, date, title, total, paidBy, contributionsString, false, lastEdit)
                             intent.putExtra(ExpenseViewActivity.expenseReturnEditSql, sqlRow) //TODO: Is this necessary?
                             intent.putExtra(ExpenseViewActivity.expenseReturnEditDate, date)
                             intent.putExtra(ExpenseViewActivity.expenseReturnEditTotal, total.toString())
@@ -196,39 +202,43 @@ class NewExpenseCreationActivity : AppCompatActivity() {
                         }
                     }
                     else if (currentPage == 1){
-                        //User is saving a scanned receipt
-                        total = findViewById<EditText>(R.id.currencyAmountScan).text.toString().toFloat()
-                        val itemizedProductList = SplitReceiptScanFragment.itemizedArrayList
-                        val particBalDataList: ArrayList<ParticipantBalanceData> = productsToParticBalData(itemizedProductList)
-                        val contributionsString = createContribString(particBalDataList, paidBy)
+                        //User is saving a scanned receipt. Check if all product errors have been corrected.
+                        if (SplitReceiptScanFragment.errorsCleared) {
+                            total = roundToTwoDecimalPlace(findViewById<EditText>(R.id.currencyAmountScan).text.toString().toFloat())
+                            val itemizedProductList = SplitReceiptScanFragment.itemizedArrayList
+                            val particBalDataList: ArrayList<ParticipantBalanceData> = productsToParticBalData(itemizedProductList)
+                            val contributionsString = createContribString(particBalDataList, paidBy)
 
-                        if (!isEdit) {
-                            // User is inserting a new receipt expense
-                            expenseFirebaseID = newFirebaseReceiptID()
-                            val sqlRow = sqlDbHelper.insertNewExpense(sqlAccountId!!, expenseFirebaseID, date, title, total, paidBy, contributionsString, true)
-                            firebaseDbHelper!!.createNewExpense(expenseFirebaseID, date, title, total, paidBy, contributionsString, true)
-                            sqlDbHelper.insertReceiptItems(itemizedProductList, sqlRow)
+                            if (!isEdit) {
+                                // User is inserting a new receipt expense
+                                expenseFirebaseID = newFirebaseReceiptID()
+                                val sqlRow = sqlDbHelper.insertNewExpense(sqlGroupId!!, expenseFirebaseID, date, title, total, paidBy, contributionsString, true, lastEdit)
+                                firebaseDbHelper!!.createUpdateNewExpense(expenseFirebaseID, date, title, total, paidBy, contributionsString, true, lastEdit)
+                                sqlDbHelper.insertReceiptItems(itemizedProductList, sqlRow)
+                                firebaseDbHelper!!.addUpdateReceiptItems(expenseFirebaseID, itemizedProductList)
 
-                            firebaseDbHelper!!.addReceiptItems(expenseFirebaseID, itemizedProductList)
-
-                            intent.putExtra(CONTRIBUTION_INTENT_DATA, contributionsString)
-                            setResult(Activity.RESULT_OK, intent)
-                            sqlDbHelper.close()
-                            finish()
-                            return true
+                                intent.putExtra(CONTRIBUTION_INTENT_DATA, contributionsString)
+                                setResult(Activity.RESULT_OK, intent)
+                                sqlDbHelper.close()
+                                finish()
+                                return true
+                            } else {
+                                // User is editing a previously saved receipt expense
+                                val sqlRow = sqlDbHelper.updateExpense(editSqlRowId, date, title, total, paidBy, contributionsString, lastEdit)
+                                sqlDbHelper.updateItemsSql(writeableDB, itemizedProductList)
+                                firebaseDbHelper!!.createUpdateNewExpense(firebaseEditExpenseID, date, title, total, paidBy, contributionsString, true, lastEdit)
+                                intent.putExtra(ExpenseViewActivity.expenseReturnEditTitle, title)
+                                intent.putExtra(ExpenseViewActivity.expenseReturnEditTotal, total.toString())
+                                intent.putExtra(ExpenseViewActivity.expenseReturnEditPaidBy, paidBy)
+                                intent.putExtra(ExpenseViewActivity.expenseReturnEditDate, date)
+                                intent.putExtra(ExpenseViewActivity.expenseReturnEditContributions, contributionsString)
+                                setResult(Activity.RESULT_OK, intent)
+                                isEdit = false
+                                finish()
+                                return true
+                            }
                         } else {
-                            // User is editing a previously saved receipt expense
-                            val sqlRow = sqlDbHelper.updateExpense(editSqlRowId, date, title, total, paidBy, contributionsString)
-                            sqlDbHelper.updateItemsSql(writeableDB, itemizedProductList)
-                            intent.putExtra(ExpenseViewActivity.expenseReturnEditTitle, title)
-                            intent.putExtra(ExpenseViewActivity.expenseReturnEditTotal, total.toString())
-                            intent.putExtra(ExpenseViewActivity.expenseReturnEditPaidBy, paidBy)
-                            intent.putExtra(ExpenseViewActivity.expenseReturnEditDate, date)
-                            intent.putExtra(ExpenseViewActivity.expenseReturnEditContributions, contributionsString)
-                            setResult(Activity.RESULT_OK, intent)
-                            isEdit = false
-                            finish()
-                            return true
+                            Toast.makeText(this, "Please click and edit all product errors", Toast.LENGTH_SHORT).show()
                         }
                     }
                 sqlDbHelper.close()

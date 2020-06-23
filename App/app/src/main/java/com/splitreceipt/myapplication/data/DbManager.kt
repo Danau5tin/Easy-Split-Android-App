@@ -26,6 +26,7 @@ object DbManager {
         const val EXPENSE_COL_PAID_BY = "paid_by"
         const val EXPENSE_COL_CONTRIBUTIONS = "contributions"
         const val EXPENSE_COL_SCANNED = "scanned"
+        const val EXPENSE_COL_LAST_EDIT = "last_edit"
         const val EXPENSE_COL_FK_GROUP_ID = "group_id"
     }
 

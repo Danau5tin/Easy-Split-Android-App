@@ -31,6 +31,7 @@ import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_COL_SC
 import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_COL_TITLE
 import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_COL_TOTAL
 import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_COL_FIREBASE_ID
+import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_COL_LAST_EDIT
 import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_TABLE_NAME
 
 class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
@@ -62,6 +63,7 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
                 "$EXPENSE_COL_PAID_BY TEXT, " +
                 "$EXPENSE_COL_FK_GROUP_ID INTEGER, " +
                 "$EXPENSE_COL_CONTRIBUTIONS TEXT, " +
+                "$EXPENSE_COL_LAST_EDIT TEXT, " +
                 "$EXPENSE_COL_SCANNED INTEGER, " + //Boolean: 0=False, 1=True
                 "FOREIGN KEY ($EXPENSE_COL_FK_GROUP_ID) REFERENCES $GROUP_TABLE_NAME" +
                 "($GROUP_COL_ID) ON DELETE CASCADE)"
@@ -113,7 +115,8 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
         return sqlRow.toInt()
     }
 
-    fun insertNewExpense(sqlAccountId: String, recFirebaseId: String, date: String, title: String, total: Float, paidBy: String, contributions: String, scanned: Boolean) : Int{
+    fun insertNewExpense(sqlGroupId: String, recFirebaseId: String, date: String, title: String,
+                         total: Float, paidBy: String, contributions: String, scanned: Boolean, lastEdit: String) : Int{
         val write = writableDatabase
         val scannedInt: Int = if (scanned) { 1 } else { 0 }
         val values = ContentValues().apply {
@@ -124,7 +127,8 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
             put(EXPENSE_COL_PAID_BY, paidBy)
             put(EXPENSE_COL_CONTRIBUTIONS, contributions)
             put(EXPENSE_COL_SCANNED, scannedInt)
-            put(EXPENSE_COL_FK_GROUP_ID, sqlAccountId)
+            put(EXPENSE_COL_FK_GROUP_ID, sqlGroupId)
+            put(EXPENSE_COL_LAST_EDIT, lastEdit)
         }
         val sqlId = write.insert(EXPENSE_TABLE_NAME, null, values)
         return sqlId.toInt()
@@ -188,7 +192,7 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
         close()
     }
 
-    fun updateExpense(editSqlRowId: String, date: String, title: String, total: Float, paidBy: String, contributionsString: String): String {
+    fun updateExpense(editSqlRowId: String, date: String, title: String, total: Float, paidBy: String, contributionsString: String, lastEdit: String): String {
         // Update expense in Sql db
         val write = writableDatabase
         val values = ContentValues().apply {
@@ -197,6 +201,7 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
             put(EXPENSE_COL_TOTAL, total)
             put(EXPENSE_COL_PAID_BY, paidBy)
             put(EXPENSE_COL_CONTRIBUTIONS, contributionsString)
+            put(EXPENSE_COL_LAST_EDIT, lastEdit)
         }
         val whereClause = "$EXPENSE_COL_ID = ?"
         val whereArgs = arrayOf(editSqlRowId)
@@ -337,20 +342,24 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
         // Retrieves the date and contributions of the selected expense.
         var date = ""
         var contributions = ""
+        var firebaseId = ""
         val reader = readableDatabase
-        val columns = arrayOf(EXPENSE_COL_DATE, EXPENSE_COL_CONTRIBUTIONS)
+        val columns = arrayOf(EXPENSE_COL_DATE, EXPENSE_COL_CONTRIBUTIONS, EXPENSE_COL_FIREBASE_ID)
         val whereClause = "$EXPENSE_COL_ID = ?"
         val whereArgs = arrayOf(sqlRowId)
         val cursor: Cursor = reader.query(EXPENSE_TABLE_NAME, columns, whereClause, whereArgs, null, null, null)
         val dateIndex = cursor.getColumnIndexOrThrow(EXPENSE_COL_DATE)
         val contributionIndex = cursor.getColumnIndexOrThrow(EXPENSE_COL_CONTRIBUTIONS)
+        val fireBaseIdIndex = cursor.getColumnIndexOrThrow(EXPENSE_COL_FIREBASE_ID)
         while(cursor.moveToNext()) {
             date = cursor.getString(dateIndex)
             contributions = cursor.getString(contributionIndex)
+            firebaseId = cursor.getString(fireBaseIdIndex)
         }
         cursor.close()
         ExpenseViewActivity.expenseDate = date
         ExpenseViewActivity.contributionString = contributions
+        ExpenseViewActivity.firebaseExpenseID = firebaseId
     }
 
     fun locatePriorContributions(sqlRowId: String): String{
@@ -368,21 +377,26 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
         return priorContribs
     }
 
-    fun showAllFirebaseIds(expenseSqlRow: String) : ArrayList<String>{
+    fun retrieveBasicExpenseSqlData(expenseSqlRow: String) : ArrayList<BasicExpenseDataSql>{
         //Goes through the expense table and returns all the firebase expense ID's into a list
-        val idList: ArrayList <String> = ArrayList()
+        val basicExpenseListSql: ArrayList <BasicExpenseDataSql> = ArrayList()
         val read = readableDatabase
-        val columns = arrayOf(EXPENSE_COL_FIREBASE_ID)
+        val columns = arrayOf(EXPENSE_COL_ID, EXPENSE_COL_FIREBASE_ID, EXPENSE_COL_LAST_EDIT)
         val where = "$EXPENSE_COL_FK_GROUP_ID = ?"
         val whereArgs = arrayOf(expenseSqlRow)
-        val cursor: Cursor = read.query(EXPENSE_TABLE_NAME, columns, null, null, null, null, null)
+        val cursor: Cursor = read.query(EXPENSE_TABLE_NAME, columns, where, whereArgs, null, null, null)
+        val sqlRowIdIndex = cursor.getColumnIndexOrThrow(EXPENSE_COL_ID)
         val fireIDColIndex = cursor.getColumnIndexOrThrow(EXPENSE_COL_FIREBASE_ID)
+        val lastEditColIndex = cursor.getColumnIndexOrThrow(EXPENSE_COL_LAST_EDIT)
         while (cursor.moveToNext()){
-            idList.add(cursor.getString(fireIDColIndex))
+            val sqlRowID: String = cursor.getString(sqlRowIdIndex)
+            val fireBaseId: String = cursor.getString(fireIDColIndex)
+            val lastEdit: String = cursor.getString(lastEditColIndex)
+            basicExpenseListSql.add(BasicExpenseDataSql(sqlRowID, fireBaseId, lastEdit))
         }
         cursor.close()
         close()
-        return idList
+        return basicExpenseListSql
     }
 
     fun deleteExpense(sqlRowId: String){
@@ -401,6 +415,20 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
         val whereArgs = arrayOf(sqlRowId)
         write.delete(ITEMS_TABLE_NAME, where, whereArgs)
         close()
+    }
+
+    fun getSettlementString(sqlGroupId: String?): String? {
+        val read = readableDatabase
+        val columns = arrayOf(GROUP_COL_BALANCES)
+        val where = "$GROUP_COL_ID = ?"
+        val whereArgs = arrayOf(sqlGroupId)
+        val cursor: Cursor = read.query(GROUP_TABLE_NAME, columns, where, whereArgs, null, null, null)
+        val balIndex = cursor.getColumnIndexOrThrow(GROUP_COL_BALANCES)
+        cursor.moveToNext()
+        val balance = cursor.getString(balIndex)
+        cursor.close()
+        close()
+        return balance
     }
 
 }

@@ -182,17 +182,35 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
                  Check if any of the expenses in Firebase are not in the users SQL db.
                  If they are not then we will recalculate the expenses.
                  */
-                val sqlFirebaseIds = SqlDbHelper(baseContext).showAllFirebaseIds(getSqlGroupId!!)
+                val sqlDbHelper = SqlDbHelper(baseContext)
+                val sqlExpenses = sqlDbHelper.retrieveBasicExpenseSqlData(getSqlGroupId!!)
                 var settlementString: String? = null
                 val balanceSettlementHelper = BalanceSettlementHelper(applicationContext, getSqlGroupId!!)
                 for (expense in data.children){
                     val firebaseID = expense.key
                     var exists = false
 
-                    for (firebaseSQLId in sqlFirebaseIds) {
-                        if (firebaseID == firebaseSQLId){
+                    val expen = data.child(firebaseID!!)
+                    val newExpense = expen.getValue(FirebaseExpenseData::class.java)!!
+                    val lastEdit = newExpense.expLastEdit
+                    val date = newExpense.expDate
+                    val title = newExpense.expTitle
+                    val total = newExpense.expTotal
+                    val paidBy = newExpense.expPaidBy
+                    val contribs = newExpense.expContribs
+                    val scanned = newExpense.expScanned
+
+
+                    for (sqlExpense in sqlExpenses) {
+                        if (firebaseID == sqlExpense.firebaseId){
                             // Receipt IS in the users SQL db
                             Log.i("Fbase-E", "Receipt $firebaseID IS in Sql db")
+
+                            if (lastEdit != sqlExpense.lastEdit) {
+                                //The expense has been updated since the user has last used the app. Update changes locally.
+                                sqlDbHelper.updateExpense(sqlExpense.sqlRowId, date, title, total, paidBy, contribs, lastEdit)
+                            }
+
                             exists = true
                             break
                         }
@@ -202,17 +220,8 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
                         // Receipt is NOT in the users SQL db
                         Log.i("Fbase-E", "Receipt $firebaseID is NOT in Sql db")
 
-                        val expen = data.child(firebaseID!!)
-                        val newExpense = expen.getValue(FirebaseExpenseData::class.java)!!
-                        val date = newExpense.expDate
-                        val title = newExpense.expTitle
-                        val total = newExpense.expTotal
-                        val paidBy = newExpense.expPaidBy
-                        val contribs = newExpense.expContribs
-                        val scanned = newExpense.expScanned
-                        val sqlDbHelper = SqlDbHelper(baseContext)
                         //Save expense into SQL
-                        val expenseSqlRow = sqlDbHelper.insertNewExpense(getSqlGroupId!!, firebaseID, date, title, total, paidBy, contribs, scanned)
+                        val expenseSqlRow = sqlDbHelper.insertNewExpense(getSqlGroupId!!, firebaseID, date, title, total, paidBy, contribs, scanned, lastEdit)
                         //TODO: if the receipt is scanned then lets download it and save it to Sql.
                         if (scanned){
                             // If the expense is a scanned receipt then download and add this receipt to sql
@@ -250,14 +259,14 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
 
     fun addNewReceiptButton(view: View) {
         val intent = Intent(this, NewExpenseCreationActivity::class.java)
-        intent.putExtra(NewExpenseCreationActivity.intentSqlIdString, getSqlGroupId)
+        intent.putExtra(NewExpenseCreationActivity.intentSqlExpenseIdString, getSqlGroupId)
         intent.putExtra(NewExpenseCreationActivity.intentFirebaseIdString, getFirebaseId)
         startActivityForResult(intent, addExpenseResult)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        val newSettlementString: String
+        var newSettlementString: String?
 
         if (requestCode == addExpenseResult) {
             if (resultCode == Activity.RESULT_OK) {
@@ -290,11 +299,14 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
                     newSettlementString = newContributionUpdates(reversedContributions!!)
                 } else {
                     // This scenario means the user edited the expense and re-balancing is already completed
-                    newSettlementString = data.getStringExtra(ExpenseViewActivity.expenseReturnNewSettlements
-                    )!!.toString()
+                    newSettlementString = data.getStringExtra(ExpenseViewActivity.expenseReturnNewSettlements)
+                    if (newSettlementString == null){
+                        // This means the user did not change any contributions. Therefore retrieve the old string
+                        newSettlementString = SqlDbHelper(this).getSettlementString(getSqlGroupId)
+                    }
                     reloadRecycler()
                 }
-                deconstructAndSetSettlementString(newSettlementString)
+                deconstructAndSetSettlementString(newSettlementString!!)
 
             }
         } else if (requestCode == grouptSettingsResult) {
@@ -367,7 +379,7 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
     private fun newContributionUpdates(newContributions: String): String {
         val balanceSettlementHelper = BalanceSettlementHelper(this, getSqlGroupId.toString())
         val settlementString = balanceSettlementHelper.balanceAndSettlementsFromSql(newContributions)
-        firebaseDbHelper!!.setAccountFinance(settlementString, balanceSettlementHelper.balanceString!!)
+        firebaseDbHelper!!.setGroupFinance(settlementString, balanceSettlementHelper.balanceString!!)
         return settlementString
     }
 

@@ -30,6 +30,7 @@ class ExpenseViewActivity : AppCompatActivity() {
     companion object {
         lateinit var expenseDate: String
         lateinit var contributionString: String
+        lateinit var firebaseExpenseID: String
         const val expenseSqlIntentString: String = "expense_sql_id"
         const val expenseTitleIntentString: String = "expense_title"
         const val expenseTotalIntentString: String = "expense_total"
@@ -96,7 +97,7 @@ class ExpenseViewActivity : AppCompatActivity() {
         for (contribution in contributionsSplit) {
             val individualContrib = contribution.split(",")
             val contributor = ExpenseOverviewActivity.changeNameToYou(individualContrib[0], true)
-            val value = individualContrib[1]
+            val value = SplitExpenseManuallyFragment.addStringZerosForDecimalPlace(individualContrib[1])
             val newString = "$contributor contributed £$value" //TODO: Ensure the correct currency
             contributionList.add(ExpenseAdapterData(newString, value))
         }
@@ -118,7 +119,9 @@ class ExpenseViewActivity : AppCompatActivity() {
         intent.putExtra(NewExpenseCreationActivity.editIntentPaidByString, getPaidByIntent)
         intent.putExtra(NewExpenseCreationActivity.editIntentDateString, expenseDate)
         intent.putExtra(NewExpenseCreationActivity.editIntentContributionsString, contributionString)
-        intent.putExtra(NewExpenseCreationActivity.editIntentSqlRowIdString, sqlRowId)
+        intent.putExtra(NewExpenseCreationActivity.intentSqlExpenseIdString, sqlRowId)
+        intent.putExtra(NewExpenseCreationActivity.intentSqlGroupIdString, ExpenseOverviewActivity.getSqlGroupId)
+        intent.putExtra(NewExpenseCreationActivity.editIntentFirebaseExpenseIdString, firebaseExpenseID)
         intent.putExtra(NewExpenseCreationActivity.editIntentScannedBoolean, getScannedIntent)
         startActivityForResult(intent, EDIT_EXPENSE_INTENT_CODE)
     }
@@ -158,14 +161,17 @@ class ExpenseViewActivity : AppCompatActivity() {
                         // Update balances after reversing the previous contributions.
                         balSetHelper.balanceAndSettlementsFromSql(reverseContribs)
                     }
-
+                    val settlementString = balSetHelper.balanceAndSettlementsFromSql(calculatedContributions)
+                    ExpenseOverviewActivity.firebaseDbHelper!!.setGroupFinance(settlementString, balSetHelper.balanceString!!)
+                    intent.putExtra(expenseReturnNewSettlements, settlementString)
+                    setResult(Activity.RESULT_OK, intent)
                 }
+                else{
+                    //Contributions did not change. Therefore we just need to return the original settlement string in the ExpenseOverViewActivity
+                }
+
                 // Set new contributions
-                val settlementString = balSetHelper.balanceAndSettlementsFromSql(calculatedContributions)
-                ExpenseOverviewActivity.firebaseDbHelper!!.setAccountFinance(settlementString, balSetHelper.balanceString!!)
                 contributionString = calculatedContributions
-                intent.putExtra(expenseReturnNewSettlements, settlementString)
-                setResult(Activity.RESULT_OK, intent)
                 deconstructContributionString()
                 participantAdapter.notifyDataSetChanged()
                 if (getScannedIntent){

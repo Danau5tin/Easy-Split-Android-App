@@ -49,7 +49,7 @@ class BalanceSettlementHelper(var context: Context, var groupSqlRow: String) {
         SQL database and upload them to the Firebase DB.
          */
         if (settlementString != null && balanceString != null){
-            firebaseDbHelper.setAccountFinance(settlementString!!, balanceString!!)
+            firebaseDbHelper.setGroupFinance(settlementString!!, balanceString!!)
         }
     }
 
