@@ -2,6 +2,7 @@ package com.splitreceipt.myapplication
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -12,6 +13,7 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
+import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -28,6 +30,7 @@ import com.splitreceipt.myapplication.data.*
 import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_ACCOUNT_CURRENCY_SYMBOL
 import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_NAME
 import com.splitreceipt.myapplication.databinding.ActivityMainBinding
+import kotlinx.android.synthetic.main.alert_dialog_share_group.*
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileNotFoundException
@@ -130,7 +133,7 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
         getSqlGroupId = intent.getStringExtra(GroupScreenActivity.sqlIntentString)
         getSqlUser = intent.getStringExtra(GroupScreenActivity.userIntentString)
         getAccountName = intent.getStringExtra(GroupScreenActivity.groupNameIntentString)
-        binding.accountNameTitleText.text = getAccountName
+        binding.groupNameTitleText.text = getAccountName
         getFirebaseId = intent.getStringExtra(GroupScreenActivity.firebaseIntentString)
 
         firebaseDbHelper = null
@@ -157,8 +160,9 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
             // New Group was just created by user, load the image Uri as image is likely still being saved in an AsyncTask.
             val uriImage: Uri = Uri.parse(intent.getStringExtra(UriIntent))
             binding.groupProfileImage.setImageURI(uriImage)
+            showShareDialog()
         } else {
-            // Group has already been created and user is re-entering the group, load internally saved image
+            // Group has already been created and user is re-entering or joining the group, load internally saved image.
             val b = loadImageFromStorage(this, true, getFirebaseId!!)
             binding.groupProfileImage.setImageBitmap(b)
         }
@@ -272,6 +276,25 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
         binding.mainActivityRecycler.adapter = adapter
     }
 
+    private fun showShareDialog() {
+        val diagView = LayoutInflater.from(this).inflate(R.layout.alert_dialog_share_group, null)
+        val builder = AlertDialog.Builder(this).setTitle("Share")
+            .setView(diagView).show()
+        val shareGroupHelper = ShareGroupHelper(this, getFirebaseId!!)
+        builder.copyLinkButton2.setOnClickListener {
+            shareGroupHelper.clipboardShareCopy()
+        }
+        builder.whatsappShareButton2.setOnClickListener {
+            shareGroupHelper.shareViaWhatsapp()
+        }
+        builder.shareEmailButton2.setOnClickListener {
+            shareGroupHelper.shareViaEmail()
+        }
+        builder.shareContinue.setOnClickListener {
+            builder.dismiss()
+        }
+    }
+
     private fun openGallery() {
         val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
         startActivityForResult(intent, pickImage)
@@ -279,7 +302,7 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
 
     fun addNewReceiptButton(view: View) {
         val intent = Intent(this, NewExpenseCreationActivity::class.java)
-        intent.putExtra(NewExpenseCreationActivity.intentSqlExpenseIdString, getSqlGroupId)
+        intent.putExtra(NewExpenseCreationActivity.intentSqlGroupIdString, getSqlGroupId)
         intent.putExtra(NewExpenseCreationActivity.intentFirebaseIdString, getFirebaseId)
         startActivityForResult(intent, addExpenseResult)
     }
@@ -458,6 +481,11 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
+            R.id.groupAddParticipant -> {
+                val intent = Intent(this, NewParticipantInviteActivity::class.java)
+                startActivity(intent)
+                return true
+            }
             R.id.groupSettings -> {
                 val intent = Intent(this, GroupSettingsActivity::class.java)
                 startActivityForResult(intent, settingsResult)

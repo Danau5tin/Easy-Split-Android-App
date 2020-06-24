@@ -194,4 +194,10 @@ class FirebaseDbHelper(private var firebaseGroupId: String) {
         }
     }
 
+    fun updateParticipants(newParticipantString: String) {
+        val participantPath = "$firebaseGroupId$groupInfo"
+        currentPath = database.getReference(participantPath).child("accParticipants")
+        currentPath.setValue(newParticipantString)
+    }
+
 }

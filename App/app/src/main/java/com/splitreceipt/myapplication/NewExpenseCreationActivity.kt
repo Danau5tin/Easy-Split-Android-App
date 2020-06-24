@@ -143,13 +143,13 @@ class NewExpenseCreationActivity : AppCompatActivity() {
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.add_expense_menu, menu)
+        menuInflater.inflate(R.menu.save_menu, menu)
         return true
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
-            R.id.addExpenseSave -> {
+            R.id.menuSave -> {
                 val currentPage = binding.receiptViewPager.currentItem
                 val okayToProceed = checkAllInputsAreValid(currentPage)
                 if (okayToProceed) {

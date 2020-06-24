@@ -6,68 +6,17 @@
     android:layout_height="match_parent"
     tools:context=".GroupSettingsActivity">
 
-    <Button
-        android:id="@+id/settingsAddParticipant"
-        android:layout_width="71dp"
-        android:layout_height="34dp"
-        android:layout_marginEnd="16dp"
-        android:background="@drawable/image_button_outline_white_solid"
-        android:text="ADD"
-        app:layout_constraintBottom_toBottomOf="@+id/newParticipantName"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/newParticipantName" />
 
-    <ToggleButton
-        android:id="@+id/toggleButton4"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="ToggleButton"
-        android:textOff="Other"
-        app:layout_constraintEnd_toEndOf="@+id/groupNameText"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toEndOf="@+id/toggleButton3"
-        app:layout_constraintTop_toTopOf="@+id/toggleButton3" />
-
-    <ToggleButton
-        android:id="@+id/toggleButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="ToggleButton"
-        android:textOff="Apartment"
-        app:layout_constraintEnd_toStartOf="@+id/toggleButton2"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toStartOf="@+id/imageView2"
-        app:layout_constraintTop_toBottomOf="@+id/groupNameText" />
-
-    <ToggleButton
-        android:id="@+id/toggleButton2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="House"
-        android:textOff="House"
-        app:layout_constraintEnd_toStartOf="@+id/toggleButton3"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toEndOf="@+id/toggleButton"
-        app:layout_constraintTop_toTopOf="@+id/toggleButton" />
-
-    <ToggleButton
-        android:id="@+id/toggleButton3"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="ToggleButton"
-        android:textOff="Trip"
-        app:layout_constraintEnd_toStartOf="@+id/toggleButton4"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toEndOf="@+id/toggleButton2"
-        app:layout_constraintTop_toTopOf="@+id/toggleButton2" />
-
-    <ImageView
+    <de.hdodenhof.circleimageview.CircleImageView
         android:id="@+id/imageView2"
-        android:layout_width="60dp"
-        android:layout_height="60dp"
+        android:src="@drawable/vector_person_green"
+        app:civ_border_color="@android:color/darker_gray"
+        app:civ_border_width="3dp"
+        android:layout_width="96dp"
+        android:layout_height="96dp"
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
+        android:onClick="changeGroupImageButton"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/vector_person_green" />
@@ -91,40 +40,47 @@
             android:hint="Group name" />
     </com.google.android.material.textfield.TextInputLayout>
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/groupSettingParticipantsRecy"
-        android:layout_width="0dp"
-        android:layout_height="200dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="24dp"
-        android:layout_marginEnd="16dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/toggleButton" />
-
-    <com.google.android.material.textfield.TextInputEditText
-        android:id="@+id/newParticipantName"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:hint="Add participant"
-        app:layout_constraintEnd_toStartOf="@+id/settingsAddParticipant"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/groupSettingParticipantsRecy" />
-
     <Button
         android:id="@+id/button"
         android:layout_width="0dp"
         android:layout_height="35dp"
         android:layout_marginStart="32dp"
+        android:layout_marginTop="50dp"
         android:layout_marginEnd="32dp"
-        android:layout_marginBottom="52dp"
         android:background="@android:color/holo_red_light"
         android:onClick="deleteGroupButton"
         android:text="Delete Group"
         android:textColor="#FFFFFF"
         android:textStyle="bold"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/addParticipantButton2" />
+
+    <Button
+        android:id="@+id/changeGroupImageButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="62dp"
+        android:background="@drawable/image_button_outline_white_solid"
+        android:text="Change group image"
+        android:padding="10dp"
+        android:onClick="changeGroupImageButton"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/groupNameText" />
+
+    <Button
+        android:id="@+id/addParticipantButton2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:background="@drawable/image_button_outline_white_solid"
+        android:onClick="addNewParticipantSettingsButton"
+        android:padding="10dp"
+        android:text="Add new participants"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/changeGroupImageButton" />
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -13,7 +13,6 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
-import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -27,7 +26,7 @@ import java.util.*
 import kotlin.collections.ArrayList
 
 
-class NewGroupCreation : AppCompatActivity(), NewGroupParticipantAdapter.onPartRowClick {
+class NewGroupCreation : AppCompatActivity(), NewParticipantRecyAdapter.onPartRowClick {
 
     /*
     This activity allows the user to create a new group
@@ -35,7 +34,7 @@ class NewGroupCreation : AppCompatActivity(), NewGroupParticipantAdapter.onPartR
 
     private lateinit var binding: ActivityNewGroupCreationBinding
     private lateinit var storageReference: StorageReference
-    private lateinit var adapter: NewGroupParticipantAdapter
+    private lateinit var recyAdapter: NewParticipantRecyAdapter
     private lateinit var participantList: ArrayList<String>
     private val PICK_IMAGE: Int = 10
     private val REQUEST_STORAGE = 20
@@ -55,9 +54,9 @@ class NewGroupCreation : AppCompatActivity(), NewGroupParticipantAdapter.onPartR
         setContentView(binding.root)
         participantList = ArrayList()
         storageReference = FirebaseStorage.getInstance().reference
-        adapter = NewGroupParticipantAdapter(participantList, this)
+        recyAdapter = NewParticipantRecyAdapter(participantList, this)
         binding.newParticipantRecy.layoutManager = LinearLayoutManager(this)
-        binding.newParticipantRecy.adapter = adapter
+        binding.newParticipantRecy.adapter = recyAdapter
 
         groupFirebaseId = createFirebaseGroupId()!!
         firebaseDbHelper = FirebaseDbHelper(groupFirebaseId)
@@ -108,13 +107,13 @@ class NewGroupCreation : AppCompatActivity(), NewGroupParticipantAdapter.onPartR
     fun addNewParticipantButton(view: View) {
         val participantName = binding.newParticipantName.text.toString()
         participantList.add(participantName)
-        adapter.notifyDataSetChanged()
+        recyAdapter.notifyDataSetChanged()
         binding.newParticipantName.setText("")
     }
 
     override fun onRowclick(position: Int) {
         participantList.removeAt(position)
-        adapter.notifyDataSetChanged()
+        recyAdapter.notifyDataSetChanged()
     }
 
     override fun onSupportNavigateUp(): Boolean {
@@ -125,16 +124,14 @@ class NewGroupCreation : AppCompatActivity(), NewGroupParticipantAdapter.onPartR
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.add_group_menu, menu)
+        menuInflater.inflate(R.menu.next_menu, menu)
         return true
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
-            R.id.addGroupSave -> {
-                // TODO: Save the below results to Firebase db
+            R.id.menuNext -> {
                 val title: String = binding.groupTitleEditText.text.toString()
-
                 val sqlUser: String = binding.yourNameEditText.text.toString()
                 checkIfUserForgotToAddPartic()
                 val participantData: ParticipantNewGroupData = getNewParticipantData(sqlUser)
@@ -158,7 +155,7 @@ class NewGroupCreation : AppCompatActivity(), NewGroupParticipantAdapter.onPartR
                     val intent = Intent(this, ExpenseOverviewActivity::class.java)
                     if (newBitmap == null){
                         //User has not uploaded an group profile image
-                        //TODO: Set a standard image depending on which category button was pressed
+                        //TODO: Set a standard image as logo
                     } else {
                         //User has uploaded a group profile image
                         val async = ASyncSaveImage(true, this, groupFirebaseId)
@@ -240,7 +237,6 @@ class NewGroupCreation : AppCompatActivity(), NewGroupParticipantAdapter.onPartR
                 }
                 firebaseDbHelper!!.uploadGroupProfileImage(newBitmap)
                 intent.putExtra(ExpenseOverviewActivity.UriIntent, uri.toString())
-                //TODO: Store the image with Firebase and create logic in DB so that all members of the group can download a new image if profile picture is ever changed.
             }
         }
     }

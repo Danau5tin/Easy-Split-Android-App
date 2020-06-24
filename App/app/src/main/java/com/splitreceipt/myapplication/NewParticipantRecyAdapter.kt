@@ -7,22 +7,22 @@ import android.widget.ImageButton
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
-class NewGroupParticipantAdapter(var participantList: ArrayList<String>, var onPartRowClickInter: onPartRowClick) : RecyclerView.Adapter<NewGroupParticipantAdapter.ParticpantViewHolder>() {
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ParticpantViewHolder {
+class NewParticipantRecyAdapter(var participantList: ArrayList<String>, var onPartRowClickInter: onPartRowClick) : RecyclerView.Adapter<NewParticipantRecyAdapter.ParticipantViewHolder>() {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ParticipantViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         val view = inflater.inflate(R.layout.new_participant_recy_row, parent, false)
-        return ParticpantViewHolder(view, onPartRowClickInter)
+        return ParticipantViewHolder(view, onPartRowClickInter)
     }
 
     override fun getItemCount(): Int {
         return participantList.size
     }
 
-    override fun onBindViewHolder(holder: ParticpantViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: ParticipantViewHolder, position: Int) {
         holder.nameTextView.text = participantList[position]
     }
 
-    class ParticpantViewHolder(itemView: View, onPartRowClickInter: onPartRowClick) : RecyclerView.ViewHolder(itemView) {
+    class ParticipantViewHolder(itemView: View, onPartRowClickInter: onPartRowClick) : RecyclerView.ViewHolder(itemView) {
 
         val nameTextView: TextView = itemView.findViewById(R.id.newAccountParticipantName)
         val deleteparticipantButton: ImageButton = itemView.findViewById(R.id.newParticipantDelete)

@@ -1,6 +1,7 @@
 package com.splitreceipt.myapplication
 
 import android.content.DialogInterface
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
@@ -42,4 +43,12 @@ class GroupSettingsActivity : AppCompatActivity() {
             })
         }.show()
     }
+
+    fun addNewParticipantSettingsButton(view: View) {
+        val intent = Intent(this, NewParticipantInviteActivity::class.java)
+        startActivity(intent)
+        finish()
+    }
+
+    fun changeGroupImageButton(view: View) {}
 }

@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".NewParticipantInviteActivity">
+
+    <include
+        android:id="@+id/toolbar"
+        layout="@layout/toolbar"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerViewNewParti"
+        android:layout_width="match_parent"
+        android:layout_height="150dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="32dp"
+        android:layout_marginEnd="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/toolbar" />
+
+    <Button
+        android:id="@+id/button3"
+        style="@style/add_participant_button"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:text="Add"
+        app:layout_constraintBottom_toBottomOf="@+id/textInputLayout7"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/textInputLayout7" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/textInputLayout7"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        app:layout_constraintEnd_toStartOf="@+id/button3"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/recyclerViewNewParti">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/account_addparticipant_hint" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <TextView
+        android:id="@+id/textView4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="24dp"
+        android:text="Share group"
+        android:textSize="18sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textInputLayout7" />
+
+    <ImageButton
+        android:id="@+id/whatsappShareButton"
+        android:layout_width="58dp"
+        android:layout_height="59dp"
+        android:layout_marginTop="16dp"
+        android:background="@null"
+        android:onClick="whatsappShareButton"
+        android:scaleType="fitCenter"
+        app:layout_constraintStart_toStartOf="@+id/copyLinkButton"
+        app:layout_constraintTop_toBottomOf="@+id/copyLinkButton"
+        app:srcCompat="@drawable/whatsapp" />
+
+    <ImageButton
+        android:id="@+id/shareEmailButton"
+        android:layout_width="58dp"
+        android:layout_height="59dp"
+        android:layout_marginTop="16dp"
+        android:onClick="shareEmailButton"
+        android:background="@null"
+        android:scaleType="fitCenter"
+        app:layout_constraintStart_toStartOf="@+id/whatsappShareButton"
+        app:layout_constraintTop_toBottomOf="@+id/whatsappShareButton"
+        app:srcCompat="@drawable/gmail" />
+
+    <ImageButton
+        android:id="@+id/copyLinkButton"
+        android:layout_width="58dp"
+        android:layout_height="59dp"
+        android:layout_marginTop="31dp"
+        android:background="@null"
+        android:onClick="copyLinkButton"
+        android:scaleType="fitCenter"
+        app:layout_constraintStart_toStartOf="@+id/textView4"
+        app:layout_constraintTop_toBottomOf="@+id/textView4"
+        app:srcCompat="@drawable/vector_link_black" />
+
+    <TextView
+        android:id="@+id/textView5"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:text="Copy sharing link"
+        app:layout_constraintBottom_toBottomOf="@+id/copyLinkButton"
+        app:layout_constraintStart_toEndOf="@+id/copyLinkButton"
+        app:layout_constraintTop_toTopOf="@+id/copyLinkButton" />
+
+    <TextView
+        android:id="@+id/textView6"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:text="Share via Whatsapp"
+        app:layout_constraintBottom_toBottomOf="@+id/whatsappShareButton"
+        app:layout_constraintStart_toEndOf="@+id/whatsappShareButton"
+        app:layout_constraintTop_toTopOf="@+id/whatsappShareButton" />
+
+    <TextView
+        android:id="@+id/textView7"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:text="Share vie e-mail"
+        app:layout_constraintBottom_toBottomOf="@+id/shareEmailButton"
+        app:layout_constraintStart_toEndOf="@+id/shareEmailButton"
+        app:layout_constraintTop_toTopOf="@+id/shareEmailButton" />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

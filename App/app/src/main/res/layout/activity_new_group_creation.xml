@@ -116,7 +116,7 @@
         android:id="@+id/textInputLayout2"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        app:layout_constraintEnd_toStartOf="@+id/addParticipantButton"
+        app:layout_constraintEnd_toStartOf="@+id/changeGroupImageButton"
         app:layout_constraintStart_toStartOf="@+id/leftGuideline"
         app:layout_constraintTop_toBottomOf="@+id/newParticipantRecy">
 
@@ -128,14 +128,12 @@
     </com.google.android.material.textfield.TextInputLayout>
 
     <Button
-        android:id="@+id/addParticipantButton"
-        android:layout_width="71dp"
-        android:layout_height="34dp"
-        android:background="@drawable/image_button_outline_white_solid"
-        android:text="ADD"
+        android:id="@+id/changeGroupImageButton"
+        android:text="Add"
         android:onClick="addNewParticipantButton"
         app:layout_constraintBottom_toBottomOf="@+id/textInputLayout2"
         app:layout_constraintEnd_toStartOf="@+id/rightGuideline"
-        app:layout_constraintTop_toTopOf="@+id/textInputLayout2" />
+        app:layout_constraintTop_toTopOf="@+id/textInputLayout2"
+        style="@style/add_participant_button" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

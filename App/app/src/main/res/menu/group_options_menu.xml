@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <item android:title="Group Settings"
+    <item android:title="Add new participant"
+        android:id="@+id/groupAddParticipant"/>
+
+    <item android:title="Group settings"
         android:id="@+id/groupSettings"/>
 
-    <item android:title="View Group Totals"
+    <item android:title="View group totals"
         android:id="@+id/groupBalances"/>
 
     <item android:title="Export"

@@ -442,4 +442,15 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
         return balance
     }
 
+    fun updateParticipants(newParticipantString: String, groupSqlId: String) {
+        val write = writableDatabase
+        val values = ContentValues().apply {
+            put(GROUP_COL_PARTICIPANTS, newParticipantString)
+        }
+        val where = "$GROUP_COL_ID = ?"
+        val whereArgs = arrayOf(groupSqlId)
+        write.update(GROUP_TABLE_NAME, values, where, whereArgs)
+        close()
+    }
+
 }

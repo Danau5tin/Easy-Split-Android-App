@@ -23,7 +23,7 @@
         app:civ_border_width="3dp"
         app:layout_constraintBottom_toTopOf="@+id/button4"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/accountNameTitleText" />
+        app:layout_constraintTop_toTopOf="@+id/groupNameTitleText" />
 
 
 
@@ -79,27 +79,29 @@
         app:layout_constraintTop_toBottomOf="@+id/mainActivityRecycler" />
 
     <TextView
-        android:id="@+id/accountNameTitleText"
+        android:id="@+id/groupNameTitleText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="50dp"
         android:layout_marginTop="16dp"
-        android:text="Account Name"
         android:textColor="#000000"
         android:textSize="20sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/toolbar" />
+        app:layout_constraintTop_toBottomOf="@+id/toolbar"
+        tools:text="Group name" />
 
     <TextView
         android:id="@+id/receiptOverBalanceString"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
         android:layout_marginTop="16dp"
         android:text="You owe Marie £20.00"
-        app:layout_constraintEnd_toEndOf="@+id/accountNameTitleText"
-        app:layout_constraintStart_toStartOf="@+id/accountNameTitleText"
-        app:layout_constraintTop_toBottomOf="@+id/accountNameTitleText" />
+        app:layout_constraintEnd_toEndOf="@+id/groupNameTitleText"
+        app:layout_constraintStart_toStartOf="@+id/groupNameTitleText"
+        app:layout_constraintTop_toBottomOf="@+id/groupNameTitleText" />
 
     <Button
         android:id="@+id/button4"
@@ -109,8 +111,19 @@
         android:background="@drawable/image_button_outline_white_solid"
         android:onClick="balancesButtonPressed"
         android:text="Balances"
-        app:layout_constraintEnd_toEndOf="@+id/accountNameTitleText"
-        app:layout_constraintStart_toStartOf="@+id/accountNameTitleText"
+        app:layout_constraintStart_toStartOf="@+id/receiptOverBalanceString"
         app:layout_constraintTop_toBottomOf="@+id/receiptOverBalanceString" />
+
+    <Button
+        android:id="@+id/button2"
+        android:layout_width="wrap_content"
+        android:layout_height="35dp"
+        android:layout_marginStart="32dp"
+        android:background="@drawable/image_button_outline_white_solid"
+        android:text="Settle group"
+        app:layout_constraintBottom_toBottomOf="@+id/button4"
+        app:layout_constraintEnd_toEndOf="@+id/receiptOverBalanceString"
+        app:layout_constraintStart_toEndOf="@+id/button4"
+        app:layout_constraintTop_toTopOf="@+id/button4" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

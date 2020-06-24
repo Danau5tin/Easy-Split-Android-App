@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/image_button_outline_white_solid">
+
+    <ImageButton
+        android:id="@+id/copyLinkButton2"
+        android:layout_width="58dp"
+        android:layout_height="59dp"
+        android:layout_marginTop="16dp"
+        android:background="@null"
+        android:onClick="copyLinkButton"
+
+        android:scaleType="fitCenter"
+        app:layout_constraintStart_toStartOf="@+id/textView12"
+        app:layout_constraintTop_toBottomOf="@+id/textView12"
+        app:srcCompat="@drawable/vector_link_black" />
+
+    <TextView
+        android:id="@+id/textView10"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:text="Share via e-mail"
+        app:layout_constraintBottom_toBottomOf="@+id/shareEmailButton2"
+        app:layout_constraintStart_toEndOf="@+id/shareEmailButton2"
+        app:layout_constraintTop_toTopOf="@+id/shareEmailButton2" />
+
+    <TextView
+        android:id="@+id/textView11"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:text="Copy sharing link"
+        app:layout_constraintBottom_toBottomOf="@+id/copyLinkButton2"
+        app:layout_constraintStart_toEndOf="@+id/copyLinkButton2"
+        app:layout_constraintTop_toTopOf="@+id/copyLinkButton2" />
+
+    <ImageButton
+        android:id="@+id/whatsappShareButton2"
+        android:layout_width="58dp"
+        android:layout_height="59dp"
+        android:layout_marginTop="16dp"
+        android:background="@null"
+        android:onClick="whatsappShareButton"
+        android:scaleType="fitCenter"
+        app:layout_constraintStart_toStartOf="@+id/copyLinkButton2"
+        app:layout_constraintTop_toBottomOf="@+id/copyLinkButton2"
+        app:srcCompat="@drawable/whatsapp" />
+
+    <ImageButton
+        android:id="@+id/shareEmailButton2"
+        android:layout_width="58dp"
+        android:layout_height="59dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="32dp"
+        android:background="@null"
+        android:onClick="shareEmailButton"
+        android:scaleType="fitCenter"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="@+id/whatsappShareButton2"
+        app:layout_constraintTop_toBottomOf="@+id/whatsappShareButton2"
+        app:srcCompat="@drawable/gmail" />
+
+    <TextView
+        android:id="@+id/textView9"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:text="Share via Whatsapp"
+        app:layout_constraintBottom_toBottomOf="@+id/whatsappShareButton2"
+        app:layout_constraintStart_toEndOf="@+id/whatsappShareButton2"
+        app:layout_constraintTop_toTopOf="@+id/whatsappShareButton2"
+        app:layout_constraintVertical_bias="0.3" />
+
+    <TextView
+        android:id="@+id/textView8"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:text="Welcome!"
+        android:textSize="24sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/textView12"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="32dp"
+        android:text="You can now ask others to join the group"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView8" />
+
+    <Button
+        android:id="@+id/shareContinue"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="32dp"
+        android:background="@drawable/image_button_outline_white_solid"
+        android:text="Continue"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

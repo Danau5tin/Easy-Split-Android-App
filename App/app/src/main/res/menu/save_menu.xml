@@ -4,7 +4,7 @@
 
 
     <item
-        android:id="@+id/addExpenseSave"
+        android:id="@+id/menuSave"
         android:title="SAVE  "
         app:showAsAction="always" />
 </menu>

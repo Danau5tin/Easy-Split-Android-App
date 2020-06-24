@@ -23,4 +23,10 @@
         <item name="android:textStyle">bold</item>
     </style>
 
+    <style name="add_participant_button">
+        <item name="android:layout_width">81dp</item>
+        <item name="android:layout_height">34dp</item>
+        <item name="android:background">@drawable/image_button_outline_white_solid</item>
+    </style>
+
 </resources>
