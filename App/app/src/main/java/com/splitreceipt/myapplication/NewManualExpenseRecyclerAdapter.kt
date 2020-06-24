@@ -26,7 +26,7 @@ class NewManualExpenseRecyclerAdapter(var participantList: ArrayList<Participant
 
     override fun onBindViewHolder(holder: ItemizedViewholder, position: Int) {
         holder.participantCheckBox.text = participantList[position].name
-        holder.participantCheckBox.setOnCheckedChangeListener { buttonView, isChecked ->
+        holder.participantCheckBox.setOnCheckedChangeListener { _, isChecked ->
             if (!isChecked){
                 holder.onRec.onRecyUnCheck(holder.adapterPosition)
             } else {

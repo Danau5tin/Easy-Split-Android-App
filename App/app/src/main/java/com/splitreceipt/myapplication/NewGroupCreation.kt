@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -152,16 +153,17 @@ class NewGroupCreation : AppCompatActivity(), NewParticipantRecyAdapter.onPartRo
                     Toast.makeText(this, "Error #INSQ01. Contact Us", Toast.LENGTH_LONG).show()
                 }
                 else {
+                    val async = ASyncSaveImage(true, this, groupFirebaseId)
                     val intent = Intent(this, ExpenseOverviewActivity::class.java)
                     if (newBitmap == null){
-                        //User has not uploaded an group profile image
-                        //TODO: Set a standard image as logo
+                        //User has not uploaded a group profile image
+                        newBitmap = BitmapFactory.decodeResource(resources, R.drawable.easy_split_logo)
+                        path = async.execute(newBitmap!!).get()
                     } else {
                         //User has uploaded a group profile image
-                        val async = ASyncSaveImage(true, this, groupFirebaseId)
                         path = async.execute(newBitmap!!).get()
-                        intent.putExtra(ExpenseOverviewActivity.ImagePathIntent, path)
                     }
+                    intent.putExtra(ExpenseOverviewActivity.ImagePathIntent, path)
                     intent.putExtra(GroupScreenActivity.sqlIntentString, sqlRow.toString())
                     intent.putExtra(GroupScreenActivity.firebaseIntentString, groupFirebaseId)
                     intent.putExtra(GroupScreenActivity.userIntentString, sqlUser)

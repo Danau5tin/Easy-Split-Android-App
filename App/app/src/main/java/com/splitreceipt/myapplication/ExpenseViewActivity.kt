@@ -219,12 +219,13 @@ class ExpenseViewActivity : AppCompatActivity() {
         AlertDialog.Builder(this).apply {
             setIcon(R.drawable.vector_warning_yellow)
             setTitle("Are you sure?")
-            setMessage("This expense will be deleted forever.")
+            setMessage("This expense will be deleted forever. For everyone. ")
             setPositiveButton("Yes delete", object: DialogInterface.OnClickListener{
                 override fun onClick(dialog: DialogInterface?, which: Int) {
                     val dbHelper = SqlDbHelper(context)
                     val prevContributionString: String = dbHelper.locatePriorContributions(sqlRowId)
                     dbHelper.deleteExpense(sqlRowId)
+                    ExpenseOverviewActivity.firebaseDbHelper!!.deleteExpense(firebaseExpenseID, getScannedIntent)
 
                     Toast.makeText(context, "Deleted successfully", Toast.LENGTH_SHORT).show()
                     reversePriorExpenseAfterDeletion(prevContributionString)

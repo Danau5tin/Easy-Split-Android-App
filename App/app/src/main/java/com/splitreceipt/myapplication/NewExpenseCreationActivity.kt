@@ -224,9 +224,10 @@ class NewExpenseCreationActivity : AppCompatActivity() {
                                 return true
                             } else {
                                 // User is editing a previously saved receipt expense
-                                val sqlRow = sqlDbHelper.updateExpense(editSqlRowId, date, title, total, paidBy, contributionsString, lastEdit)
+                                sqlDbHelper.updateExpense(editSqlRowId, date, title, total, paidBy, contributionsString, lastEdit)
                                 sqlDbHelper.updateItemsSql(writeableDB, itemizedProductList)
                                 firebaseDbHelper!!.createUpdateNewExpense(firebaseEditExpenseID, date, title, total, paidBy, contributionsString, true, lastEdit)
+                                firebaseDbHelper!!.addUpdateReceiptItems(firebaseEditExpenseID, itemizedProductList)
                                 intent.putExtra(ExpenseViewActivity.expenseReturnEditTitle, title)
                                 intent.putExtra(ExpenseViewActivity.expenseReturnEditTotal, total.toString())
                                 intent.putExtra(ExpenseViewActivity.expenseReturnEditPaidBy, paidBy)
@@ -349,7 +350,7 @@ class NewExpenseCreationActivity : AppCompatActivity() {
         // date picker dialog
         val picker = DatePickerDialog(
             this,
-            DatePickerDialog.OnDateSetListener { view, year, monthOfYear, dayOfMonth ->
+            DatePickerDialog.OnDateSetListener { _, year, monthOfYear, dayOfMonth ->
                 val dayString = cleanDay(dayOfMonth)
                 val monthString = cleanMonth(monthOfYear)
                 val yearString: String = year.toString()
@@ -383,7 +384,7 @@ class NewExpenseCreationActivity : AppCompatActivity() {
     }
 
     private fun cleanDay(dayOfMonth: Int): String {
-        var dayString = ""
+        val dayString: String
         val day = dayOfMonth.toString()
         dayString = if (day.length == 1) {
             "0$day"
@@ -395,7 +396,7 @@ class NewExpenseCreationActivity : AppCompatActivity() {
 
     private fun cleanMonth(monthOfYear: Int): String {
         val monthOf = monthOfYear + 1
-        var monthString = ""
+        val monthString: String
         monthString = if (monthOf in 1..9) {
             "0$monthOf"
         } else {

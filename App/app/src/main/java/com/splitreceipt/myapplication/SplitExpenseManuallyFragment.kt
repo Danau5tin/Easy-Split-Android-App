@@ -87,7 +87,7 @@ class SplitExpenseManuallyFragment : Fragment(), NewManualExpenseRecyclerAdapter
                     setContributionStatus()}}})
 
 
-        binding.currencyButton.setOnClickListener{v ->
+        binding.currencyButton.setOnClickListener{
             val intent = Intent(activity, CurrencySelectorActivity::class.java)
             startActivityForResult(intent, CURRENCY_INTENT)
         }

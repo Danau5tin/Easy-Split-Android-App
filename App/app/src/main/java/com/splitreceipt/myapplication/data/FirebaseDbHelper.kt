@@ -200,4 +200,15 @@ class FirebaseDbHelper(private var firebaseGroupId: String) {
         currentPath.setValue(newParticipantString)
     }
 
+    fun deleteExpense(expenseId: String, scan: Boolean) {
+        val expensePath = "$firebaseGroupId$expenses/$expenseId"
+        currentPath = database.getReference(expensePath)
+        currentPath.removeValue()
+        if (scan) {
+            val expenseScannedPath = "$firebaseGroupId$scanned/$expenseId"
+            currentPath = database.getReference(expenseScannedPath)
+            currentPath.removeValue()
+        }
+    }
+
 }

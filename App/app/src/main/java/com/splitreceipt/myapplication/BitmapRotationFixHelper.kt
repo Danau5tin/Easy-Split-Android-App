@@ -17,16 +17,16 @@ class BitmapRotationFixHelper {
         photoUri: Uri?,
         bitmap: Bitmap
     ): Bitmap? {
-        var bitmap = bitmap
+        var newBbitmap = bitmap
         val orientation = getOrientation(context!!, photoUri!!)
         if (orientation <= 0) {
-            return bitmap
+            return newBbitmap
         }
         val matrix = Matrix()
         matrix.postRotate(orientation.toFloat())
-        bitmap =
-            Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, false)
-        return bitmap
+        newBbitmap =
+            Bitmap.createBitmap(newBbitmap, 0, 0, newBbitmap.width, newBbitmap.height, matrix, false)
+        return newBbitmap
     }
 
     @RequiresApi(Build.VERSION_CODES.Q)
