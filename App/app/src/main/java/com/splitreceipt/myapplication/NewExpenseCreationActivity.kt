@@ -2,6 +2,7 @@ package com.splitreceipt.myapplication
 
 import android.app.Activity
 import android.app.DatePickerDialog
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -61,6 +62,11 @@ class NewExpenseCreationActivity : AppCompatActivity() {
         var isEdit: Boolean = false
         var isScanned: Boolean = false
         var editTotal: String = ""
+
+        fun retrieveTodaysDate(context: Context): String {
+            val date = LocalDate.now()
+            return date.format(DateTimeFormatter.ofPattern(context.getString(R.string.date_format_dd_MM_yyyy))).toString()
+        }
 
     }
 
@@ -122,8 +128,6 @@ class NewExpenseCreationActivity : AppCompatActivity() {
             setDisplayShowHomeEnabled(true)
             setHomeAsUpIndicator(R.drawable.vector_x_white)
         }
-
-
     }
 
     private fun deconstructAndBuildEditContribs(editContributions: String) {
@@ -366,7 +370,7 @@ class NewExpenseCreationActivity : AppCompatActivity() {
     private fun getDate(): String{
         val dateSelection = binding.dateButton.text.toString()
         return if (dateSelection == getString(R.string.when_today)) {
-            retrieveTodaysDate()
+            retrieveTodaysDate(this)
         } else {
             dateSelection
         }
@@ -376,11 +380,6 @@ class NewExpenseCreationActivity : AppCompatActivity() {
         Toast.makeText(this, "Expense cancelled", Toast.LENGTH_SHORT).show()
         onBackPressed()
         return true
-    }
-
-    private fun retrieveTodaysDate(): String {
-        val date = LocalDate.now()
-        return date.format(DateTimeFormatter.ofPattern(getString(R.string.date_format_dd_MM_yyyy))).toString()
     }
 
     private fun cleanDay(dayOfMonth: Int): String {

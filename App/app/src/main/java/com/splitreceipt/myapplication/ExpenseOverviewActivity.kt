@@ -52,6 +52,7 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
     private lateinit var adapter: ExpenseOverViewAdapter
     private val seeExpenseResult = 10
     private val addExpenseResult = 20
+    private val seeBalancesResult = 60
     private val settingsResult = 30
     private val requestStorage = 40
     private val pickImage = 50
@@ -307,6 +308,11 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
         startActivityForResult(intent, addExpenseResult)
     }
 
+    fun settleUpButton(view: View) {
+        val intent = Intent(this, SettleGroupActivity::class.java)
+        startActivityForResult(intent, addExpenseResult)
+    }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         var newSettlementString: String?
@@ -374,6 +380,14 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
                 val lastEdit = System.currentTimeMillis().toString()
                 firebaseDbHelper!!.setGroupImageLastEdit(lastEdit)
                 SqlDbHelper(this).setLastImageEdit(lastEdit, getSqlGroupId)
+            }
+        } else if (requestCode == seeBalancesResult){
+            if (resultCode == Activity.RESULT_OK){
+                val settle = data?.getBooleanExtra(BalanceOverviewActivity.balanceResult, false)
+                if (settle!!) {
+                    val intent = Intent(this, SettleGroupActivity::class.java)
+                    startActivityForResult(intent, addExpenseResult)
+                }
             }
         }
     }
@@ -454,7 +468,7 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
 
     fun balancesButtonPressed(view: View) {
         val intent = Intent(this, BalanceOverviewActivity::class.java)
-        startActivity(intent)
+        startActivityForResult(intent, seeBalancesResult)
     }
 
     override fun onRowClick(

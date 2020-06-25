@@ -1,13 +1,22 @@
 package com.splitreceipt.myapplication
 
+import android.app.Activity
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.appcompat.app.ActionBar
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.splitreceipt.myapplication.databinding.ActivityBalanceOverviewBinding
 
-class BalanceOverviewActivity : AppCompatActivity() {
+class BalanceOverviewActivity : AppCompatActivity(), BalanceOverviewAdapter.balanceRowClick {
 
     private lateinit var binding: ActivityBalanceOverviewBinding
+    private lateinit var adapter: BalanceOverviewAdapter
+    private val settleResult: Int = 10
+
+    companion object {
+        val balanceResult = "balanceResult"
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -23,12 +32,20 @@ class BalanceOverviewActivity : AppCompatActivity() {
             setHomeAsUpIndicator(R.drawable.vector_back_arrow_white)
         }
 
-        binding.balanceScreenText.text = ExpenseOverviewActivity.settlementArray.toString()
+        adapter = BalanceOverviewAdapter(ExpenseOverviewActivity.settlementArray, this)
+        binding.balanceRecyler.layoutManager = LinearLayoutManager(this)
+        binding.balanceRecyler.adapter = adapter
     }
 
     override fun onSupportNavigateUp(): Boolean {
         onBackPressed()
         return super.onSupportNavigateUp()
+    }
+
+    override fun onBalRowClick(pos: Int) {
+        intent.putExtra(balanceResult, true)
+        setResult(Activity.RESULT_OK, intent)
+        finish()
     }
 
 }

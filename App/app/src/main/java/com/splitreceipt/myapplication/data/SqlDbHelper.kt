@@ -126,12 +126,12 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
         close()
     }
 
-    fun insertNewExpense(sqlGroupId: String, recFirebaseId: String, date: String, title: String,
+    fun insertNewExpense(sqlGroupId: String, firebaseId: String, date: String, title: String,
                          total: Float, paidBy: String, contributions: String, scanned: Boolean, lastEdit: String) : Int{
         val write = writableDatabase
         val scannedInt: Int = if (scanned) { 1 } else { 0 }
         val values = ContentValues().apply {
-            put(EXPENSE_COL_FIREBASE_ID, recFirebaseId)
+            put(EXPENSE_COL_FIREBASE_ID, firebaseId)
             put(EXPENSE_COL_DATE, date)
             put(EXPENSE_COL_TITLE, title)
             put(EXPENSE_COL_TOTAL, total)

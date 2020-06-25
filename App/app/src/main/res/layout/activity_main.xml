@@ -111,7 +111,7 @@
         android:background="@drawable/image_button_outline_white_solid"
         android:onClick="balancesButtonPressed"
         android:text="Balances"
-        app:layout_constraintStart_toStartOf="@+id/receiptOverBalanceString"
+        app:layout_constraintStart_toEndOf="@+id/groupProfileImage"
         app:layout_constraintTop_toBottomOf="@+id/receiptOverBalanceString" />
 
     <Button
@@ -120,9 +120,10 @@
         android:layout_height="35dp"
         android:layout_marginStart="32dp"
         android:background="@drawable/image_button_outline_white_solid"
-        android:text="Settle group"
+        android:onClick="settleUpButton"
+        android:text="Settle up"
         app:layout_constraintBottom_toBottomOf="@+id/button4"
-        app:layout_constraintEnd_toEndOf="@+id/receiptOverBalanceString"
+        app:layout_constraintEnd_toEndOf="@+id/groupNameTitleText"
         app:layout_constraintStart_toEndOf="@+id/button4"
         app:layout_constraintTop_toTopOf="@+id/button4" />
 
