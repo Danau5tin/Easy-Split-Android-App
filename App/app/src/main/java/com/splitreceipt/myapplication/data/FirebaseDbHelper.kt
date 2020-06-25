@@ -184,6 +184,7 @@ class FirebaseDbHelper(private var firebaseGroupId: String) {
     }
 
     fun downloadGroupProfileImage(context: Context, circleImageView: CircleImageView) {
+        // Download the group profile image. Save it locally. Set the image to a view.
         val storageReference = FirebaseStorage.getInstance().getReference(firebaseGroupId)
         val userStorageRef = storageReference.child(firebaseGroupId)
         val downloadTask = userStorageRef.getBytes(1000000000)

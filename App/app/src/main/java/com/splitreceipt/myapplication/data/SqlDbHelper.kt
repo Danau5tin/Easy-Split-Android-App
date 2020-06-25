@@ -255,6 +255,22 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
         return participantList
     }
 
+    fun retrieveSqlAccountInfoData(sqlGroupId: String) : FirebaseAccountInfoData {
+        val read = readableDatabase
+        val columns = arrayOf(GROUP_COL_NAME, GROUP_COL_PARTICIPANTS, GROUP_COL_LAST_IMAGE_EDIT)
+        val where = "$GROUP_COL_ID = ?"
+        val whereArgs = arrayOf(sqlGroupId)
+        val cursor: Cursor = read.query(GROUP_TABLE_NAME, columns, where, whereArgs, null, null, null)
+        val nameIndex = cursor.getColumnIndexOrThrow(GROUP_COL_NAME)
+        val participantIndex = cursor.getColumnIndexOrThrow(GROUP_COL_PARTICIPANTS)
+        val lastImageIndex = cursor.getColumnIndexOrThrow(GROUP_COL_LAST_IMAGE_EDIT)
+        cursor.moveToNext()
+        val groupName = cursor.getString(nameIndex)
+        val participants = cursor.getString(participantIndex)
+        val lastEdit = cursor.getString(lastImageIndex)
+        return FirebaseAccountInfoData(groupName, participants, lastEdit)
+    }
+
     fun loadSqlSettlementString(sqlAccountId: String?): String {
         var settlementString = ""
         val reader = readableDatabase
@@ -462,6 +478,18 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
         val whereArgs = arrayOf(groupSqlId)
         write.update(GROUP_TABLE_NAME, values, where, whereArgs)
         close()
+    }
+
+    fun updateGroupInfo(firebaseGroupData: FirebaseAccountInfoData, sqlGroupId: String) {
+        val write = writableDatabase
+        val values = ContentValues().apply {
+            put(GROUP_COL_NAME, firebaseGroupData.accName)
+            put(GROUP_COL_PARTICIPANTS, firebaseGroupData.accParticipants)
+            put(GROUP_COL_LAST_IMAGE_EDIT, firebaseGroupData.accLastImage)
+        }
+        val where = "$GROUP_COL_ID = ?"
+        val whereArgs = arrayOf(sqlGroupId)
+        write.update(GROUP_TABLE_NAME, values, where, whereArgs)
     }
 
 }
