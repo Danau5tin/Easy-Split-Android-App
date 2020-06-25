@@ -20,7 +20,6 @@ class FirebaseDbHelper(private var firebaseGroupId: String) {
 
     //Common paths
     private var groupInfo = "/info"
-    private var groupLastEdit = "/lastEdit"
     private var groupFin = "/finance"
     private var expenses = "/expenses"
     private var scanned = "/scanned"
@@ -162,6 +161,12 @@ class FirebaseDbHelper(private var firebaseGroupId: String) {
             currentPath.setValue(firebaseProductData)
             count ++
         }
+    }
+
+    fun updateGroupName(groupName: String) {
+        val groupInfoPath = "$firebaseGroupId$groupInfo"
+        currentPath = database.getReference(groupInfoPath).child("accName")
+        currentPath.setValue(groupName)
     }
 
     fun uploadGroupProfileImage(imageRef: Bitmap?) {

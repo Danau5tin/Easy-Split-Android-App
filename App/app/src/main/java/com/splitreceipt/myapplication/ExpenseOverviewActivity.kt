@@ -9,7 +9,6 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
@@ -64,7 +63,7 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
         var getSqlUser: String? = "unknown"
         var getSqlGroupId: String? = "-1"
         var getFirebaseId: String? = "-1"
-        var getAccountName: String? = "?"
+        var getGroupName: String? = "?"
         var settlementArray: ArrayList<String> = ArrayList()
         const val balanced_string: String = "balanced"
         const val ImagePathIntent = "path_intent"
@@ -133,8 +132,8 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
         storageRef = FirebaseStorage.getInstance().reference
         getSqlGroupId = intent.getStringExtra(GroupScreenActivity.sqlIntentString)
         getSqlUser = intent.getStringExtra(GroupScreenActivity.userIntentString)
-        getAccountName = intent.getStringExtra(GroupScreenActivity.groupNameIntentString)
-        binding.groupNameTitleText.text = getAccountName
+        getGroupName = intent.getStringExtra(GroupScreenActivity.groupNameIntentString)
+        binding.groupNameTitleText.text = getGroupName
         getFirebaseId = intent.getStringExtra(GroupScreenActivity.firebaseIntentString)
 
         firebaseDbHelper = null
@@ -209,7 +208,6 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
                 for (expense in data.children){
                     val firebaseID = expense.key
                     var exists = false
-
                     val expen = data.child(firebaseID!!)
                     val newExpense = expen.getValue(FirebaseExpenseData::class.java)!!
                     val lastEdit = newExpense.expLastEdit
@@ -220,29 +218,23 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
                     val contribs = newExpense.expContribs
                     val scanned = newExpense.expScanned
 
-
                     for (sqlExpense in sqlExpenses) {
                         if (firebaseID == sqlExpense.firebaseId){
                             // Receipt IS in the users SQL db
                             Log.i("Fbase-E", "Receipt $firebaseID IS in Sql db")
-
                             if (lastEdit != sqlExpense.lastEdit) {
                                 //The expense has been updated since the user has last used the app. Update changes locally.
                                 sqlDbHelper.updateExpense(sqlExpense.sqlRowId, date, title, total, paidBy, contribs, lastEdit)
                             }
-
                             exists = true
                             break
                         }
                     }
-
                     if (!exists) {
                         // Receipt is NOT in the users SQL db
                         Log.i("Fbase-E", "Receipt $firebaseID is NOT in Sql db")
-
                         //Save expense into SQL
                         val expenseSqlRow = sqlDbHelper.insertNewExpense(getSqlGroupId!!, firebaseID, date, title, total, paidBy, contribs, scanned, lastEdit)
-                        //TODO: if the receipt is scanned then lets download it and save it to Sql.
                         if (scanned){
                             // If the expense is a scanned receipt then download and add this receipt to sql
                             val scannedRef = firebaseDbHelper!!.getScannedListeningRef(firebaseID)
@@ -360,26 +352,18 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
             }
         } else if (requestCode == settingsResult) {
             if (resultCode == Activity.RESULT_OK) {
-                //TODO: Create functionality to handle group settings changes.
+                val groupName = data?.getStringExtra(GroupSettingsActivity.groupNameReturnIntent)
+                binding.groupNameTitleText.text = groupName
+                val uriString: String? = intent.getStringExtra(GroupSettingsActivity.groupImageChangedUriIntent)
+                if (uriString != null) {
+                    val uri = Uri.parse(uriString)
+                    binding.groupProfileImage.setImageURI(uri)
+                }
             }
         } else if (requestCode == pickImage) {
             if (resultCode == Activity.RESULT_OK) {
                 val uri: Uri? = data!!.data
-                binding.groupProfileImage.setImageURI(uri!!)
-                val bitmap = MediaStore.Images.Media.getBitmap(contentResolver, uri)
-                val bitmapRotationFixHelper = BitmapRotationFixHelper()
-                val newBitmap: Bitmap
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    newBitmap = bitmapRotationFixHelper.rotateBitmap(this, uri, bitmap)!!
-                } else {
-                    newBitmap = bitmap
-                }
-                firebaseDbHelper!!.uploadGroupProfileImage(newBitmap)
-                val aSyncSaveImage = ASyncSaveImage(true, this, getFirebaseId!!)
-                aSyncSaveImage.execute(newBitmap)
-                val lastEdit = System.currentTimeMillis().toString()
-                firebaseDbHelper!!.setGroupImageLastEdit(lastEdit)
-                SqlDbHelper(this).setLastImageEdit(lastEdit, getSqlGroupId)
+                GroupSettingsActivity.handleNewImage(this, uri!!, binding.groupProfileImage)
             }
         } else if (requestCode == seeBalancesResult){
             if (resultCode == Activity.RESULT_OK){
@@ -488,6 +472,22 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
         startActivityForResult(intent, seeExpenseResult)
     }
 
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        when(requestCode) {
+            requestStorage -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    openGallery()
+                } else {
+                    Toast.makeText(this, "Permission required to add photo", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.group_options_menu, menu)
         return true
@@ -502,6 +502,8 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
             }
             R.id.groupSettings -> {
                 val intent = Intent(this, GroupSettingsActivity::class.java)
+                intent.putExtra(GroupSettingsActivity.groupNameIntent, getGroupName)
+                intent.putExtra(GroupSettingsActivity.groupSqlIdIntent, getSqlGroupId)
                 startActivityForResult(intent, settingsResult)
                 return true
             }

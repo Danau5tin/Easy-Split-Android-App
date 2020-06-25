@@ -219,6 +219,17 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
         return write.update(EXPENSE_TABLE_NAME, values, whereClause, whereArgs).toString()
     }
 
+    fun updateGroupName(groupSqlId: String, groupName: String) {
+        val write = writableDatabase
+        val values = ContentValues().apply {
+            put(GROUP_COL_NAME, groupName)
+        }
+        val where = "$GROUP_COL_ID = ?"
+        val whereArgs = arrayOf(groupSqlId)
+        write.update(GROUP_TABLE_NAME, values, where, whereArgs)
+        close()
+    }
+
     fun retrieveParticipants(participantList: ArrayList<String>, sqlAccountId: String) : ArrayList<String> {
         /*
         Query the sql DB for the current group to find its participants
