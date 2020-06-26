@@ -8,19 +8,21 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.MediaStore
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
-import com.splitreceipt.myapplication.data.SqlDbHelper
 import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_ID
 import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_TABLE_NAME
+import com.splitreceipt.myapplication.data.SqlDbHelper
 import com.splitreceipt.myapplication.databinding.ActivityGroupSettingsBinding
+
 
 class GroupSettingsActivity : AppCompatActivity() {
 
@@ -59,12 +61,23 @@ class GroupSettingsActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityGroupSettingsBinding.inflate(layoutInflater)
-        setContentView(R.layout.activity_group_settings)
+        setContentView(binding.root)
 
         val groupName = intent.getStringExtra(groupNameIntent)
+        binding.nameEdit.setText(groupName)
+
+        setSupportActionBar(findViewById(R.id.toolbar))
+        supportActionBar?.title = "Group settings"
+        supportActionBar?.apply {
+            setDisplayShowHomeEnabled(true)
+            setDisplayHomeAsUpEnabled(true)
+            setHomeAsUpIndicator(R.drawable.vector_back_arrow_white)
+        }
+
         sqlRowId = intent.getStringExtra(groupSqlIdIntent)!!
-        binding.groupNameEditText.setText(groupName)
         imageUri = null
+        val bitmap = ExpenseOverviewActivity.loadImageFromStorage(this, true, ExpenseOverviewActivity.getFirebaseId!!)
+        binding.groupImage.setImageBitmap(bitmap)
     }
 
     fun deleteGroupButton(view: View) {
@@ -103,12 +116,12 @@ class GroupSettingsActivity : AppCompatActivity() {
             R.id.menuSave -> {
                 val okayToProceed = checkOkayToProceed()
                 if (okayToProceed) {
-                    val groupName = binding.groupNameEditText.text.toString()
+                    val groupName = binding.nameEdit.text.toString()
                     ExpenseOverviewActivity.firebaseDbHelper!!.updateGroupName(groupName)
                     SqlDbHelper(this).updateGroupName(sqlRowId, groupName)
                     intent.putExtra(groupNameReturnIntent, groupName)
                     intent.putExtra(groupImageChangedUriIntent, imageUri)
-                    setResult(Activity.RESULT_OK)
+                    setResult(Activity.RESULT_OK, intent)
                     finish()
                     return true
                 }else {
@@ -120,7 +133,7 @@ class GroupSettingsActivity : AppCompatActivity() {
     }
 
     private fun checkOkayToProceed(): Boolean {
-        if (binding.groupNameEditText.text!!.isEmpty()) {
+        if (binding.nameEdit.text!!.isEmpty()) {
             Toast.makeText(this, "Check group name", Toast.LENGTH_SHORT).show()
             return false
         } else {
@@ -172,5 +185,10 @@ class GroupSettingsActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    override fun onSupportNavigateUp(): Boolean {
+        onBackPressed()
+        return true
     }
 }

@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.ArrayAdapter
 import android.widget.Toast
 import com.splitreceipt.myapplication.data.SqlDbHelper
 import com.splitreceipt.myapplication.databinding.ActivitySettleGroupBinding
@@ -27,6 +28,12 @@ class SettleGroupActivity : AppCompatActivity() {
             setDisplayShowHomeEnabled(true)
             setHomeAsUpIndicator(R.drawable.vector_back_arrow_white)
         }
+
+        var participantList: ArrayList<String> = ArrayList()
+        participantList = SqlDbHelper(this).retrieveParticipants(participantList, ExpenseOverviewActivity.getSqlGroupId!!)
+        val spinnerAdapter = ArrayAdapter(this, R.layout.support_simple_spinner_dropdown_item, participantList)
+        binding.fromSelectionSpinner.adapter = spinnerAdapter
+        binding.toSelectionSpinner.adapter = spinnerAdapter
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
