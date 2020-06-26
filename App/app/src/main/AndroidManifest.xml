@@ -13,7 +13,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".SettleGroupActivity"></activity>
+        <activity android:name=".ScanCropImageActivity"/>
+        <activity android:name=".SettleGroupActivity" />
         <activity android:name=".NewParticipantInviteActivity" />
         <activity android:name=".WelcomeJoinActivity" />
         <activity android:name=".GroupSettingsActivity" />

@@ -162,7 +162,7 @@ class NewExpenseCreationActivity : AppCompatActivity() {
                     //Obtain global receipt details
                     val date = getDate()
                     val title =  binding.receiptTitleEditText.text.toString()
-                    val total : Float
+                    var total : Float
                     val paidBy = binding.paidBySpinner.selectedItem.toString()
                     val expenseFirebaseID: String?
                     val scanned: Boolean
@@ -172,6 +172,7 @@ class NewExpenseCreationActivity : AppCompatActivity() {
                     if (currentPage == 0) {
                         //User is saving a manual expense
                         total = findViewById<EditText>(R.id.currencyAmount).text.toString().toFloat()
+                        total = roundToTwoDecimalPlace(total)
                         val participantDataList = SplitExpenseManuallyFragment.fragmentManualParticipantList
                         val participantBalDataList: ArrayList<ParticipantBalanceData> = particDataToParticBalData(participantDataList)
                         val contributionsString = createContribString(participantBalDataList, paidBy)
