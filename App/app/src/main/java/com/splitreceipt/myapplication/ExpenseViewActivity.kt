@@ -31,6 +31,9 @@ class ExpenseViewActivity : AppCompatActivity() {
         lateinit var expenseDate: String
         lateinit var contributionString: String
         lateinit var firebaseExpenseID: String
+        lateinit var expenseCurrency: String
+        var expenseExchangeRate: Float = 0.0F
+
         const val expenseSqlIntentString: String = "expense_sql_id"
         const val expenseTitleIntentString: String = "expense_title"
         const val expenseTotalIntentString: String = "expense_total"
@@ -97,7 +100,10 @@ class ExpenseViewActivity : AppCompatActivity() {
         for (contribution in contributionsSplit) {
             val individualContrib = contribution.split(",")
             val contributor = ExpenseOverviewActivity.changeNameToYou(individualContrib[0], true)
-            val value = SplitExpenseManuallyFragment.addStringZerosForDecimalPlace(individualContrib[1])
+            val baseContribution = individualContrib[1].toFloat()
+            // If the expense was in a different currency to the base currency then re-convert it.
+            val originalContribution = CurrencyExchangeHelper.reversePreviousExchange(expenseExchangeRate, baseContribution)
+            val value = SplitExpenseManuallyFragment.addStringZerosForDecimalPlace(originalContribution.toString())
             val newString = "$contributor contributed £$value" //TODO: Ensure the correct currency
             contributionList.add(ExpenseAdapterData(newString, value))
         }
@@ -123,6 +129,8 @@ class ExpenseViewActivity : AppCompatActivity() {
         intent.putExtra(NewExpenseCreationActivity.intentSqlGroupIdString, ExpenseOverviewActivity.getSqlGroupId)
         intent.putExtra(NewExpenseCreationActivity.editIntentFirebaseExpenseIdString, firebaseExpenseID)
         intent.putExtra(NewExpenseCreationActivity.editIntentScannedBoolean, getScannedIntent)
+        NewExpenseCreationActivity.editExchangeRate = expenseExchangeRate
+        NewExpenseCreationActivity.editCurrency = expenseCurrency
         startActivityForResult(intent, EDIT_EXPENSE_INTENT_CODE)
     }
 

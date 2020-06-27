@@ -14,6 +14,7 @@ object DbManager {
         const val GROUP_COL_SETTLEMENTS = "settlements"
         const val GROUP_COL_USER = "sql_user"
         const val GROUP_COL_LAST_IMAGE_EDIT = "last_image_edit"
+        const val GROUP_COL_BASE_CURRENCY = "base_currency"
     }
 
     object ExpenseTable: BaseColumns {
@@ -27,6 +28,8 @@ object DbManager {
         const val EXPENSE_COL_CONTRIBUTIONS = "contributions"
         const val EXPENSE_COL_SCANNED = "scanned"
         const val EXPENSE_COL_LAST_EDIT = "last_edit"
+        const val EXPENSE_COL_CURRENCY = "expense_currency"
+        const val EXPENSE_COL_EXCHANGE_RATE = "exchange_rate"
         const val EXPENSE_COL_FK_GROUP_ID = "group_id"
     }
 
@@ -37,6 +40,15 @@ object DbManager {
         const val ITEMS_COL_VALUE = "item_value"
         const val ITEMS_COL_OWNERSHIP = "ownership"
         const val ITEMS_COL_FK_EXPENSE_ID = "receipt_id"
+    }
+
+    object CurrencyTable: BaseColumns {
+        const val CURRENCY_TABLE_NAME = "currencies"
+        const val CURRENCY_ID = BaseColumns._ID
+        const val CURRENCY_CODE = "currency_code"
+        const val CURRENCY_BASE = "base_currency"
+        const val CURRENCY_RATE = "rate"
+        const val CURRENCY_LAST_UPDATE = "last_update"
     }
 
 }

@@ -22,7 +22,7 @@ class ScanCropImageActivity : AppCompatActivity() {
         binding = ActivityScanCropImageBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        var bmp: Bitmap? = null
+        val bmp: Bitmap?
         val filename = intent.getStringExtra("bitmap")
         try {
             val input = openFileInput(filename)

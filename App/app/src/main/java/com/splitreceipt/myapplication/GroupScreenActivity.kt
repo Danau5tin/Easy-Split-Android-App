@@ -31,6 +31,7 @@ class GroupScreenActivity : AppCompatActivity() {
         var firebaseIntentString: String = "fireBaseId"
         var userIntentString: String = "user"
         var groupNameIntentString: String = "groupName"
+        var groupBaseCurrencyIntent: String = "groupCurrency"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

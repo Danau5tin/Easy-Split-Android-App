@@ -136,4 +136,16 @@
         app:layout_constraintTop_toTopOf="@+id/textInputLayout2"
         style="@style/add_participant_button" />
 
+    <Button
+        android:id="@+id/newGroupCurrencyButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:background="@drawable/image_button_outline_white_solid"
+        android:padding="5dp"
+        android:text="Choose group currency"
+        android:onClick="newGroupCurrencyButton"
+        app:layout_constraintStart_toStartOf="@+id/groupTitleText"
+        app:layout_constraintTop_toBottomOf="@+id/groupTitleText" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

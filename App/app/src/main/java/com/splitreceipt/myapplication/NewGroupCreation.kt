@@ -1,6 +1,7 @@
 package com.splitreceipt.myapplication
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -22,6 +23,8 @@ import com.google.firebase.storage.StorageReference
 import com.splitreceipt.myapplication.data.FirebaseDbHelper
 import com.splitreceipt.myapplication.data.SqlDbHelper
 import com.splitreceipt.myapplication.data.ParticipantNewGroupData
+import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_ACCOUNT_CURRENCY_CODE
+import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_NAME
 import com.splitreceipt.myapplication.databinding.ActivityNewGroupCreationBinding
 import java.util.*
 import kotlin.collections.ArrayList
@@ -37,8 +40,9 @@ class NewGroupCreation : AppCompatActivity(), NewParticipantRecyAdapter.onPartRo
     private lateinit var storageReference: StorageReference
     private lateinit var recyAdapter: NewParticipantRecyAdapter
     private lateinit var participantList: ArrayList<String>
-    private val PICK_IMAGE: Int = 10
-    private val REQUEST_STORAGE = 20
+    private val pickImage: Int = 10
+    private val requestStorage = 20
+    private val baseCurrencySelection = 30
     private var path = ""
     private var newBitmap: Bitmap? = null
     private lateinit var groupFirebaseId: String
@@ -140,14 +144,13 @@ class NewGroupCreation : AppCompatActivity(), NewParticipantRecyAdapter.onPartRo
                 val balances: String = participantData.balanceString
                 val settlementString = "balanced"
                 val imageUploadLastEditTime = System.currentTimeMillis().toString()
+                val currencyCode = binding.newGroupCurrencyButton.text.toString()
 
                 // Save to SQL and upload to firebase
                 val sqlRow = SqlDbHelper(this).insertNewGroup(groupFirebaseId, title,
-                    participants, balances, settlementString, sqlUser, imageUploadLastEditTime)
-
-
+                    participants, balances, settlementString, sqlUser, imageUploadLastEditTime, currencyCode)
                 firebaseDbHelper!!.createNewGroup(title, balances,
-                    settlementString, participants, imageUploadLastEditTime)
+                    settlementString, participants, imageUploadLastEditTime, currencyCode)
 
                 if (sqlRow == -1) {
                     Toast.makeText(this, "Error #INSQ01. Contact Us", Toast.LENGTH_LONG).show()
@@ -156,7 +159,7 @@ class NewGroupCreation : AppCompatActivity(), NewParticipantRecyAdapter.onPartRo
                     val async = ASyncSaveImage(true, this, groupFirebaseId)
                     val intent = Intent(this, ExpenseOverviewActivity::class.java)
                     if (newBitmap == null){
-                        //User has not uploaded a group profile image
+                        //User has not uploaded a group profile image. Use default logo.
                         newBitmap = BitmapFactory.decodeResource(resources, R.drawable.easy_split_logo)
                         path = async.execute(newBitmap!!).get()
                     } else {
@@ -168,6 +171,7 @@ class NewGroupCreation : AppCompatActivity(), NewParticipantRecyAdapter.onPartRo
                     intent.putExtra(GroupScreenActivity.firebaseIntentString, groupFirebaseId)
                     intent.putExtra(GroupScreenActivity.userIntentString, sqlUser)
                     intent.putExtra(GroupScreenActivity.groupNameIntentString, title)
+                    intent.putExtra(GroupScreenActivity.groupBaseCurrencyIntent, currencyCode)
                     intent.putExtra(ExpenseOverviewActivity.ImagePathIntent, path)
                     startActivity(intent)
                     finish()
@@ -196,7 +200,7 @@ class NewGroupCreation : AppCompatActivity(), NewParticipantRecyAdapter.onPartRo
 
     fun newGroupImageButton(view: View) {
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.WRITE_EXTERNAL_STORAGE), REQUEST_STORAGE)
+            ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.WRITE_EXTERNAL_STORAGE), requestStorage)
         } else {
             openGallery()
         }
@@ -208,7 +212,7 @@ class NewGroupCreation : AppCompatActivity(), NewParticipantRecyAdapter.onPartRo
         grantResults: IntArray
     ) {
         when (requestCode) {
-            REQUEST_STORAGE -> {
+            requestStorage -> {
                 if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     openGallery()
                 } else {
@@ -220,13 +224,13 @@ class NewGroupCreation : AppCompatActivity(), NewParticipantRecyAdapter.onPartRo
 
     private fun openGallery() {
         val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-        startActivityForResult(intent, PICK_IMAGE)
+        startActivityForResult(intent, pickImage)
     }
 
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == PICK_IMAGE) {
+        if (requestCode == pickImage) {
             if (resultCode == Activity.RESULT_OK) {
                 val uri: Uri? = data!!.data
                 binding.newGroupImage.setImageURI(uri)
@@ -241,6 +245,18 @@ class NewGroupCreation : AppCompatActivity(), NewParticipantRecyAdapter.onPartRo
                 intent.putExtra(ExpenseOverviewActivity.UriIntent, uri.toString())
             }
         }
+        else if (requestCode == baseCurrencySelection) {
+            if (resultCode == Activity.RESULT_OK) {
+                val sharedPreferences = getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE)
+                val currencyCode = sharedPreferences.getString(SHARED_PREF_ACCOUNT_CURRENCY_CODE, "EUR")
+                binding.newGroupCurrencyButton.text = currencyCode
+            }
+        }
+    }
+
+    fun newGroupCurrencyButton(view: View) {
+        val intent = Intent(this, CurrencySelectorActivity::class.java)
+        startActivityForResult(intent, baseCurrencySelection)
     }
 
 }

@@ -64,6 +64,7 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
         var getSqlGroupId: String? = "-1"
         var getFirebaseId: String? = "-1"
         var getGroupName: String? = "?"
+        var groupBaseCurrency: String? = ""
         var settlementArray: ArrayList<String> = ArrayList()
         const val balanced_string: String = "balanced"
         const val ImagePathIntent = "path_intent"
@@ -135,6 +136,7 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
         getGroupName = intent.getStringExtra(GroupScreenActivity.groupNameIntentString)
         binding.groupNameTitleText.text = getGroupName
         getFirebaseId = intent.getStringExtra(GroupScreenActivity.firebaseIntentString)
+        groupBaseCurrency = intent.getStringExtra(GroupScreenActivity.groupBaseCurrencyIntent)!!
 
         firebaseDbHelper = null
         firebaseDbHelper = if (NewGroupCreation.firebaseDbHelper != null) {
@@ -147,6 +149,7 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
         }
 
         val sqlHelper = SqlDbHelper(this)
+        ASyncCurrencyDownload(sqlHelper).execute(groupBaseCurrency) // Checks if we need to update the latest currency conversions.
 
         setSupportActionBar(findViewById(R.id.toolbar))
         supportActionBar?.title = "Your group"
@@ -158,11 +161,28 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
 
         if (intent.getStringExtra(UriIntent) != null) {
             // New Group was just created by user, load the image Uri as image is likely still being saved in an AsyncTask.
+            Log.i("ExpenseOverview", "Group entered was just created by user")
             val uriImage: Uri = Uri.parse(intent.getStringExtra(UriIntent))
             binding.groupProfileImage.setImageURI(uriImage)
-            showShareDialog()
+            val diagView = LayoutInflater.from(this).inflate(R.layout.alert_dialog_share_group, null)
+            val builder = AlertDialog.Builder(this).setTitle("Share")
+                .setView(diagView).show()
+            val shareGroupHelper = ShareGroupHelper(this, getFirebaseId!!)
+            builder.copyLinkButton2.setOnClickListener {
+                shareGroupHelper.clipboardShareCopy()
+            }
+            builder.whatsappShareButton2.setOnClickListener {
+                shareGroupHelper.shareViaWhatsapp()
+            }
+            builder.shareEmailButton2.setOnClickListener {
+                shareGroupHelper.shareViaEmail()
+            }
+            builder.shareContinue.setOnClickListener {
+                builder.dismiss()
+            }
         } else {
             // Group has already been created and user is re-entering or joining the group, load internally saved image.
+            Log.i("ExpenseOverview", "Group entered was just re-entered or joined")
             val b = loadImageFromStorage(this, true, getFirebaseId!!)
             binding.groupProfileImage.setImageBitmap(b)
         }
@@ -248,8 +268,11 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
                     if (!exists) {
                         // Receipt is NOT in the users SQL db
                         Log.i("Fbase-E", "Receipt $firebaseID is NOT in Sql db")
+                        val currency = newExpense.expCurrency
+                        val exchangeRate = newExpense.expExchRate
                         //Save expense into SQL
-                        val expenseSqlRow = sqlDbHelper.insertNewExpense(getSqlGroupId!!, firebaseID, date, title, total, paidBy, contribs, scanned, lastEdit)
+                        val expenseSqlRow = sqlDbHelper.insertNewExpense(getSqlGroupId!!, firebaseID,
+                            date, title, total, paidBy, contribs, scanned, lastEdit, currency, exchangeRate)
                         if (scanned){
                             // If the expense is a scanned receipt then download and add this receipt to sql
                             val scannedRef = firebaseDbHelper!!.getScannedListeningRef(firebaseID)
@@ -282,25 +305,6 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
         adapter = ExpenseOverViewAdapter(receiptList, this)
         binding.mainActivityRecycler.layoutManager = LinearLayoutManager(this)
         binding.mainActivityRecycler.adapter = adapter
-    }
-
-    private fun showShareDialog() {
-        val diagView = LayoutInflater.from(this).inflate(R.layout.alert_dialog_share_group, null)
-        val builder = AlertDialog.Builder(this).setTitle("Share")
-            .setView(diagView).show()
-        val shareGroupHelper = ShareGroupHelper(this, getFirebaseId!!)
-        builder.copyLinkButton2.setOnClickListener {
-            shareGroupHelper.clipboardShareCopy()
-        }
-        builder.whatsappShareButton2.setOnClickListener {
-            shareGroupHelper.shareViaWhatsapp()
-        }
-        builder.shareEmailButton2.setOnClickListener {
-            shareGroupHelper.shareViaEmail()
-        }
-        builder.shareContinue.setOnClickListener {
-            builder.dismiss()
-        }
     }
 
     private fun openGallery() {

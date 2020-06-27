@@ -10,6 +10,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.ArrayAdapter
+import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -55,13 +56,16 @@ class NewExpenseCreationActivity : AppCompatActivity() {
         const val editIntentPaidByString = "edit_paid_by"
         const val editIntentDateString = "edit_date"
         const val editIntentContributionsString = "edit_contributions"
-        const val editIntentSqlRowIdString = "edit_sql_id"
+        const val editIntentCurrency = "edit_currency"
+        const val editIntentExchangeRate = "edit_exchange_rate"
 
         const val editIntentFirebaseExpenseIdString = "edit_firebase_id"
         const val editIntentScannedBoolean = "edit_scanned"
         var isEdit: Boolean = false
         var isScanned: Boolean = false
         var editTotal: String = ""
+        var editCurrency: String = ""
+        var editExchangeRate: Float? = null
 
         fun retrieveTodaysDate(context: Context): String {
             val date = LocalDate.now()
@@ -157,6 +161,8 @@ class NewExpenseCreationActivity : AppCompatActivity() {
                 val currentPage = binding.receiptViewPager.currentItem
                 val okayToProceed = checkAllInputsAreValid(currentPage)
                 if (okayToProceed) {
+                    val expenseCurrencyButton: Button
+                    val expenseCurrency: String
                     val sqlDbHelper = SqlDbHelper(this)
                     val writeableDB = sqlDbHelper.writableDatabase
                     //Obtain global receipt details
@@ -171,29 +177,37 @@ class NewExpenseCreationActivity : AppCompatActivity() {
                     //Check where the user is
                     if (currentPage == 0) {
                         //User is saving a manual expense
-                        total = findViewById<EditText>(R.id.currencyAmount).text.toString().toFloat()
-                        total = roundToTwoDecimalPlace(total)
+                        total = findViewById<EditText>(R.id.currencyAmountManual).text.toString().toFloat()
+                        expenseCurrencyButton = findViewById(R.id.currencyButtonManual)
+                        expenseCurrency = expenseCurrencyButton.text.toString()
                         val participantDataList = SplitExpenseManuallyFragment.fragmentManualParticipantList
-                        val participantBalDataList: ArrayList<ParticipantBalanceData> = particDataToParticBalData(participantDataList)
-                        val contributionsString = createContribString(participantBalDataList, paidBy)
-                        Log.i("TEST", contributionsString)
 
+                        total = roundToTwoDecimalPlace(total)
+                        val participantBalDataList: ArrayList<ParticipantBalanceData> = particDataToParticBalData(participantDataList)
+                        val exchangeRate = CurrencyExchangeHelper.exchangeParticipantContributionsToBase(
+                            expenseCurrency, participantBalDataList, sqlDbHelper, editExchangeRate)
+
+                        val contributionsString = createContribString(participantBalDataList, paidBy)
                         if (!isEdit) {
                             // Insert new entry to SQL DB.
                             scanned = false
                             expenseFirebaseID = newFirebaseReceiptID()
-                            sqlDbHelper.insertNewExpense(sqlGroupId!!, expenseFirebaseID, date, title, total, paidBy, contributionsString, scanned, lastEdit)
+                            sqlDbHelper.insertNewExpense(sqlGroupId!!, expenseFirebaseID, date,
+                                title, total, paidBy, contributionsString, scanned, lastEdit, expenseCurrency, exchangeRate)
                             sqlDbHelper.close()
-                            firebaseDbHelper!!.createUpdateNewExpense(expenseFirebaseID, date, title, total, paidBy, contributionsString, false, lastEdit)
+                            firebaseDbHelper!!.createUpdateNewExpense(expenseFirebaseID, date, title,
+                                total, paidBy, contributionsString, false, lastEdit, expenseCurrency, exchangeRate)
                             intent.putExtra(CONTRIBUTION_INTENT_DATA, contributionsString)
                             setResult(Activity.RESULT_OK, intent)
                             finish()
                             return true
                         } else {
                             // Update previous entry in SQL DB
-                            val sqlRow = sqlDbHelper.updateExpense(editSqlRowId, date, title, total, paidBy, contributionsString, lastEdit)
+                            val sqlRow = sqlDbHelper.updateExpense(editSqlRowId, date, title, total,
+                                paidBy, contributionsString, lastEdit)
                             sqlDbHelper.close()
-                            firebaseDbHelper!!.createUpdateNewExpense(firebaseEditExpenseID, date, title, total, paidBy, contributionsString, false, lastEdit)
+                            firebaseDbHelper!!.createUpdateNewExpense(firebaseEditExpenseID, date,
+                                title, total, paidBy, contributionsString, false, lastEdit, expenseCurrency, exchangeRate)
                             intent.putExtra(ExpenseViewActivity.expenseReturnEditSql, sqlRow) //TODO: Is this necessary?
                             intent.putExtra(ExpenseViewActivity.expenseReturnEditDate, date)
                             intent.putExtra(ExpenseViewActivity.expenseReturnEditTotal, total.toString())
@@ -209,16 +223,25 @@ class NewExpenseCreationActivity : AppCompatActivity() {
                     else if (currentPage == 1){
                         //User is saving a scanned receipt. Check if all product errors have been corrected.
                         if (SplitReceiptScanFragment.errorsCleared) {
-                            total = roundToTwoDecimalPlace(findViewById<EditText>(R.id.currencyAmountScan).text.toString().toFloat())
+                            total = findViewById<EditText>(R.id.currencyAmountScan).text.toString().toFloat()
+                            expenseCurrencyButton = findViewById(R.id.currencyButtonScan)
+                            expenseCurrency = expenseCurrencyButton.text.toString()
                             val itemizedProductList = SplitReceiptScanFragment.itemizedArrayList
                             val particBalDataList: ArrayList<ParticipantBalanceData> = productsToParticBalData(itemizedProductList)
+                            val exchangeRate = CurrencyExchangeHelper
+                                .exchangeParticipantContributionsToBase(expenseCurrency, particBalDataList, sqlDbHelper, editExchangeRate)
+
                             val contributionsString = createContribString(particBalDataList, paidBy)
 
                             if (!isEdit) {
                                 // User is inserting a new receipt expense
                                 expenseFirebaseID = newFirebaseReceiptID()
-                                val sqlRow = sqlDbHelper.insertNewExpense(sqlGroupId!!, expenseFirebaseID, date, title, total, paidBy, contributionsString, true, lastEdit)
-                                firebaseDbHelper!!.createUpdateNewExpense(expenseFirebaseID, date, title, total, paidBy, contributionsString, true, lastEdit)
+                                val sqlRow = sqlDbHelper.insertNewExpense(sqlGroupId!!, expenseFirebaseID,
+                                    date, title, total, paidBy, contributionsString, true,
+                                    lastEdit, expenseCurrency, exchangeRate)
+                                firebaseDbHelper!!.createUpdateNewExpense(expenseFirebaseID, date,
+                                    title, total, paidBy, contributionsString, true, lastEdit,
+                                    expenseCurrency, exchangeRate)
                                 sqlDbHelper.insertReceiptItems(itemizedProductList, sqlRow)
                                 firebaseDbHelper!!.addUpdateReceiptItems(expenseFirebaseID, itemizedProductList)
 
@@ -229,9 +252,11 @@ class NewExpenseCreationActivity : AppCompatActivity() {
                                 return true
                             } else {
                                 // User is editing a previously saved receipt expense
-                                sqlDbHelper.updateExpense(editSqlRowId, date, title, total, paidBy, contributionsString, lastEdit)
+                                sqlDbHelper.updateExpense(editSqlRowId, date, title, total, paidBy,
+                                    contributionsString, lastEdit)
                                 sqlDbHelper.updateItemsSql(writeableDB, itemizedProductList)
-                                firebaseDbHelper!!.createUpdateNewExpense(firebaseEditExpenseID, date, title, total, paidBy, contributionsString, true, lastEdit)
+                                firebaseDbHelper!!.createUpdateNewExpense(firebaseEditExpenseID, date,
+                                    title, total, paidBy, contributionsString, true, lastEdit, expenseCurrency, exchangeRate)
                                 firebaseDbHelper!!.addUpdateReceiptItems(firebaseEditExpenseID, itemizedProductList)
                                 intent.putExtra(ExpenseViewActivity.expenseReturnEditTitle, title)
                                 intent.putExtra(ExpenseViewActivity.expenseReturnEditTotal, total.toString())
@@ -332,7 +357,7 @@ class NewExpenseCreationActivity : AppCompatActivity() {
         }
         if (currentPage == 0){
             //Manual Expense
-            val currencyAmount: EditText = findViewById(R.id.currencyAmount)
+            val currencyAmount: EditText = findViewById(R.id.currencyAmountManual)
              if (currencyAmount.text.isEmpty()){
                         Toast.makeText(this, "Please add an amount", Toast.LENGTH_SHORT).show()
                         return false

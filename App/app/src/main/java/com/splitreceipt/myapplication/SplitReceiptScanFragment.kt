@@ -254,7 +254,7 @@ class SplitReceiptScanFragment : Fragment(), NewScannedReceiptRecyclerAdapter.on
         }
         else if (requestCode == cropImageIntent) {
             if (resultCode == Activity.RESULT_OK) {
-                var croppedBmp: Bitmap? = null
+                val croppedBmp: Bitmap?
                 val filename = data?.getStringExtra("bitmap")
                 try {
                     val input = contxt.openFileInput(filename)

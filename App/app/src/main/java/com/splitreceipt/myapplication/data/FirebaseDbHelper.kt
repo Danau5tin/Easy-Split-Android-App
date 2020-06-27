@@ -8,6 +8,7 @@ import android.util.Log
 import android.widget.Toast
 import com.google.firebase.database.*
 import com.google.firebase.storage.FirebaseStorage
+import com.splitreceipt.myapplication.ASyncCurrencyDownload
 import com.splitreceipt.myapplication.ASyncSaveImage
 import com.splitreceipt.myapplication.WelcomeJoinActivity
 import de.hdodenhof.circleimageview.CircleImageView
@@ -29,6 +30,7 @@ class FirebaseDbHelper(private var firebaseGroupId: String) {
     }
 
     fun checkJoin(context: Context){
+        // Checks whether a firebase group ID is valid.
         val groupInfoPath = "$firebaseGroupId$groupInfo"
         currentPath = database.getReference(groupInfoPath)
         currentPath.addListenerForSingleValueEvent(object: ValueEventListener{
@@ -42,6 +44,7 @@ class FirebaseDbHelper(private var firebaseGroupId: String) {
                         intent.putExtra(WelcomeJoinActivity.joinFireBaseParticipants, groupData.accParticipants)
                         intent.putExtra(WelcomeJoinActivity.joinFireBaseId, firebaseGroupId)
                         intent.putExtra(WelcomeJoinActivity.joinFireBaseName, groupData.accName)
+                        intent.putExtra(WelcomeJoinActivity.joinBaseCurrency, groupData.accCurrency)
                         context.startActivity(intent)
                     }else {
                         Toast.makeText(context, "No group exists. Check group identifier", Toast.LENGTH_SHORT).show()
@@ -53,6 +56,9 @@ class FirebaseDbHelper(private var firebaseGroupId: String) {
     }
 
     fun downloadToSql(context: Context){
+        /*
+        Downloads and saves to SQL the joined group info, finances, expenses and currency conversions.
+         */
         currentPath = database.getReference(firebaseGroupId)
         currentPath.addListenerForSingleValueEvent(object : ValueEventListener{
             override fun onCancelled(p0: DatabaseError) {
@@ -69,7 +75,8 @@ class FirebaseDbHelper(private var firebaseGroupId: String) {
                 val financeData = financeChild.getValue(FirebaseAccountFinancialData::class.java)!!
                 val sqlHelper = SqlDbHelper(context)
                 val sqlRow = sqlHelper.insertNewGroup(firebaseGroupId, infoData.accName,
-                    infoData.accParticipants, financeData.accBal, financeData.accSettle, "u", infoData.accLastImage)
+                    infoData.accParticipants, financeData.accBal, financeData.accSettle, "u",
+                    infoData.accLastImage, infoData.accCurrency)
 
                 val sqlRowString = sqlRow.toString()
                 WelcomeJoinActivity.sqlRow = sqlRowString
@@ -79,13 +86,15 @@ class FirebaseDbHelper(private var firebaseGroupId: String) {
                     val expenseId = expense.key!!
                     val expenseSqlRow = sqlHelper.insertNewExpense(sqlRowString, expenseId, expenseData.expDate,
                         expenseData.expTitle, expenseData.expTotal, expenseData.expPaidBy,
-                        expenseData.expContribs, expenseData.expScanned, expenseData.expLastEdit)
+                        expenseData.expContribs, expenseData.expScanned, expenseData.expLastEdit,
+                        expenseData.expCurrency, expenseData.expExchRate)
 
                     if (expenseData.expScanned) {
                         for (receipt in scannedChild.children) {
                             val scannedRecExpId = receipt.key
                             if (scannedRecExpId == expenseId) {
                                 for (product in receipt.children){
+                                    //TODO: To allow for a more efficient insertion, create a lost and pass it to the sqlHelper to iterate through instead. This then requires only opening one writeable database.
                                     val productData = product.getValue(FirebaseProductData::class.java)!!
                                     sqlHelper.insertReceiptItems(productData.productName, productData.productValue, productData.productOwner, expenseSqlRow)
                                 }
@@ -98,8 +107,9 @@ class FirebaseDbHelper(private var firebaseGroupId: String) {
         })
     }
 
-    fun createNewGroup(groupName: String, groupBalance: String, groupSettlement: String, participantString: String, lastImageEdit: String){
-        setGroupInfo(groupName, participantString, lastImageEdit)
+    fun createNewGroup(groupName: String, groupBalance: String, groupSettlement: String,
+                       participantString: String, lastImageEdit: String, baseCurrency: String){
+        setGroupInfo(groupName, participantString, lastImageEdit, baseCurrency)
         setGroupFinance(groupSettlement, groupBalance)
     }
 
@@ -116,17 +126,19 @@ class FirebaseDbHelper(private var firebaseGroupId: String) {
         currentPath.setValue(lastEdit)
     }
 
-    fun setGroupInfo(groupName: String, participantString: String, lastImageEdit: String) {
+    private fun setGroupInfo(groupName: String, participantString: String, lastImageEdit: String, baseCurrency: String) {
         val groupInfoPath = "$firebaseGroupId$groupInfo"
-        val accountData = FirebaseAccountInfoData(groupName, participantString, lastImageEdit)
+        val accountData = FirebaseAccountInfoData(groupName, participantString, lastImageEdit, baseCurrency)
         currentPath = database.getReference(groupInfoPath)
         currentPath.setValue(accountData)
     }
 
     fun createUpdateNewExpense(expenseId: String, date: String, title: String, total: Float,
-                               paidBy: String, contributions: String, scanned: Boolean, lastEdit: String) {
+                               paidBy: String, contributions: String, scanned: Boolean,
+                               lastEdit: String, expenseCurrency: String, exchangeRate: Float) {
         //Creates a new expense if not exists and if exists updates.
-        val expenseData = FirebaseExpenseData(date, title, total, paidBy, contributions, scanned, lastEdit)
+        val expenseData = FirebaseExpenseData(date, title, total, paidBy, contributions, scanned,
+            lastEdit, expenseCurrency, exchangeRate)
         val expensePath = "$firebaseGroupId$expenses/$expenseId"
         currentPath = database.getReference(expensePath)
         currentPath.setValue(expenseData)

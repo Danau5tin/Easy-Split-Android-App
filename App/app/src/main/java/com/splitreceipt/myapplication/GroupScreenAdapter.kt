@@ -9,7 +9,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.splitreceipt.myapplication.data.GroupData
 
-class GroupScreenAdapter(val groupNameList: ArrayList<GroupData>) : RecyclerView.Adapter<GroupScreenAdapter.GroupViewHolder>() {
+class GroupScreenAdapter(private val groupNameList: ArrayList<GroupData>) : RecyclerView.Adapter<GroupScreenAdapter.GroupViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): GroupViewHolder {
         val inflater: LayoutInflater = LayoutInflater.from(parent.context)
@@ -26,6 +26,7 @@ class GroupScreenAdapter(val groupNameList: ArrayList<GroupData>) : RecyclerView
         holder.sqlId = groupNameList[position].sqlId
         holder.firebaseId = groupNameList[position].firebaseId
         holder.sqlUser = groupNameList[position].sqlUser
+        holder.baseCurrency = groupNameList[position].baseCurrency
     }
 
     class GroupViewHolder(var context: Context, itemView: View) : RecyclerView.ViewHolder(itemView), View.OnClickListener {
@@ -34,6 +35,7 @@ class GroupScreenAdapter(val groupNameList: ArrayList<GroupData>) : RecyclerView
         var sqlId: String = "0"
         var firebaseId: String = "0"
         var sqlUser: String = "unknown"
+        var baseCurrency: String = "EUR"
 
         init {
             itemView.setOnClickListener(this)
@@ -45,6 +47,7 @@ class GroupScreenAdapter(val groupNameList: ArrayList<GroupData>) : RecyclerView
             intent.putExtra(GroupScreenActivity.firebaseIntentString, firebaseId)
             intent.putExtra(GroupScreenActivity.userIntentString, sqlUser)
             intent.putExtra(GroupScreenActivity.groupNameIntentString, titleText.text.toString())
+            intent.putExtra(GroupScreenActivity.groupBaseCurrencyIntent, baseCurrency)
             context.startActivity(intent)
         }
 

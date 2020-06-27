@@ -9,9 +9,11 @@ class FirebaseExpenseData () {
     var expContribs: String = ""
     var expScanned: Boolean = false
     var expLastEdit: String = ""
+    var expCurrency: String = ""
+    var expExchRate: Float = 0.0F
 
-    constructor(date: String, title: String, total: Float,
-                paidBy: String, contributions: String, scanned: Boolean, lastEdit: String) : this(){
+    constructor(date: String, title: String, total: Float, paidBy: String, contributions: String,
+                scanned: Boolean, lastEdit: String, expenseCurrency: String, exchangeRate: Float) : this(){
         expDate = date
         expTitle = title
         expTotal = total
@@ -19,5 +21,7 @@ class FirebaseExpenseData () {
         expContribs = contributions
         expScanned = scanned
         expLastEdit = lastEdit
+        expCurrency = expenseCurrency
+        expExchRate = exchangeRate
     }
 }

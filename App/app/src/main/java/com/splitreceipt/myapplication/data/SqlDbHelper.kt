@@ -7,6 +7,12 @@ import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import com.splitreceipt.myapplication.ExpenseViewActivity
 import com.splitreceipt.myapplication.SplitExpenseManuallyFragment
+import com.splitreceipt.myapplication.data.DbManager.CurrencyTable.CURRENCY_BASE
+import com.splitreceipt.myapplication.data.DbManager.CurrencyTable.CURRENCY_CODE
+import com.splitreceipt.myapplication.data.DbManager.CurrencyTable.CURRENCY_ID
+import com.splitreceipt.myapplication.data.DbManager.CurrencyTable.CURRENCY_LAST_UPDATE
+import com.splitreceipt.myapplication.data.DbManager.CurrencyTable.CURRENCY_RATE
+import com.splitreceipt.myapplication.data.DbManager.CurrencyTable.CURRENCY_TABLE_NAME
 import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_BALANCES
 import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_NAME
 import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_ID
@@ -22,7 +28,9 @@ import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_COL
 import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_COL_OWNERSHIP
 import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_TABLE_NAME
 import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_COL_CONTRIBUTIONS
+import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_COL_CURRENCY
 import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_COL_DATE
+import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_COL_EXCHANGE_RATE
 import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_COL_FK_GROUP_ID
 import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_COL_ID
 import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_COL_PAID_BY
@@ -32,6 +40,7 @@ import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_COL_TO
 import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_COL_FIREBASE_ID
 import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_COL_LAST_EDIT
 import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_TABLE_NAME
+import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_BASE_CURRENCY
 import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_LAST_IMAGE_EDIT
 
 class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
@@ -43,6 +52,8 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
         private const val DATABASE_NAME = "newdata.db"
         private const val DATABASE_VERSION = 1
 
+        const val CURRENCY_NON_EXISTENT: Long = 0
+
         private const val CREATE_GROUP_TABLE = "CREATE TABLE $GROUP_TABLE_NAME (" +
                 "$GROUP_COL_ID INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "$GROUP_COL_FIREBASE_ID TEXT, " +
@@ -51,10 +62,11 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
                 "$GROUP_COL_BALANCES TEXT, " +
                 "$GROUP_COL_SETTLEMENTS TEXT, " +
                 "$GROUP_COL_USER TEXT, " +
-                "$GROUP_COL_LAST_IMAGE_EDIT TEXT)"
+                "$GROUP_COL_LAST_IMAGE_EDIT TEXT, " +
+                "$GROUP_COL_BASE_CURRENCY TEXT)"
         private const val DELETE_GROUP_ENTRIES = "DROP TABLE IF EXISTS $GROUP_TABLE_NAME"
 
-        private const val CREATE_RECEIPT_TABLE = "CREATE TABLE $EXPENSE_TABLE_NAME (" +
+        private const val CREATE_EXPENSE_TABLE = "CREATE TABLE $EXPENSE_TABLE_NAME (" +
                 "$EXPENSE_COL_ID INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "$EXPENSE_COL_FIREBASE_ID TEXT, " +
                 "$EXPENSE_COL_DATE TEXT, " +
@@ -64,10 +76,12 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
                 "$EXPENSE_COL_FK_GROUP_ID INTEGER, " +
                 "$EXPENSE_COL_CONTRIBUTIONS TEXT, " +
                 "$EXPENSE_COL_LAST_EDIT TEXT, " +
+                "$EXPENSE_COL_CURRENCY TEXT, " +
+                "$EXPENSE_COL_EXCHANGE_RATE REAL, " +
                 "$EXPENSE_COL_SCANNED INTEGER, " + //Boolean: 0=False, 1=True
                 "FOREIGN KEY ($EXPENSE_COL_FK_GROUP_ID) REFERENCES $GROUP_TABLE_NAME" +
                 "($GROUP_COL_ID) ON DELETE CASCADE)"
-        private const val DELETE_RECEIPT_ENTRIES = "DROP TABLE IF EXISTS $EXPENSE_TABLE_NAME"
+        private const val DELETE_EXPENSE_ENTRIES = "DROP TABLE IF EXISTS $EXPENSE_TABLE_NAME"
 
         private const val CREATE_RECEIPT_ITEMS_TABLE = "CREATE TABLE $ITEMS_TABLE_NAME (" +
                 "$ITEMS_COL_ID INTEGER PRIMARY KEY AUTOINCREMENT, " +
@@ -78,6 +92,14 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
                 "FOREIGN KEY ($ITEMS_COL_FK_EXPENSE_ID) REFERENCES $EXPENSE_TABLE_NAME" +
                 "($EXPENSE_COL_ID) ON DELETE CASCADE)"
         private const val DELETE_RECEIPT_ITEMS_ENTRIES = "DROP TABLE IF EXISTS $ITEMS_TABLE_NAME"
+
+        private const val CREATE_CURRENCY_TABLE = "CREATE TABLE $CURRENCY_TABLE_NAME (" +
+                "$CURRENCY_ID INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "$CURRENCY_BASE TEXT, " +
+                "$CURRENCY_CODE TEXT, " +
+                "$CURRENCY_RATE REAL, " +
+                "$CURRENCY_LAST_UPDATE TEXT)"
+        private const val DELETE_CURRENCY_ENTRIES = "DROP TABLE IF EXISTS $CURRENCY_TABLE_NAME"
     }
 
     override fun onOpen(db: SQLiteDatabase?) {
@@ -87,19 +109,20 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
 
     override fun onCreate(db: SQLiteDatabase?) {
         db!!.execSQL(CREATE_GROUP_TABLE)
-        db.execSQL(CREATE_RECEIPT_TABLE)
+        db.execSQL(CREATE_EXPENSE_TABLE)
         db.execSQL(CREATE_RECEIPT_ITEMS_TABLE)
-
+        db.execSQL(CREATE_CURRENCY_TABLE)
     }
 
     override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
         db!!.execSQL(DELETE_GROUP_ENTRIES)
-        db.execSQL(DELETE_RECEIPT_ENTRIES)
+        db.execSQL(DELETE_EXPENSE_ENTRIES)
         db.execSQL(DELETE_RECEIPT_ITEMS_ENTRIES)
+        db.execSQL(DELETE_CURRENCY_ENTRIES)
     }
 
     fun insertNewGroup(fireBaseId: String, title: String, participants: String,
-                       balances: String, settlements: String, sqlUser: String, lastImageEdit: String) : Int{
+                       balances: String, settlements: String, sqlUser: String, lastImageEdit: String, baseCurrency: String) : Int{
         val values: ContentValues = ContentValues().apply {
             put(GROUP_COL_FIREBASE_ID, fireBaseId)
             put(GROUP_COL_NAME, title)
@@ -108,6 +131,7 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
             put(GROUP_COL_SETTLEMENTS, settlements)
             put(GROUP_COL_USER, sqlUser)
             put(GROUP_COL_LAST_IMAGE_EDIT, lastImageEdit)
+            put(GROUP_COL_BASE_CURRENCY, baseCurrency)
         }
         val writer = writableDatabase
         val sqlRow = writer.insert(GROUP_TABLE_NAME, null, values)
@@ -126,8 +150,9 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
         close()
     }
 
-    fun insertNewExpense(sqlGroupId: String, firebaseId: String, date: String, title: String,
-                         total: Float, paidBy: String, contributions: String, scanned: Boolean, lastEdit: String) : Int{
+    fun insertNewExpense(sqlGroupId: String, firebaseId: String, date: String, title: String, total: Float,
+                         paidBy: String, contributions: String, scanned: Boolean, lastEdit: String,
+                         expenseCurrency: String, exchangeRate: Float) : Int{
         val write = writableDatabase
         val scannedInt: Int = if (scanned) { 1 } else { 0 }
         val values = ContentValues().apply {
@@ -140,9 +165,39 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
             put(EXPENSE_COL_SCANNED, scannedInt)
             put(EXPENSE_COL_FK_GROUP_ID, sqlGroupId)
             put(EXPENSE_COL_LAST_EDIT, lastEdit)
+            put(EXPENSE_COL_CURRENCY, expenseCurrency)
+            put(EXPENSE_COL_EXCHANGE_RATE, exchangeRate)
         }
         val sqlId = write.insert(EXPENSE_TABLE_NAME, null, values)
         return sqlId.toInt()
+    }
+
+    fun insertCurrency(baseCurrency: String, currencyList: ArrayList<CurrencyData>, timestamp: Long) {
+        val write = writableDatabase
+        for (currency in currencyList) {
+            val values = ContentValues().apply {
+                put(CURRENCY_BASE, baseCurrency)
+                put(CURRENCY_CODE, currency.currencyCode)
+                put(CURRENCY_RATE, currency.rate)
+                put(CURRENCY_LAST_UPDATE, timestamp)
+            }
+            write.insert(CURRENCY_TABLE_NAME, null, values)
+        }
+        close()
+    }
+
+    fun updateCurrency(baseCurrency: String, currencyList: ArrayList<CurrencyData>, timestamp: Long) {
+        val write = writableDatabase
+        for (currency in currencyList) {
+            val values = ContentValues().apply {
+                put(CURRENCY_RATE, currency.rate)
+                put(CURRENCY_LAST_UPDATE, timestamp)
+            }
+            val where = "$CURRENCY_BASE = ? AND $CURRENCY_CODE = ?"
+            val whereArgs = arrayOf(baseCurrency, currency.currencyCode)
+            write.update(CURRENCY_TABLE_NAME, values, where, whereArgs)
+        }
+        close()
     }
 
     fun setSqlUser(sqlUser: String, sqlAccountId: String){
@@ -203,7 +258,8 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
         close()
     }
 
-    fun updateExpense(editSqlRowId: String, date: String, title: String, total: Float, paidBy: String, contributionsString: String, lastEdit: String): String {
+    fun updateExpense(editSqlRowId: String, date: String, title: String, total: Float, paidBy: String,
+                      contributionsString: String, lastEdit: String): String {
         // Update expense in Sql db
         val write = writableDatabase
         val values = ContentValues().apply {
@@ -257,18 +313,21 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
 
     fun retrieveSqlAccountInfoData(sqlGroupId: String) : FirebaseAccountInfoData {
         val read = readableDatabase
-        val columns = arrayOf(GROUP_COL_NAME, GROUP_COL_PARTICIPANTS, GROUP_COL_LAST_IMAGE_EDIT)
+        val columns = arrayOf(GROUP_COL_NAME, GROUP_COL_PARTICIPANTS, GROUP_COL_LAST_IMAGE_EDIT, GROUP_COL_BASE_CURRENCY)
         val where = "$GROUP_COL_ID = ?"
         val whereArgs = arrayOf(sqlGroupId)
         val cursor: Cursor = read.query(GROUP_TABLE_NAME, columns, where, whereArgs, null, null, null)
         val nameIndex = cursor.getColumnIndexOrThrow(GROUP_COL_NAME)
         val participantIndex = cursor.getColumnIndexOrThrow(GROUP_COL_PARTICIPANTS)
         val lastImageIndex = cursor.getColumnIndexOrThrow(GROUP_COL_LAST_IMAGE_EDIT)
+        val baseCurrCol = cursor.getColumnIndexOrThrow(GROUP_COL_BASE_CURRENCY)
         cursor.moveToNext()
         val groupName = cursor.getString(nameIndex)
         val participants = cursor.getString(participantIndex)
         val lastEdit = cursor.getString(lastImageIndex)
-        return FirebaseAccountInfoData(groupName, participants, lastEdit)
+        val baseCurr = cursor.getString(baseCurrCol)
+        cursor.close()
+        return FirebaseAccountInfoData(groupName, participants, lastEdit, baseCurr)
     }
 
     fun loadSqlSettlementString(sqlAccountId: String?): String {
@@ -294,7 +353,7 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
         val reader = readableDatabase
         val columns = arrayOf(
             EXPENSE_COL_DATE, EXPENSE_COL_TITLE, EXPENSE_COL_TOTAL,
-            EXPENSE_COL_PAID_BY, EXPENSE_COL_ID, EXPENSE_COL_SCANNED
+            EXPENSE_COL_PAID_BY, EXPENSE_COL_ID, EXPENSE_COL_SCANNED, EXPENSE_COL_CURRENCY
         )
         val selectClause = "$EXPENSE_COL_FK_GROUP_ID = ?"
         val selectArgs = arrayOf("$sqlId")
@@ -308,6 +367,7 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
         val paidByColIndex = cursor.getColumnIndexOrThrow(EXPENSE_COL_PAID_BY)
         val idColIndex = cursor.getColumnIndexOrThrow(EXPENSE_COL_ID)
         val scannedColIndex = cursor.getColumnIndexOrThrow(EXPENSE_COL_SCANNED)
+        val currencyColIndex = cursor.getColumnIndexOrThrow(EXPENSE_COL_CURRENCY)
         while (cursor.moveToNext()) {
             val receiptDate = cursor.getString(dateColIndex)
             val receiptTitle = cursor.getString(titleColIndex)
@@ -316,6 +376,7 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
             val receiptSqlId = cursor.getInt(idColIndex).toString()
             val receiptScannedInt = cursor.getInt(scannedColIndex)
             val scanned = receiptScannedInt == 1
+            val expenseCurrency = cursor.getString(currencyColIndex)
             receiptList.add(
                 ReceiptData(
                     receiptDate,
@@ -323,7 +384,8 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
                     receiptTotal,
                     receiptPaidBy,
                     receiptSqlId,
-                    scanned
+                    scanned,
+                    expenseCurrency
                 )
             )
         }
@@ -333,18 +395,20 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
     fun readAllGroups() : ArrayList<GroupData>{
         val groupList: ArrayList<GroupData> = ArrayList()
         val reader = readableDatabase
-        val columns = arrayOf(GROUP_COL_ID, GROUP_COL_NAME, GROUP_COL_FIREBASE_ID, GROUP_COL_USER)
+        val columns = arrayOf(GROUP_COL_ID, GROUP_COL_NAME, GROUP_COL_FIREBASE_ID, GROUP_COL_USER, GROUP_COL_BASE_CURRENCY)
         val cursor: Cursor = reader.query(GROUP_TABLE_NAME, columns, null, null, null, null, null)
         val groupNameColIndex = cursor.getColumnIndexOrThrow(GROUP_COL_NAME)
         val groupSqlIdIndex = cursor.getColumnIndexOrThrow(GROUP_COL_ID)
         val groupFirebaseIdIndex = cursor.getColumnIndexOrThrow(GROUP_COL_FIREBASE_ID)
         val groupSqlUserIndex = cursor.getColumnIndexOrThrow(GROUP_COL_USER)
+        val groupCurrencyIndex = cursor.getColumnIndexOrThrow(GROUP_COL_BASE_CURRENCY)
         while (cursor.moveToNext()) {
             val groupName = cursor.getString(groupNameColIndex)
             val groupSqlID = cursor.getString(groupSqlIdIndex)
             val groupFirebaseID = cursor.getString(groupFirebaseIdIndex)
             val groupSqlUser = cursor.getString(groupSqlUserIndex)
-            groupList.add(GroupData(groupName, groupSqlID, groupFirebaseID, groupSqlUser))
+            val groupBaseCurrency = cursor.getString(groupCurrencyIndex)
+            groupList.add(GroupData(groupName, groupSqlID, groupFirebaseID, groupSqlUser, groupBaseCurrency))
         }
         cursor.close()
         close()
@@ -377,27 +441,25 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
     }
 
     fun getExpenseDetails(sqlRowId: String){
-        // Retrieves the date and contributions of the selected expense.
-        var date = ""
-        var contributions = ""
-        var firebaseId = ""
+        // Retrieves the date, firebaseExpenseID, currency information and the contributions of the provided expense.
         val reader = readableDatabase
-        val columns = arrayOf(EXPENSE_COL_DATE, EXPENSE_COL_CONTRIBUTIONS, EXPENSE_COL_FIREBASE_ID)
+        val columns = arrayOf(EXPENSE_COL_DATE, EXPENSE_COL_CONTRIBUTIONS, EXPENSE_COL_FIREBASE_ID,
+            EXPENSE_COL_CURRENCY, EXPENSE_COL_EXCHANGE_RATE)
         val whereClause = "$EXPENSE_COL_ID = ?"
         val whereArgs = arrayOf(sqlRowId)
         val cursor: Cursor = reader.query(EXPENSE_TABLE_NAME, columns, whereClause, whereArgs, null, null, null)
         val dateIndex = cursor.getColumnIndexOrThrow(EXPENSE_COL_DATE)
         val contributionIndex = cursor.getColumnIndexOrThrow(EXPENSE_COL_CONTRIBUTIONS)
         val fireBaseIdIndex = cursor.getColumnIndexOrThrow(EXPENSE_COL_FIREBASE_ID)
-        while(cursor.moveToNext()) {
-            date = cursor.getString(dateIndex)
-            contributions = cursor.getString(contributionIndex)
-            firebaseId = cursor.getString(fireBaseIdIndex)
-        }
+        val currencyColIndex = cursor.getColumnIndexOrThrow(EXPENSE_COL_CURRENCY)
+        val exchangeRateColIndex = cursor.getColumnIndexOrThrow(EXPENSE_COL_EXCHANGE_RATE)
+        cursor.moveToNext()
+        ExpenseViewActivity.expenseDate = cursor.getString(dateIndex)
+        ExpenseViewActivity.contributionString = cursor.getString(contributionIndex)
+        ExpenseViewActivity.firebaseExpenseID = cursor.getString(fireBaseIdIndex)
+        ExpenseViewActivity.expenseCurrency = cursor.getString(currencyColIndex)
+        ExpenseViewActivity.expenseExchangeRate = cursor.getFloat(exchangeRateColIndex)
         cursor.close()
-        ExpenseViewActivity.expenseDate = date
-        ExpenseViewActivity.contributionString = contributions
-        ExpenseViewActivity.firebaseExpenseID = firebaseId
     }
 
     fun locatePriorContributions(sqlRowId: String): String{
@@ -416,7 +478,7 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
     }
 
     fun retrieveBasicExpenseSqlData(expenseSqlRow: String) : ArrayList<BasicExpenseDataSql>{
-        //Goes through the expense table and returns all the firebase expense ID's into a list
+        // Goes through the expense table and returns some basic information to see if we should download or update expenses in firebase DB.
         val basicExpenseListSql: ArrayList <BasicExpenseDataSql> = ArrayList()
         val read = readableDatabase
         val columns = arrayOf(EXPENSE_COL_ID, EXPENSE_COL_FIREBASE_ID, EXPENSE_COL_LAST_EDIT)
@@ -490,6 +552,47 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
         val where = "$GROUP_COL_ID = ?"
         val whereArgs = arrayOf(sqlGroupId)
         write.update(GROUP_TABLE_NAME, values, where, whereArgs)
+    }
+
+    fun checkIfCurrencyExists(currencyCode: String) : Long {
+        // Checks if the base currency exists in the SQL db and if it does when it was last updated.
+        val read = readableDatabase
+        val columns = arrayOf(CURRENCY_BASE, CURRENCY_LAST_UPDATE)
+        val where = "$CURRENCY_BASE = ?"
+        val whereArgs = arrayOf(currencyCode)
+        val cursor: Cursor = read.query(CURRENCY_TABLE_NAME, columns, where, whereArgs, null, null, null)
+        val exists = cursor.moveToNext()
+        if (exists) {
+            val lastUpdateIndex = cursor.getColumnIndexOrThrow(CURRENCY_TABLE_NAME)
+            val lastUpdate = cursor.getLong(lastUpdateIndex)
+            cursor.close()
+            return lastUpdate
+        }
+        else {
+            return CURRENCY_NON_EXISTENT
+        }
+    }
+
+    fun retrieveExchangeRate(baseCurrency: String, expenseCurrency: String) : Float {
+        val read = readableDatabase
+        val columns = arrayOf(
+            CURRENCY_RATE
+        )
+        val where = "$CURRENCY_BASE = ? AND $CURRENCY_CODE = ?"
+        val whereArgs = arrayOf(baseCurrency, expenseCurrency)
+        val cursor: Cursor = read.query(EXPENSE_TABLE_NAME, columns, where, whereArgs, null, null, null)
+        val rateColIndex = cursor.getColumnIndexOrThrow(CURRENCY_RATE)
+        val rate: Float
+        if (cursor.moveToNext()) {
+            rate = cursor.getFloat(rateColIndex)
+            cursor.close()
+            return rate
+        }
+        else {
+            cursor.close()
+            rate = 1.0F
+            return rate
+        }
     }
 
 }

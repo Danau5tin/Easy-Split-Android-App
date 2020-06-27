@@ -20,6 +20,7 @@ class WelcomeJoinActivity : AppCompatActivity() {
         var joinFireBaseParticipants: String = "firebasePartic"
         var joinFireBaseName: String = "firebaseName"
         var joinFireBaseId: String = "firebaseId"
+        var joinBaseCurrency: String = "baseCurrency"
         var sqlRow = "-1"
     }
 

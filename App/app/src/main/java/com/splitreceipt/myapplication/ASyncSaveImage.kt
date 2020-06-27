@@ -22,13 +22,8 @@ class ASyncSaveImage(private var profileImage: Boolean, private var context: Con
     override fun doInBackground(vararg params: Bitmap?): String {
         val cw = ContextWrapper(context)
         val bitmap = params[0]
-
-        if (profileImage) {
-            // /data/data/com.splitreceipt.myapplication/app_imageDir
-            directory = cw.getDir(profileImageDir, Context.MODE_PRIVATE)
-        } else {
-            directory = cw.getDir(scannedImageDir, Context.MODE_PRIVATE)
-        }
+        // /data/data/com.splitreceipt.myapplication/app_imageDir
+        directory = cw.getDir(profileImageDir, Context.MODE_PRIVATE)
 
         // Create imageDir
         val myPath = File(directory, "$filename$extension")

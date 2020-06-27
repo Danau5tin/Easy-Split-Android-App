@@ -61,7 +61,7 @@ class SplitExpenseManuallyFragment : Fragment(), NewManualExpenseRecyclerAdapter
         binding.fragManualRecy.adapter = adapter
 
 
-        binding.currencyAmount.addTextChangedListener(object: TextWatcher {
+        binding.currencyAmountManual.addTextChangedListener(object: TextWatcher {
             override fun afterTextChanged(s: Editable?) {}
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(text: CharSequence?, start: Int, before: Int, count: Int) {
@@ -76,8 +76,8 @@ class SplitExpenseManuallyFragment : Fragment(), NewManualExpenseRecyclerAdapter
                         val dotIndex = allText.indexOf(".")
                         if (start > (dotIndex + 2)){
                             correctNumber = text.subSequence(0, dotIndex + 3)
-                            binding.currencyAmount.setText(correctNumber.toString())
-                            binding.currencyAmount.text?.length?.let {binding.currencyAmount.setSelection(it)}
+                            binding.currencyAmountManual.setText(correctNumber.toString())
+                            binding.currencyAmountManual.text?.length?.let {binding.currencyAmountManual.setSelection(it)}
                         }}
                     transactionTotal = text.toString()
                     setContributionStatus()
@@ -87,13 +87,13 @@ class SplitExpenseManuallyFragment : Fragment(), NewManualExpenseRecyclerAdapter
                     setContributionStatus()}}})
 
 
-        binding.currencyButton.setOnClickListener{
+        binding.currencyButtonManual.setOnClickListener{
             val intent = Intent(activity, CurrencySelectorActivity::class.java)
             startActivityForResult(intent, CURRENCY_INTENT)
         }
 
         if (!NewExpenseCreationActivity.isScanned){
-            binding.currencyAmount.setText(NewExpenseCreationActivity.editTotal)
+            binding.currencyAmountManual.setText(NewExpenseCreationActivity.editTotal)
         }
 
 
@@ -113,7 +113,7 @@ class SplitExpenseManuallyFragment : Fragment(), NewManualExpenseRecyclerAdapter
     private fun updateUICurrency(adapterInitialised: Boolean = false) {
         currencySymbol = sharedPreferences.getString(SHARED_PREF_ACCOUNT_CURRENCY_SYMBOL, "$").toString()
         currencyCode = sharedPreferences.getString(SHARED_PREF_ACCOUNT_CURRENCY_CODE, "US").toString()
-        binding.currencyButton.text = currencyCode
+        binding.currencyButtonManual.text = currencyCode
         if (adapterInitialised) {
             binding.fragManualRecy.post(Runnable { adapter.notifyDataSetChanged() })
         }
@@ -166,7 +166,7 @@ class SplitExpenseManuallyFragment : Fragment(), NewManualExpenseRecyclerAdapter
                 fragmentManualParticipantList.add(ParticipantData(participant, zeroCurrency, true))
             }
         } else {
-            binding.currencyAmount.setText("") // Resets the amount to nothing so that if the user adds expense after editing the old edit amount will not show.
+            binding.currencyAmountManual.setText("") // Resets the amount to nothing so that if the user adds expense after editing the old edit amount will not show.
             for (participant in NewExpenseCreationActivity.participantDataEditList) {
                 fragmentManualParticipantList.add(participant)
                 if (!participant.contributing) {

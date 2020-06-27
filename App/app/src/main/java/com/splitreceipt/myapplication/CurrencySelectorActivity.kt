@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_ACCOUNT_CURRENCY_CODE
 import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_ACCOUNT_CURRENCY_SYMBOL
 import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_NAME
+import com.splitreceipt.myapplication.data.SqlDbHelper
 import com.splitreceipt.myapplication.databinding.ActivityCurrencySelectorBinding
 
 class CurrencySelectorActivity : AppCompatActivity(), CurrencySelectorAdapter.onCureClick {
@@ -30,14 +31,16 @@ class CurrencySelectorActivity : AppCompatActivity(), CurrencySelectorAdapter.on
 
     override fun onRowClick(pos: Int) {
         val selection = currencyList[pos]
-        val countryCode = selection.substring(0, 3)
+        val currencyCode = selection.substring(0, 3)
         val startIndex = selection.indexOf("(")
         val endIndex = selection.indexOf(")")
         val countrySymbol = selection.substring(startIndex + 1, endIndex)
+        val aSyncCur = ASyncCurrencyDownload(SqlDbHelper(this))
+        aSyncCur.execute(currencyCode)
 
         val sharedPreferences = getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE)
         val edit = sharedPreferences.edit()
-        edit.putString(SHARED_PREF_ACCOUNT_CURRENCY_CODE, countryCode)
+        edit.putString(SHARED_PREF_ACCOUNT_CURRENCY_CODE, currencyCode)
         edit.putString(SHARED_PREF_ACCOUNT_CURRENCY_SYMBOL, countrySymbol)
         edit.apply()
 
