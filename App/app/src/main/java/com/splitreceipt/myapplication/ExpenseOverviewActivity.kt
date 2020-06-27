@@ -164,22 +164,7 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
             Log.i("ExpenseOverview", "Group entered was just created by user")
             val uriImage: Uri = Uri.parse(intent.getStringExtra(UriIntent))
             binding.groupProfileImage.setImageURI(uriImage)
-            val diagView = LayoutInflater.from(this).inflate(R.layout.alert_dialog_share_group, null)
-            val builder = AlertDialog.Builder(this).setTitle("Share")
-                .setView(diagView).show()
-            val shareGroupHelper = ShareGroupHelper(this, getFirebaseId!!)
-            builder.copyLinkButton2.setOnClickListener {
-                shareGroupHelper.clipboardShareCopy()
-            }
-            builder.whatsappShareButton2.setOnClickListener {
-                shareGroupHelper.shareViaWhatsapp()
-            }
-            builder.shareEmailButton2.setOnClickListener {
-                shareGroupHelper.shareViaEmail()
-            }
-            builder.shareContinue.setOnClickListener {
-                builder.dismiss()
-            }
+            showInviteDialog()
         } else {
             // Group has already been created and user is re-entering or joining the group, load internally saved image.
             Log.i("ExpenseOverview", "Group entered was just re-entered or joined")
@@ -305,6 +290,25 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
         adapter = ExpenseOverViewAdapter(receiptList, this)
         binding.mainActivityRecycler.layoutManager = LinearLayoutManager(this)
         binding.mainActivityRecycler.adapter = adapter
+    }
+
+    private fun showInviteDialog() {
+        val diagView = LayoutInflater.from(this).inflate(R.layout.alert_dialog_share_group, null)
+        val builder = AlertDialog.Builder(this).setTitle("Share")
+            .setView(diagView).show()
+        val shareGroupHelper = ShareGroupHelper(this, getFirebaseId!!)
+        builder.copyLinkButton2.setOnClickListener {
+            shareGroupHelper.clipboardShareCopy()
+        }
+        builder.whatsappShareButton2.setOnClickListener {
+            shareGroupHelper.shareViaWhatsapp()
+        }
+        builder.shareEmailButton2.setOnClickListener {
+            shareGroupHelper.shareViaEmail()
+        }
+        builder.shareContinue.setOnClickListener {
+            builder.dismiss()
+        }
     }
 
     private fun openGallery() {

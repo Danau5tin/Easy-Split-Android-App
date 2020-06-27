@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_ACCOUNT_CURRENCY_CODE
 import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_ACCOUNT_CURRENCY_SYMBOL
@@ -14,15 +15,27 @@ import com.splitreceipt.myapplication.databinding.ActivityCurrencySelectorBindin
 class CurrencySelectorActivity : AppCompatActivity(), CurrencySelectorAdapter.onCureClick {
 
     private lateinit var binding: ActivityCurrencySelectorBinding
+    private var isBase: Boolean = false
     private var currencyList: MutableList<String> = mutableListOf(
         "GBP - Great British Pound (£)", "EUR - Euro (€)", "USD - US Dollar ($)",
         "AUD - Australian Dollar ($)", "CAD - Canadian Dollar ($)"
     )
 
+    companion object {
+        const val isBaseIntent = "isBase"
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityCurrencySelectorBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        isBase = intent.getBooleanExtra(isBaseIntent, false)
+        if (isBase) {
+            Log.i("Currency", "Base currency will be downloaded")
+        } else {
+            Log.i("Currency", "Base currency will NOT be downloaded")
+        }
 
         val adapter = CurrencySelectorAdapter(currencyList, this)
         binding.currencyRecy.adapter = adapter
@@ -35,8 +48,10 @@ class CurrencySelectorActivity : AppCompatActivity(), CurrencySelectorAdapter.on
         val startIndex = selection.indexOf("(")
         val endIndex = selection.indexOf(")")
         val countrySymbol = selection.substring(startIndex + 1, endIndex)
-        val aSyncCur = ASyncCurrencyDownload(SqlDbHelper(this))
-        aSyncCur.execute(currencyCode)
+        if (isBase) {
+            val aSyncCur = ASyncCurrencyDownload(SqlDbHelper(this))
+            aSyncCur.execute(currencyCode)
+        }
 
         val sharedPreferences = getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE)
         val edit = sharedPreferences.edit()

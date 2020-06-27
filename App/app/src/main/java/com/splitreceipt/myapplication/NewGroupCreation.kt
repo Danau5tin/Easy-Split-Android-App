@@ -40,6 +40,7 @@ class NewGroupCreation : AppCompatActivity(), NewParticipantRecyAdapter.onPartRo
     private lateinit var storageReference: StorageReference
     private lateinit var recyAdapter: NewParticipantRecyAdapter
     private lateinit var participantList: ArrayList<String>
+    private var uriString: String? = null
     private val pickImage: Int = 10
     private val requestStorage = 20
     private val baseCurrencySelection = 30
@@ -173,6 +174,7 @@ class NewGroupCreation : AppCompatActivity(), NewParticipantRecyAdapter.onPartRo
                     intent.putExtra(GroupScreenActivity.groupNameIntentString, title)
                     intent.putExtra(GroupScreenActivity.groupBaseCurrencyIntent, currencyCode)
                     intent.putExtra(ExpenseOverviewActivity.ImagePathIntent, path)
+                    intent.putExtra(ExpenseOverviewActivity.UriIntent, uriString)
                     startActivity(intent)
                     finish()
                 }
@@ -242,7 +244,7 @@ class NewGroupCreation : AppCompatActivity(), NewParticipantRecyAdapter.onPartRo
                     newBitmap = bitmap
                 }
                 firebaseDbHelper!!.uploadGroupProfileImage(newBitmap)
-                intent.putExtra(ExpenseOverviewActivity.UriIntent, uri.toString())
+                uriString = uri.toString()
             }
         }
         else if (requestCode == baseCurrencySelection) {
@@ -256,6 +258,7 @@ class NewGroupCreation : AppCompatActivity(), NewParticipantRecyAdapter.onPartRo
 
     fun newGroupCurrencyButton(view: View) {
         val intent = Intent(this, CurrencySelectorActivity::class.java)
+        intent.putExtra(CurrencySelectorActivity.isBaseIntent, true)
         startActivityForResult(intent, baseCurrencySelection)
     }
 

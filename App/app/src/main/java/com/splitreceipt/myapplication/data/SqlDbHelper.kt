@@ -5,6 +5,7 @@ import android.content.Context
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
+import android.util.Log
 import com.splitreceipt.myapplication.ExpenseViewActivity
 import com.splitreceipt.myapplication.SplitExpenseManuallyFragment
 import com.splitreceipt.myapplication.data.DbManager.CurrencyTable.CURRENCY_BASE
@@ -49,7 +50,7 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
 ) {
 
     companion object {
-        private const val DATABASE_NAME = "newdata.db"
+        private const val DATABASE_NAME = "upgraded.db"
         private const val DATABASE_VERSION = 1
 
         const val CURRENCY_NON_EXISTENT: Long = 0
@@ -182,6 +183,7 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
                 put(CURRENCY_LAST_UPDATE, timestamp)
             }
             write.insert(CURRENCY_TABLE_NAME, null, values)
+            Log.i("Currency", "Inserted base: $baseCurrency for country: ${currency.currencyCode} at rate: ${currency.rate}" )
         }
         close()
     }
@@ -563,7 +565,7 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
         val cursor: Cursor = read.query(CURRENCY_TABLE_NAME, columns, where, whereArgs, null, null, null)
         val exists = cursor.moveToNext()
         if (exists) {
-            val lastUpdateIndex = cursor.getColumnIndexOrThrow(CURRENCY_TABLE_NAME)
+            val lastUpdateIndex = cursor.getColumnIndexOrThrow(CURRENCY_LAST_UPDATE)
             val lastUpdate = cursor.getLong(lastUpdateIndex)
             cursor.close()
             return lastUpdate
@@ -580,7 +582,7 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
         )
         val where = "$CURRENCY_BASE = ? AND $CURRENCY_CODE = ?"
         val whereArgs = arrayOf(baseCurrency, expenseCurrency)
-        val cursor: Cursor = read.query(EXPENSE_TABLE_NAME, columns, where, whereArgs, null, null, null)
+        val cursor: Cursor = read.query(CURRENCY_TABLE_NAME, columns, where, whereArgs, null, null, null)
         val rateColIndex = cursor.getColumnIndexOrThrow(CURRENCY_RATE)
         val rate: Float
         if (cursor.moveToNext()) {

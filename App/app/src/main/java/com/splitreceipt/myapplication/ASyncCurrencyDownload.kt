@@ -21,7 +21,7 @@ class ASyncCurrencyDownload(var sqlDbHelper: SqlDbHelper) : AsyncTask<String, Vo
     private val key = "1b856d9a3cf501d5fd35b7f8fc9d8c20"
     private var api = "https://data.fixer.io/api/latest?access_key=$key&base="
     private var currencyLastUpdate: Long = 0
-    private var daysSinceUpdate = 0.0F
+    private var daysSinceUpdate = 8.0F
 
     override fun doInBackground(vararg params: String?): String {
         val currencyCode = params[0]
@@ -36,7 +36,7 @@ class ASyncCurrencyDownload(var sqlDbHelper: SqlDbHelper) : AsyncTask<String, Vo
             daysSinceUpdate = hoursSinceUpdate / 24
         }
         Log.i("Currency", "days since update $daysSinceUpdate")
-        if (daysSinceUpdate < 7.0F) {
+        if (daysSinceUpdate > 7.0F) {
             api = "$api$currencyCode"
             val url = URL(api)
             val connection: HttpURLConnection = url.openConnection() as HttpURLConnection
