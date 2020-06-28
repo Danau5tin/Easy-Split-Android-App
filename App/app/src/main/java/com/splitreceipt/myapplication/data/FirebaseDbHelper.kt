@@ -10,6 +10,7 @@ import com.google.firebase.database.*
 import com.google.firebase.storage.FirebaseStorage
 import com.splitreceipt.myapplication.ASyncCurrencyDownload
 import com.splitreceipt.myapplication.ASyncSaveImage
+import com.splitreceipt.myapplication.CurrencyHelper
 import com.splitreceipt.myapplication.WelcomeJoinActivity
 import de.hdodenhof.circleimageview.CircleImageView
 import java.io.ByteArrayOutputStream
@@ -74,9 +75,11 @@ class FirebaseDbHelper(private var firebaseGroupId: String) {
                 val infoData = infoChild.getValue(FirebaseAccountInfoData::class.java)!!
                 val financeData = financeChild.getValue(FirebaseAccountFinancialData::class.java)!!
                 val sqlHelper = SqlDbHelper(context)
+                val currencyHelper = CurrencyHelper
+                val baseCurrencyUiSymbol = currencyHelper.returnUiSymbol(infoData.accCurrency)
                 val sqlRow = sqlHelper.insertNewGroup(firebaseGroupId, infoData.accName,
                     infoData.accParticipants, financeData.accBal, financeData.accSettle, "u",
-                    infoData.accLastImage, infoData.accCurrency)
+                    infoData.accLastImage, infoData.accCurrency, baseCurrencyUiSymbol)
 
                 val sqlRowString = sqlRow.toString()
                 WelcomeJoinActivity.sqlRow = sqlRowString
@@ -84,10 +87,11 @@ class FirebaseDbHelper(private var firebaseGroupId: String) {
                 for (expense in expensesChild.children) {
                     val expenseData = expense.getValue(FirebaseExpenseData::class.java)!!
                     val expenseId = expense.key!!
+                    val expenseCurrencyUiSymbol = currencyHelper.returnUiSymbol(expenseData.expCurrency)
                     val expenseSqlRow = sqlHelper.insertNewExpense(sqlRowString, expenseId, expenseData.expDate,
                         expenseData.expTitle, expenseData.expTotal, expenseData.expPaidBy,
                         expenseData.expContribs, expenseData.expScanned, expenseData.expLastEdit,
-                        expenseData.expCurrency, expenseData.expExchRate)
+                        expenseData.expCurrency, expenseCurrencyUiSymbol, expenseData.expExchRate)
 
                     if (expenseData.expScanned) {
                         for (receipt in scannedChild.children) {

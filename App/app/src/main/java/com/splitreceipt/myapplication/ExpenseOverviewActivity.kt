@@ -39,16 +39,17 @@ import java.util.*
 import kotlin.collections.ArrayList
 
 
-class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onReceRowClick {
+class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnReceRowClick {
     /*
     Activity shows the interior of a group. Listing all prior expenses and
     offering the user to create a new expense.
      */
 
-    lateinit var binding: ActivityMainBinding
-    lateinit var receiptList: ArrayList<ReceiptData>
+    private lateinit var binding: ActivityMainBinding
+    private lateinit var receiptList: ArrayList<ReceiptData>
     private lateinit var storageRef: StorageReference
     private lateinit var adapter: ExpenseOverViewAdapter
+    private lateinit var currencySymbol: String
     private val seeExpenseResult = 10
     private val addExpenseResult = 20
     private val seeBalancesResult = 60
@@ -89,16 +90,8 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
 
         fun roundToTwoDecimalPlace(number: Float): Float {
             val df = DecimalFormat("#.##")
-            df.roundingMode = RoundingMode.FLOOR
+            df.roundingMode = RoundingMode.CEILING
             return df.format(number).toFloat()
-        }
-
-        fun errorRate(balance: Float): Float {
-            if (balance in -0.04..0.04) {
-                // £0.04/$0.04 error rate allowed. Likely only to ever reach 0.02 error rate.
-                return 0.0F
-            }
-            return balance
         }
 
         fun loadImageFromStorage(
@@ -137,6 +130,7 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
         binding.groupNameTitleText.text = getGroupName
         getFirebaseId = intent.getStringExtra(GroupScreenActivity.firebaseIntentString)
         groupBaseCurrency = intent.getStringExtra(GroupScreenActivity.groupBaseCurrencyIntent)!!
+        currencySymbol = intent.getStringExtra(GroupScreenActivity.groupBaseCurrencyUiSymbolIntent)!!
 
         firebaseDbHelper = null
         firebaseDbHelper = if (NewGroupCreation.firebaseDbHelper != null) {
@@ -256,8 +250,9 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
                         val currency = newExpense.expCurrency
                         val exchangeRate = newExpense.expExchRate
                         //Save expense into SQL
+                        val expenseCurrencySymbol = CurrencyHelper.returnUiSymbol(currency)
                         val expenseSqlRow = sqlDbHelper.insertNewExpense(getSqlGroupId!!, firebaseID,
-                            date, title, total, paidBy, contribs, scanned, lastEdit, currency, exchangeRate)
+                            date, title, total, paidBy, contribs, scanned, lastEdit, currency, expenseCurrencySymbol, exchangeRate)
                         if (scanned){
                             // If the expense is a scanned receipt then download and add this receipt to sql
                             val scannedRef = firebaseDbHelper!!.getScannedListeningRef(firebaseID)
@@ -292,6 +287,7 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
         binding.mainActivityRecycler.adapter = adapter
     }
 
+    @SuppressLint("InflateParams")
     private fun showInviteDialog() {
         val diagView = LayoutInflater.from(this).inflate(R.layout.alert_dialog_share_group, null)
         val builder = AlertDialog.Builder(this).setTitle("Share")
@@ -348,11 +344,7 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
         } else if (requestCode == seeExpenseResult) {
             if (resultCode == Activity.RESULT_OK) {
 
-                if (data?.getStringExtra(
-                        ExpenseViewActivity
-                            .expenseReturnNewSettlements
-                    ) == null
-                ) {
+                if (data?.getStringExtra(ExpenseViewActivity.expenseReturnNewSettlements) == null) {
                     // This scenario means the user deleted the expense and re-balancing must be done
                     val reversedContributions = data?.getStringExtra(ExpenseViewActivity.expenseReturnNewContributions
                     )
@@ -413,7 +405,6 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
             userDirectedSettlementIndexes.add(indexCount)
         } else {
             val sharedPref = getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE)
-            val currencySymbol = sharedPref.getString(SHARED_PREF_ACCOUNT_CURRENCY_SYMBOL, "$")
             val splitIndividual = settlementString.split("/")
             for (settlement in splitIndividual) {
                 val splitSettlement = settlement.split(",")
@@ -421,7 +412,7 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
                 val value = splitSettlement[1]
                 val receiver = changeNameToYou(splitSettlement[2], false)
                 val finalSettlementString =
-                    createSettlementString(debtor, value, receiver, currencySymbol!!)
+                    createSettlementString(debtor, value, receiver, currencySymbol)
                 settlementArray.add(finalSettlementString)
                 if ("you" in finalSettlementString.toLowerCase(Locale.ROOT)) {
                     userDirectedSettlementIndexes.add(indexCount)
@@ -448,7 +439,9 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
         val you = "you"
         val debtorLow = debtor.toLowerCase(Locale.ROOT)
         val receiverLow = receiver.toLowerCase(Locale.ROOT)
-        val fixedVal = SplitExpenseManuallyFragment.addStringZerosForDecimalPlace(value)
+        var fixedVal = roundToTwoDecimalPlace(value.toFloat()).toString()
+        fixedVal = SplitExpenseManuallyFragment.addStringZerosForDecimalPlace(fixedVal)
+
         finalString = if (you == debtorLow) {
             "$debtor owe $currencySymbol$fixedVal to $receiver."
         } else if (you == receiverLow) {
@@ -484,6 +477,8 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
         total: String,
         sqlID: String,
         paidBy: String,
+        uiSymbol: String,
+        currencyCode: String,
         scanned: Boolean
     ) {
         val intent = Intent(this, ExpenseViewActivity::class.java)
@@ -491,6 +486,8 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.onRe
         intent.putExtra(ExpenseViewActivity.expenseTotalIntentString, total)
         intent.putExtra(ExpenseViewActivity.expenseSqlIntentString, sqlID)
         intent.putExtra(ExpenseViewActivity.expensePaidByIntentString, paidBy)
+        intent.putExtra(ExpenseViewActivity.expenseCurrencyUiSymbolIntentString, uiSymbol)
+        intent.putExtra(ExpenseViewActivity.expenseCurrencyCodeIntentString, currencyCode)
         intent.putExtra(ExpenseViewActivity.expenseScannedIntentString, scanned)
         startActivityForResult(intent, seeExpenseResult)
     }

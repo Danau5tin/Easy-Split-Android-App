@@ -24,6 +24,7 @@ import com.splitreceipt.myapplication.data.FirebaseDbHelper
 import com.splitreceipt.myapplication.data.SqlDbHelper
 import com.splitreceipt.myapplication.data.ParticipantNewGroupData
 import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_ACCOUNT_CURRENCY_CODE
+import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_ACCOUNT_CURRENCY_SYMBOL
 import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_NAME
 import com.splitreceipt.myapplication.databinding.ActivityNewGroupCreationBinding
 import java.util.*
@@ -46,6 +47,7 @@ class NewGroupCreation : AppCompatActivity(), NewParticipantRecyAdapter.onPartRo
     private val baseCurrencySelection = 30
     private var path = ""
     private var newBitmap: Bitmap? = null
+    private var currencySymbol: String = ""
     private lateinit var groupFirebaseId: String
 
     companion object {
@@ -146,10 +148,11 @@ class NewGroupCreation : AppCompatActivity(), NewParticipantRecyAdapter.onPartRo
                 val settlementString = "balanced"
                 val imageUploadLastEditTime = System.currentTimeMillis().toString()
                 val currencyCode = binding.newGroupCurrencyButton.text.toString()
+                val baseCurrencyUiSymbol = CurrencyHelper.returnUiSymbol(currencyCode)
 
                 // Save to SQL and upload to firebase
                 val sqlRow = SqlDbHelper(this).insertNewGroup(groupFirebaseId, title,
-                    participants, balances, settlementString, sqlUser, imageUploadLastEditTime, currencyCode)
+                    participants, balances, settlementString, sqlUser, imageUploadLastEditTime, currencyCode, baseCurrencyUiSymbol)
                 firebaseDbHelper!!.createNewGroup(title, balances,
                     settlementString, participants, imageUploadLastEditTime, currencyCode)
 
@@ -173,6 +176,7 @@ class NewGroupCreation : AppCompatActivity(), NewParticipantRecyAdapter.onPartRo
                     intent.putExtra(GroupScreenActivity.userIntentString, sqlUser)
                     intent.putExtra(GroupScreenActivity.groupNameIntentString, title)
                     intent.putExtra(GroupScreenActivity.groupBaseCurrencyIntent, currencyCode)
+                    intent.putExtra(GroupScreenActivity.groupBaseCurrencyUiSymbolIntent, currencySymbol)
                     intent.putExtra(ExpenseOverviewActivity.ImagePathIntent, path)
                     intent.putExtra(ExpenseOverviewActivity.UriIntent, uriString)
                     startActivity(intent)
@@ -250,7 +254,8 @@ class NewGroupCreation : AppCompatActivity(), NewParticipantRecyAdapter.onPartRo
         else if (requestCode == baseCurrencySelection) {
             if (resultCode == Activity.RESULT_OK) {
                 val sharedPreferences = getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE)
-                val currencyCode = sharedPreferences.getString(SHARED_PREF_ACCOUNT_CURRENCY_CODE, "EUR")
+                val currencyCode = sharedPreferences.getString(SHARED_PREF_ACCOUNT_CURRENCY_CODE, "USD")
+                currencySymbol = sharedPreferences.getString(SHARED_PREF_ACCOUNT_CURRENCY_SYMBOL, "$")!!
                 binding.newGroupCurrencyButton.text = currencyCode
             }
         }

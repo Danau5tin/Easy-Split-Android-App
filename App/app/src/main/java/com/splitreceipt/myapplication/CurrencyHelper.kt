@@ -1,10 +1,11 @@
 package com.splitreceipt.myapplication
 
+import android.util.Log
+import com.splitreceipt.myapplication.data.CurrencyUiData
 import com.splitreceipt.myapplication.data.ParticipantBalanceData
-import com.splitreceipt.myapplication.data.ParticipantData
 import com.splitreceipt.myapplication.data.SqlDbHelper
 
-object CurrencyExchangeHelper {
+object CurrencyHelper {
 
     private var baseCurrency = ExpenseOverviewActivity.groupBaseCurrency!!
 
@@ -21,9 +22,11 @@ object CurrencyExchangeHelper {
             if (priorExchangeRate == null) {
                 // User is creating a new expense
                 exchangeRate = sqlDbHelper.retrieveExchangeRate(baseCurrency, expenseCurrency)
+                Log.i("Currency", "Retrieved exchange rate for $expenseCurrency is: $exchangeRate")
             } else {
                 // User is editing a prior expense
                 exchangeRate = priorExchangeRate
+                Log.i("Currency", "Prior exchange rate: $priorExchangeRate")
             }
             // Take the participant data contributions and exchange them to base currency
             for (participant in participantBalDataList) {
@@ -47,4 +50,21 @@ object CurrencyExchangeHelper {
             return baseContribution * exchangeRate
         }
     }
+
+    fun returnUiSymbol(countryCode: String) : String{
+        for (currency in currencyArray) {
+            if (countryCode == currency.countryCode) {
+                return currency.currencyUiSymbol
+            }
+        }
+        return "$" //default to $
+    }
+
+    val currencyArray = arrayOf<CurrencyUiData>(
+        CurrencyUiData("AUD","Australian Dollar", "$", "A$"),
+        CurrencyUiData("CAD", "Canadian Dollar", "$", "CA$"),
+        CurrencyUiData("EUR", "Euro", "€"),
+        CurrencyUiData( "GBP", "Great British Pound","£"),
+        CurrencyUiData("USD", "US Dollar", "$")
+    )
 }

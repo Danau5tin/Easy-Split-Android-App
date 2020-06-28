@@ -32,6 +32,7 @@ class GroupScreenActivity : AppCompatActivity() {
         var userIntentString: String = "user"
         var groupNameIntentString: String = "groupName"
         var groupBaseCurrencyIntent: String = "groupCurrency"
+        var groupBaseCurrencyUiSymbolIntent: String = "groupUiSymbol"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

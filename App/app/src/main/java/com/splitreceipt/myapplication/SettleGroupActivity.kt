@@ -48,9 +48,10 @@ class SettleGroupActivity : AppCompatActivity() {
                     val date = NewExpenseCreationActivity.retrieveTodaysDate(this)
                     //TODO: Allow settlements to be made in any currency, defaulting to the base currency.
                     ExpenseOverviewActivity.firebaseDbHelper!!.createUpdateNewExpense(
-                        firebaseExpenseId, date, title, amount, paidBy, contribString, false, firebaseExpenseId, ExpenseOverviewActivity.groupBaseCurrency!!, 1.0F)
+                        firebaseExpenseId, date, title, amount, paidBy, contribString, false, firebaseExpenseId, ExpenseOverviewActivity.groupBaseCurrency!!,1.0F)
                     SqlDbHelper(this).insertNewExpense(ExpenseOverviewActivity.getSqlGroupId!!,
-                        firebaseExpenseId, date, title, amount, paidBy, contribString, false, firebaseExpenseId, ExpenseOverviewActivity.groupBaseCurrency!!, 1.0F)
+                        firebaseExpenseId, date, title, amount, paidBy, contribString, false, //TODO: Fix this! £ should be changed to groups default uiSymbol
+                        firebaseExpenseId, ExpenseOverviewActivity.groupBaseCurrency!!, "£",1.0F)
                     intent.putExtra(NewExpenseCreationActivity.CONTRIBUTION_INTENT_DATA, contribString)
                     setResult(Activity.RESULT_OK, intent)
                     finish()

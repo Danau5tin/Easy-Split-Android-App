@@ -35,7 +35,7 @@ class SplitExpenseManuallyFragment : Fragment(), NewManualExpenseRecyclerAdapter
     companion object{
 
         var transactionTotal: String = zeroCurrency
-        private const val CURRENCY_INTENT = 2
+        private const val currencyIntent = 2
         var fragmentManualParticipantList: ArrayList<ParticipantData> = ArrayList()
 
         fun addStringZerosForDecimalPlace(value: String): String {
@@ -54,7 +54,9 @@ class SplitExpenseManuallyFragment : Fragment(), NewManualExpenseRecyclerAdapter
         sharedPreferences = contxt.getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE)
 
         retrieveParticipants()
-        updateUICurrency()
+
+        binding.currencyButtonManual.text = currencyCode
+//        updateUICurrency()
 
         adapter = NewManualExpenseRecyclerAdapter(fragmentManualParticipantList, this)
         binding.fragManualRecy.layoutManager = LinearLayoutManager(activity)
@@ -86,11 +88,16 @@ class SplitExpenseManuallyFragment : Fragment(), NewManualExpenseRecyclerAdapter
                     transactionTotal = zeroCurrency
                     setContributionStatus()}}})
 
-
-        binding.currencyButtonManual.setOnClickListener{
-            val intent = Intent(activity, CurrencySelectorActivity::class.java)
-            startActivityForResult(intent, CURRENCY_INTENT)
+        if (NewExpenseCreationActivity.isEdit) {
+            binding.currencyButtonManual.isEnabled = false
+        } else {
+            binding.currencyButtonManual.isEnabled = true
+            binding.currencyButtonManual.setOnClickListener{
+                val intent = Intent(activity, CurrencySelectorActivity::class.java)
+                startActivityForResult(intent, currencyIntent)
+            }
         }
+
 
         if (!NewExpenseCreationActivity.isScanned){
             binding.currencyAmountManual.setText(NewExpenseCreationActivity.editTotal)
@@ -103,7 +110,7 @@ class SplitExpenseManuallyFragment : Fragment(), NewManualExpenseRecyclerAdapter
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == CURRENCY_INTENT) {
+        if (requestCode == currencyIntent) {
             if (resultCode == Activity.RESULT_OK) {
                 updateUICurrency(adapterInitialised = true)
             }
@@ -112,7 +119,7 @@ class SplitExpenseManuallyFragment : Fragment(), NewManualExpenseRecyclerAdapter
 
     private fun updateUICurrency(adapterInitialised: Boolean = false) {
         currencySymbol = sharedPreferences.getString(SHARED_PREF_ACCOUNT_CURRENCY_SYMBOL, "$").toString()
-        currencyCode = sharedPreferences.getString(SHARED_PREF_ACCOUNT_CURRENCY_CODE, "US").toString()
+        currencyCode = sharedPreferences.getString(SHARED_PREF_ACCOUNT_CURRENCY_CODE, "USD").toString()
         binding.currencyButtonManual.text = currencyCode
         if (adapterInitialised) {
             binding.fragManualRecy.post(Runnable { adapter.notifyDataSetChanged() })
@@ -141,7 +148,7 @@ class SplitExpenseManuallyFragment : Fragment(), NewManualExpenseRecyclerAdapter
     private fun setContributionValues(total: Float, activeParticipants: ArrayList<ParticipantData>){
         val contribution: String
         val fixedContribution: String
-        if (!activeParticipants.isEmpty()){
+        if (activeParticipants.isNotEmpty()){
             val num = total / activeParticipants.size
             contribution = ExpenseOverviewActivity.roundToTwoDecimalPlace(num).toString()
             fixedContribution = addStringZerosForDecimalPlace(contribution)

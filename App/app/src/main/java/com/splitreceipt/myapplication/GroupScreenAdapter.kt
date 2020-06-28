@@ -27,6 +27,7 @@ class GroupScreenAdapter(private val groupNameList: ArrayList<GroupData>) : Recy
         holder.firebaseId = groupNameList[position].firebaseId
         holder.sqlUser = groupNameList[position].sqlUser
         holder.baseCurrency = groupNameList[position].baseCurrency
+        holder.baseSymbol = groupNameList[position].baseCurrencySymbol
     }
 
     class GroupViewHolder(var context: Context, itemView: View) : RecyclerView.ViewHolder(itemView), View.OnClickListener {
@@ -35,7 +36,8 @@ class GroupScreenAdapter(private val groupNameList: ArrayList<GroupData>) : Recy
         var sqlId: String = "0"
         var firebaseId: String = "0"
         var sqlUser: String = "unknown"
-        var baseCurrency: String = "EUR"
+        var baseCurrency: String = "USD"
+        var baseSymbol: String = "$"
 
         init {
             itemView.setOnClickListener(this)
@@ -48,6 +50,7 @@ class GroupScreenAdapter(private val groupNameList: ArrayList<GroupData>) : Recy
             intent.putExtra(GroupScreenActivity.userIntentString, sqlUser)
             intent.putExtra(GroupScreenActivity.groupNameIntentString, titleText.text.toString())
             intent.putExtra(GroupScreenActivity.groupBaseCurrencyIntent, baseCurrency)
+            intent.putExtra(GroupScreenActivity.groupBaseCurrencyUiSymbolIntent, baseSymbol)
             context.startActivity(intent)
         }
 

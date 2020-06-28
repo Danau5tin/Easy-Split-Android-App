@@ -8,9 +8,11 @@
 
     <HorizontalScrollView
         android:id="@+id/joinHorizontalScroll"
-        android:layout_width="411dp"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
         android:layout_marginTop="32dp"
+        android:layout_marginEnd="16dp"
         android:visibility="visible"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -63,7 +65,7 @@
         android:id="@+id/joinContinueButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="50dp"
+        android:layout_marginTop="150dp"
         android:text="Continue to group"
         android:visibility="visible"
         app:layout_constraintEnd_toEndOf="@+id/joinWhoText"
@@ -74,11 +76,41 @@
         android:id="@+id/joinWhoText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
         android:layout_marginTop="24dp"
-        android:text="Please select your name:"
+        android:text="Please choose your name below"
         android:textColor="#000000"
         android:visibility="visible"
-        app:layout_constraintEnd_toEndOf="@+id/joinWelcome"
-        app:layout_constraintStart_toStartOf="@+id/joinWelcome"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/joinWelcome" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/joinNameLayout"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:visibility="invisible"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/nameNotHereBut">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/joinNameText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Add your name" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <Button
+        android:id="@+id/nameNotHereBut"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/image_button_outline_white_solid"
+        android:padding="10dp"
+        android:text="Name not here?"
+        android:onClick="nameNotHereButton"
+        app:layout_constraintStart_toStartOf="@+id/joinHorizontalScroll"
+        app:layout_constraintTop_toBottomOf="@+id/joinHorizontalScroll" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -24,7 +24,6 @@ class BalanceSettlementHelper(var context: Context, var groupSqlRow: String) {
         Step 5: Update SQL with new balances and settlement strings
         Step 6: return the newSettlementString for receipt overview Balance
          */
-        Log.i("ClassTest", "Entered")
         val newSettlementString: String
         val prevBalanceObjects = loadPreviousBalanceToObjects()
         val newBalanceObjects = updateBalancesWithContributions(prevBalanceObjects, newContributions)
@@ -37,7 +36,7 @@ class BalanceSettlementHelper(var context: Context, var groupSqlRow: String) {
         else {
             newSettlementString = ExpenseOverviewActivity.balanced_string
         }
-        Log.i("Algorithm", "Settlement string created after the algorithm has balanced everyones balances: $newSettlementString \n\n")
+        Log.i("Algorithm", "Settlement string created after the algorithm has balanced everyones balances: $newSettlementString")
         updateSqlBalAndSettlementStrings(newBalanceString, newSettlementString)
 
         return newSettlementString
@@ -96,16 +95,13 @@ class BalanceSettlementHelper(var context: Context, var groupSqlRow: String) {
                 for (participantBalanceItem in prevBalances) {
                     if (contributor == participantBalanceItem.name) {
                         participantBalanceItem.balance += contribValue
-                        participantBalanceItem.balance =
-                            ExpenseOverviewActivity.roundToTwoDecimalPlace(participantBalanceItem.balance)
+//                        participantBalanceItem.balance = ExpenseOverviewActivity.roundToTwoDecimalPlace(participantBalanceItem.balance)
                     }
                     else if (contributee == participantBalanceItem.name) {
                         participantBalanceItem.balance -= contribValue
-                        participantBalanceItem.balance =
-                            ExpenseOverviewActivity.roundToTwoDecimalPlace(participantBalanceItem.balance)
+//                        participantBalanceItem.balance = ExpenseOverviewActivity.roundToTwoDecimalPlace(participantBalanceItem.balance)
                     }
-                    participantBalanceItem.balance =
-                        ExpenseOverviewActivity.errorRate(participantBalanceItem.balance)
+                    participantBalanceItem.balance = errorRate(participantBalanceItem.balance)
                 }
             }
         }
@@ -129,7 +125,7 @@ class BalanceSettlementHelper(var context: Context, var groupSqlRow: String) {
 
     private fun checkIfBalanced(participantBalanceDataList: ArrayList<ParticipantBalanceData>): Boolean {
         for (participant in participantBalanceDataList) {
-            participant.balance = ExpenseOverviewActivity.errorRate(participant.balance)
+            participant.balance = errorRate(participant.balance)
             if (participant.balance != 0.0F) {
                 return false
             }
@@ -149,8 +145,7 @@ class BalanceSettlementHelper(var context: Context, var groupSqlRow: String) {
             //Step 1: Identify the participants with the largest negative balance & largest positive balance
             for (participant in participantBalanceDataList) {
 
-                participant.balance =
-                    ExpenseOverviewActivity.roundToTwoDecimalPlace(participant.balance)
+//                participant.balance = ExpenseOverviewActivity.roundToTwoDecimalPlace(participant.balance)
 
                 val participantBalance = participant.balance
                 if (participantBalance <= 0) {
@@ -251,6 +246,15 @@ class BalanceSettlementHelper(var context: Context, var groupSqlRow: String) {
             Log.i("TEST", "Successful upload of new balance string & settlement string")
         }
         dbHelper.close()
+    }
+
+    fun errorRate(balance: Float): Float {
+        if (balance in -0.05..0.05) {
+            // error rate allowed.
+            Log.i("Algorithm", "Balance set to 0 as participant balance: $balance is in error rate range .05")
+            return 0.0F
+        }
+        return balance
     }
 
 }

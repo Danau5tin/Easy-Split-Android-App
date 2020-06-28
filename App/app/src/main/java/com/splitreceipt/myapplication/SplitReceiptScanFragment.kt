@@ -81,7 +81,10 @@ class SplitReceiptScanFragment : Fragment(), NewScannedReceiptRecyclerAdapter.on
         sharedPreferences = contxt.getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE)
         itemizedArrayList = ArrayList()
         participantList = ArrayList()
-        updateUICurrency()
+
+//        updateUICurrency()
+        binding.currencyButtonScan.text = currencyCode
+
         retrieveParticipants()
         adapter = NewScannedReceiptRecyclerAdapter(participantAdapterList, itemizedArrayList, this)
         binding.scannedRecy.layoutManager = LinearLayoutManager(contxt)
@@ -128,9 +131,15 @@ class SplitReceiptScanFragment : Fragment(), NewScannedReceiptRecyclerAdapter.on
             }
         }
 
-        binding.currencyButtonScan.setOnClickListener {
-            val intent = Intent(contxt, CurrencySelectorActivity::class.java)
-            startActivityForResult(intent, currencyIntent)
+        if (NewExpenseCreationActivity.isEdit) {
+            binding.currencyButtonScan.isEnabled = false
+        } else {
+            binding.currencyButtonScan.isEnabled = true
+            binding.currencyButtonScan.setOnClickListener {
+                val intent = Intent(contxt, CurrencySelectorActivity::class.java)
+                startActivityForResult(intent, currencyIntent)
+            }
+
         }
 
         if (NewExpenseCreationActivity.isScanned) {

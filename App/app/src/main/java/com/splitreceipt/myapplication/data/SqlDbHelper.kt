@@ -40,8 +40,10 @@ import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_COL_TI
 import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_COL_TOTAL
 import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_COL_FIREBASE_ID
 import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_COL_LAST_EDIT
+import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_COL_UI_SYMBOL
 import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_TABLE_NAME
 import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_BASE_CURRENCY
+import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_BASE_CURRENCY_UI_SYMBOL
 import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_LAST_IMAGE_EDIT
 
 class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
@@ -50,7 +52,7 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
 ) {
 
     companion object {
-        private const val DATABASE_NAME = "upgraded.db"
+        private const val DATABASE_NAME = "another.db"
         private const val DATABASE_VERSION = 1
 
         const val CURRENCY_NON_EXISTENT: Long = 0
@@ -64,7 +66,8 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
                 "$GROUP_COL_SETTLEMENTS TEXT, " +
                 "$GROUP_COL_USER TEXT, " +
                 "$GROUP_COL_LAST_IMAGE_EDIT TEXT, " +
-                "$GROUP_COL_BASE_CURRENCY TEXT)"
+                "$GROUP_COL_BASE_CURRENCY TEXT," +
+                "$GROUP_COL_BASE_CURRENCY_UI_SYMBOL TEXT)"
         private const val DELETE_GROUP_ENTRIES = "DROP TABLE IF EXISTS $GROUP_TABLE_NAME"
 
         private const val CREATE_EXPENSE_TABLE = "CREATE TABLE $EXPENSE_TABLE_NAME (" +
@@ -78,6 +81,7 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
                 "$EXPENSE_COL_CONTRIBUTIONS TEXT, " +
                 "$EXPENSE_COL_LAST_EDIT TEXT, " +
                 "$EXPENSE_COL_CURRENCY TEXT, " +
+                "$EXPENSE_COL_UI_SYMBOL TEXT, " +
                 "$EXPENSE_COL_EXCHANGE_RATE REAL, " +
                 "$EXPENSE_COL_SCANNED INTEGER, " + //Boolean: 0=False, 1=True
                 "FOREIGN KEY ($EXPENSE_COL_FK_GROUP_ID) REFERENCES $GROUP_TABLE_NAME" +
@@ -123,7 +127,8 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
     }
 
     fun insertNewGroup(fireBaseId: String, title: String, participants: String,
-                       balances: String, settlements: String, sqlUser: String, lastImageEdit: String, baseCurrency: String) : Int{
+                       balances: String, settlements: String, sqlUser: String,
+                       lastImageEdit: String, baseCurrency: String, currencyUiSymbol: String) : Int{
         val values: ContentValues = ContentValues().apply {
             put(GROUP_COL_FIREBASE_ID, fireBaseId)
             put(GROUP_COL_NAME, title)
@@ -133,6 +138,7 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
             put(GROUP_COL_USER, sqlUser)
             put(GROUP_COL_LAST_IMAGE_EDIT, lastImageEdit)
             put(GROUP_COL_BASE_CURRENCY, baseCurrency)
+            put(GROUP_COL_BASE_CURRENCY_UI_SYMBOL, currencyUiSymbol)
         }
         val writer = writableDatabase
         val sqlRow = writer.insert(GROUP_TABLE_NAME, null, values)
@@ -153,7 +159,7 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
 
     fun insertNewExpense(sqlGroupId: String, firebaseId: String, date: String, title: String, total: Float,
                          paidBy: String, contributions: String, scanned: Boolean, lastEdit: String,
-                         expenseCurrency: String, exchangeRate: Float) : Int{
+                         expenseCurrency: String, uiCurrencySymbol: String, exchangeRate: Float) : Int{
         val write = writableDatabase
         val scannedInt: Int = if (scanned) { 1 } else { 0 }
         val values = ContentValues().apply {
@@ -167,6 +173,7 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
             put(EXPENSE_COL_FK_GROUP_ID, sqlGroupId)
             put(EXPENSE_COL_LAST_EDIT, lastEdit)
             put(EXPENSE_COL_CURRENCY, expenseCurrency)
+            put(EXPENSE_COL_UI_SYMBOL, uiCurrencySymbol)
             put(EXPENSE_COL_EXCHANGE_RATE, exchangeRate)
         }
         val sqlId = write.insert(EXPENSE_TABLE_NAME, null, values)
@@ -355,7 +362,7 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
         val reader = readableDatabase
         val columns = arrayOf(
             EXPENSE_COL_DATE, EXPENSE_COL_TITLE, EXPENSE_COL_TOTAL,
-            EXPENSE_COL_PAID_BY, EXPENSE_COL_ID, EXPENSE_COL_SCANNED, EXPENSE_COL_CURRENCY
+            EXPENSE_COL_PAID_BY, EXPENSE_COL_ID, EXPENSE_COL_SCANNED, EXPENSE_COL_UI_SYMBOL,EXPENSE_COL_CURRENCY
         )
         val selectClause = "$EXPENSE_COL_FK_GROUP_ID = ?"
         val selectArgs = arrayOf("$sqlId")
@@ -369,7 +376,8 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
         val paidByColIndex = cursor.getColumnIndexOrThrow(EXPENSE_COL_PAID_BY)
         val idColIndex = cursor.getColumnIndexOrThrow(EXPENSE_COL_ID)
         val scannedColIndex = cursor.getColumnIndexOrThrow(EXPENSE_COL_SCANNED)
-        val currencyColIndex = cursor.getColumnIndexOrThrow(EXPENSE_COL_CURRENCY)
+        val currencyUiSymbolColIndex = cursor.getColumnIndexOrThrow(EXPENSE_COL_UI_SYMBOL)
+        val currencyCodeColIndex = cursor.getColumnIndexOrThrow(EXPENSE_COL_CURRENCY)
         while (cursor.moveToNext()) {
             val receiptDate = cursor.getString(dateColIndex)
             val receiptTitle = cursor.getString(titleColIndex)
@@ -378,7 +386,8 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
             val receiptSqlId = cursor.getInt(idColIndex).toString()
             val receiptScannedInt = cursor.getInt(scannedColIndex)
             val scanned = receiptScannedInt == 1
-            val expenseCurrency = cursor.getString(currencyColIndex)
+            val currencyUiSymbol = cursor.getString(currencyUiSymbolColIndex)
+            val currencyCode = cursor.getString(currencyCodeColIndex)
             receiptList.add(
                 ReceiptData(
                     receiptDate,
@@ -387,7 +396,8 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
                     receiptPaidBy,
                     receiptSqlId,
                     scanned,
-                    expenseCurrency
+                    currencyUiSymbol,
+                    currencyCode
                 )
             )
         }
@@ -397,20 +407,22 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
     fun readAllGroups() : ArrayList<GroupData>{
         val groupList: ArrayList<GroupData> = ArrayList()
         val reader = readableDatabase
-        val columns = arrayOf(GROUP_COL_ID, GROUP_COL_NAME, GROUP_COL_FIREBASE_ID, GROUP_COL_USER, GROUP_COL_BASE_CURRENCY)
+        val columns = arrayOf(GROUP_COL_ID, GROUP_COL_NAME, GROUP_COL_FIREBASE_ID, GROUP_COL_USER, GROUP_COL_BASE_CURRENCY, GROUP_COL_BASE_CURRENCY_UI_SYMBOL)
         val cursor: Cursor = reader.query(GROUP_TABLE_NAME, columns, null, null, null, null, null)
         val groupNameColIndex = cursor.getColumnIndexOrThrow(GROUP_COL_NAME)
         val groupSqlIdIndex = cursor.getColumnIndexOrThrow(GROUP_COL_ID)
         val groupFirebaseIdIndex = cursor.getColumnIndexOrThrow(GROUP_COL_FIREBASE_ID)
         val groupSqlUserIndex = cursor.getColumnIndexOrThrow(GROUP_COL_USER)
         val groupCurrencyIndex = cursor.getColumnIndexOrThrow(GROUP_COL_BASE_CURRENCY)
+        val groupCurrencySymbolIndex = cursor.getColumnIndexOrThrow(GROUP_COL_BASE_CURRENCY_UI_SYMBOL)
         while (cursor.moveToNext()) {
             val groupName = cursor.getString(groupNameColIndex)
             val groupSqlID = cursor.getString(groupSqlIdIndex)
             val groupFirebaseID = cursor.getString(groupFirebaseIdIndex)
             val groupSqlUser = cursor.getString(groupSqlUserIndex)
             val groupBaseCurrency = cursor.getString(groupCurrencyIndex)
-            groupList.add(GroupData(groupName, groupSqlID, groupFirebaseID, groupSqlUser, groupBaseCurrency))
+            val groupBaseSymbol = cursor.getString(groupCurrencySymbolIndex)
+            groupList.add(GroupData(groupName, groupSqlID, groupFirebaseID, groupSqlUser, groupBaseCurrency, groupBaseSymbol))
         }
         cursor.close()
         close()
@@ -588,10 +600,12 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
         if (cursor.moveToNext()) {
             rate = cursor.getFloat(rateColIndex)
             cursor.close()
+            close()
             return rate
         }
         else {
             cursor.close()
+            close()
             rate = 1.0F
             return rate
         }

@@ -23,6 +23,7 @@ class ExpenseViewActivity : AppCompatActivity() {
     private var getTitleIntent: String = ""
     private var getTotalIntent: String = ""
     private var getPaidByIntent: String = ""
+    private var currencyUiSymbol: String = ""
     private var getScannedIntent: Boolean = false
     private lateinit var participantAdapter: ExpenseViewParticipantAdapter
     private lateinit var expenseProdAdapter: ExpenseViewProductAdapter
@@ -34,19 +35,22 @@ class ExpenseViewActivity : AppCompatActivity() {
         lateinit var expenseCurrency: String
         var expenseExchangeRate: Float = 0.0F
 
-        const val expenseSqlIntentString: String = "expense_sql_id"
-        const val expenseTitleIntentString: String = "expense_title"
-        const val expenseTotalIntentString: String = "expense_total"
-        const val expensePaidByIntentString: String = "expense_paid_by"
-        const val expenseScannedIntentString: String = "expense_scanned"
-        const val expenseReturnNewContributions: String = "expense_return_contributions"
-        const val expenseReturnNewSettlements: String = "expense_return_settlements"
-        const val expenseReturnEditSql: String = "expense_edit_sql"
-        const val expenseReturnEditDate: String = "expense_edit_date"
-        const val expenseReturnEditTitle: String = "expense_edit_title"
-        const val expenseReturnEditTotal: String = "expense_edit_total"
-        const val expenseReturnEditPaidBy: String = "expense_edit_paid_by"
-        const val expenseReturnEditContributions: String = "expense_edit_contributions"
+        const val expenseSqlIntentString: String = "exp_sql_id"
+        const val expenseTitleIntentString: String = "exp_title"
+        const val expenseTotalIntentString: String = "exp_total"
+        const val expensePaidByIntentString: String = "exp_paid_by"
+        const val expenseScannedIntentString: String = "exp_scanned"
+        const val expenseCurrencyUiSymbolIntentString: String = "exp_symbol_ui"
+        const val expenseCurrencyCodeIntentString: String = "exp_currency_code"
+
+        const val expenseReturnNewContributions: String = "exp_return_contributions"
+        const val expenseReturnNewSettlements: String = "exp_return_settlements"
+        const val expenseReturnEditSql: String = "exp_edit_sql"
+        const val expenseReturnEditDate: String = "exp_edit_date"
+        const val expenseReturnEditTitle: String = "exp_edit_title"
+        const val expenseReturnEditTotal: String = "exp_edit_total"
+        const val expenseReturnEditPaidBy: String = "exp_edit_paid_by"
+        const val expenseReturnEditContributions: String = "exp_edit_contributions"
         const val EDIT_EXPENSE_INTENT_CODE = 30
     }
 
@@ -61,6 +65,8 @@ class ExpenseViewActivity : AppCompatActivity() {
         getPaidByIntent =
             intent.getStringExtra(expensePaidByIntentString)!!.toLowerCase(Locale.ROOT)
         sqlRowId = intent.getStringExtra(expenseSqlIntentString)!!
+        currencyUiSymbol = intent.getStringExtra(expenseCurrencyUiSymbolIntentString)!!
+        expenseCurrency = intent.getStringExtra(expenseCurrencyCodeIntentString)!!
         getScannedIntent = intent.getBooleanExtra(expenseScannedIntentString, false)
         retrieveAllSqlDetails(getScannedIntent)
         if (getScannedIntent){
@@ -76,7 +82,7 @@ class ExpenseViewActivity : AppCompatActivity() {
         deconstructContributionString()
 
         val paidByText = "Paid by $getPaidByIntent"
-        val valueText = "£$getTotalIntent" //TODO: Ensure the correct currency is being used
+        val valueText = "$currencyUiSymbol$getTotalIntent" //TODO: Ensure the correct currency is being used
         binding.expenseValue.text = valueText
         binding.paidByText.text = paidByText
 
@@ -102,10 +108,12 @@ class ExpenseViewActivity : AppCompatActivity() {
             val contributor = ExpenseOverviewActivity.changeNameToYou(individualContrib[0], true)
             val baseContribution = individualContrib[1].toFloat()
             // If the expense was in a different currency to the base currency then re-convert it.
-            val originalContribution = CurrencyExchangeHelper.reversePreviousExchange(expenseExchangeRate, baseContribution)
-            val value = SplitExpenseManuallyFragment.addStringZerosForDecimalPlace(originalContribution.toString())
-            val newString = "$contributor contributed £$value" //TODO: Ensure the correct currency
-            contributionList.add(ExpenseAdapterData(newString, value))
+            val originalContribution = CurrencyHelper.reversePreviousExchange(expenseExchangeRate, baseContribution)
+            var value = ExpenseOverviewActivity.roundToTwoDecimalPlace(originalContribution).toString()
+            value = SplitExpenseManuallyFragment.addStringZerosForDecimalPlace(value)
+
+            val newString = "$contributor contributed $currencyUiSymbol$value" //TODO: Ensure the correct currency
+            contributionList.add(ExpenseAdapterData(newString, value.toString()))
         }
     }
     private fun retrieveAllSqlDetails(scanned: Boolean){
@@ -125,12 +133,13 @@ class ExpenseViewActivity : AppCompatActivity() {
         intent.putExtra(NewExpenseCreationActivity.editIntentPaidByString, getPaidByIntent)
         intent.putExtra(NewExpenseCreationActivity.editIntentDateString, expenseDate)
         intent.putExtra(NewExpenseCreationActivity.editIntentContributionsString, contributionString)
+        intent.putExtra(NewExpenseCreationActivity.editIntentCurrencyUiSymbol, currencyUiSymbol)
         intent.putExtra(NewExpenseCreationActivity.intentSqlExpenseIdString, sqlRowId)
         intent.putExtra(NewExpenseCreationActivity.intentSqlGroupIdString, ExpenseOverviewActivity.getSqlGroupId)
         intent.putExtra(NewExpenseCreationActivity.editIntentFirebaseExpenseIdString, firebaseExpenseID)
         intent.putExtra(NewExpenseCreationActivity.editIntentScannedBoolean, getScannedIntent)
+        intent.putExtra(NewExpenseCreationActivity.editIntentCurrency, expenseCurrency)
         NewExpenseCreationActivity.editExchangeRate = expenseExchangeRate
-        NewExpenseCreationActivity.editCurrency = expenseCurrency
         startActivityForResult(intent, EDIT_EXPENSE_INTENT_CODE)
     }
 
@@ -143,7 +152,7 @@ class ExpenseViewActivity : AppCompatActivity() {
                 supportActionBar?.title = data?.getStringExtra(expenseReturnEditTitle)
                 val total = SplitExpenseManuallyFragment.addStringZerosForDecimalPlace(data?.
                                                 getStringExtra(expenseReturnEditTotal).toString())
-                val totalWithCurrency = "£$total" //TODO: Ensure correct user currency is displayed
+                val totalWithCurrency = "$currencyUiSymbol$total" //TODO: Ensure correct user currency is displayed
                 binding.expenseValue.text = totalWithCurrency
                 val newPaidBy = data?.getStringExtra(expenseReturnEditPaidBy)
                 binding.paidByText.text = newPaidBy
@@ -211,9 +220,10 @@ class ExpenseViewActivity : AppCompatActivity() {
                 val participantName = prevParticipant.name
                 if (participantName == newParticipant.name) {
                     val change = newParticipant.balance - prevParticipant.balance
-                    val rounded = ExpenseOverviewActivity.roundToTwoDecimalPlace(change)
+//                    val rounded = ExpenseOverviewActivity.roundToTwoDecimalPlace(change)
                     stringBuilder.append("$participantName,")
-                    stringBuilder.append("$rounded,")
+//                    stringBuilder.append("$rounded,")
+                    stringBuilder.append("$change,")
                     stringBuilder.append("$paidBy/")
                 }
             }

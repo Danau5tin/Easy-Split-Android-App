@@ -16,10 +16,8 @@ class CurrencySelectorActivity : AppCompatActivity(), CurrencySelectorAdapter.on
 
     private lateinit var binding: ActivityCurrencySelectorBinding
     private var isBase: Boolean = false
-    private var currencyList: MutableList<String> = mutableListOf(
-        "GBP - Great British Pound (£)", "EUR - Euro (€)", "USD - US Dollar ($)",
-        "AUD - Australian Dollar ($)", "CAD - Canadian Dollar ($)"
-    )
+    private var countryCodeSymbolList = CurrencyHelper.currencyArray
+    private var currencyList: MutableList<String> = mutableListOf()
 
     companion object {
         const val isBaseIntent = "isBase"
@@ -30,12 +28,12 @@ class CurrencySelectorActivity : AppCompatActivity(), CurrencySelectorAdapter.on
         binding = ActivityCurrencySelectorBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        isBase = intent.getBooleanExtra(isBaseIntent, false)
-        if (isBase) {
-            Log.i("Currency", "Base currency will be downloaded")
-        } else {
-            Log.i("Currency", "Base currency will NOT be downloaded")
+        for (currency in countryCodeSymbolList) {
+            val currencyString = "${currency.countryCode} - ${currency.currencyName} (${currency.currencySelectorSymbol})"
+            currencyList.add(currencyString)
         }
+
+        isBase = intent.getBooleanExtra(isBaseIntent, false)
 
         val adapter = CurrencySelectorAdapter(currencyList, this)
         binding.currencyRecy.adapter = adapter
@@ -43,14 +41,16 @@ class CurrencySelectorActivity : AppCompatActivity(), CurrencySelectorAdapter.on
     }
 
     override fun onRowClick(pos: Int) {
-        val selection = currencyList[pos]
-        val currencyCode = selection.substring(0, 3)
-        val startIndex = selection.indexOf("(")
-        val endIndex = selection.indexOf(")")
-        val countrySymbol = selection.substring(startIndex + 1, endIndex)
+        val selection = countryCodeSymbolList[pos]
+        val currencyCode = selection.countryCode
+        val countrySymbol = selection.currencyUiSymbol
+
         if (isBase) {
+            Log.i("Currency", "Base currency will be downloaded")
             val aSyncCur = ASyncCurrencyDownload(SqlDbHelper(this))
             aSyncCur.execute(currencyCode)
+        } else {
+            Log.i("Currency", "Base currency will NOT be downloaded")
         }
 
         val sharedPreferences = getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE)
