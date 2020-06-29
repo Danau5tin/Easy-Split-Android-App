@@ -149,7 +149,7 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
         ASyncCurrencyDownload(sqlHelper).execute(groupBaseCurrency) // Checks if we need to update the latest currency conversions.
 
         setSupportActionBar(findViewById(R.id.toolbar))
-        supportActionBar?.title = "Your group"
+        supportActionBar?.title = ""
         supportActionBar?.apply {
             setDisplayHomeAsUpEnabled(true)
             setDisplayShowHomeEnabled(true)
@@ -332,11 +332,6 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
         val intent = Intent(this, NewExpenseCreationActivity::class.java)
         intent.putExtra(NewExpenseCreationActivity.intentSqlGroupIdString, getSqlGroupId)
         intent.putExtra(NewExpenseCreationActivity.intentFirebaseIdString, getFirebaseId)
-        startActivityForResult(intent, addExpenseResult)
-    }
-
-    fun settleUpButton(view: View) {
-        val intent = Intent(this, SettleGroupActivity::class.java)
         startActivityForResult(intent, addExpenseResult)
     }
 
@@ -530,6 +525,11 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
+            R.id.groupSettleUp -> {
+                val intent = Intent(this, SettleGroupActivity::class.java)
+                startActivityForResult(intent, addExpenseResult)
+                return true
+            }
             R.id.groupAddParticipant -> {
                 val intent = Intent(this, NewParticipantInviteActivity::class.java)
                 startActivity(intent)

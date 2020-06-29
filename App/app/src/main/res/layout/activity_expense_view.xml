@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/colorPrimary"
     tools:context=".ExpenseViewActivity">
 
     <include
@@ -12,36 +13,18 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <ImageView
-        android:id="@+id/expenseTag"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:layout_marginTop="8dp"
-        app:layout_constraintStart_toStartOf="@+id/guideline"
-        app:layout_constraintTop_toBottomOf="@+id/toolbar"
-        app:srcCompat="@drawable/vector_tag_grey" />
-
     <TextView
         android:id="@+id/expenseValue"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:textColor="#050505"
+        android:layout_marginTop="32dp"
+        android:fontFamily="@font/assistant"
+        android:textColor="#FFFFFF"
         android:textSize="24sp"
-        app:layout_constraintStart_toEndOf="@+id/expenseTag"
-        app:layout_constraintTop_toBottomOf="@+id/toolbar"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="@+id/guideline"
+        app:layout_constraintTop_toBottomOf="@+id/titleTextView"
         tools:text="£50.00" />
-
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/editExpenseButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:clickable="true"
-        android:onClick="editExpense"
-        app:layout_constraintBottom_toBottomOf="@+id/toolbar"
-        app:layout_constraintEnd_toStartOf="@+id/guideline3"
-        app:layout_constraintTop_toBottomOf="@+id/toolbar"
-        app:srcCompat="@drawable/vector_edit_pencil_white" />
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guideline"
@@ -50,26 +33,13 @@
         android:orientation="vertical"
         app:layout_constraintGuide_percent="0.05" />
 
-    <TextView
-        android:id="@+id/textView3"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
-        android:text="@string/expense_details"
-        android:textAllCaps="true"
-        android:textColor="#000000"
-        android:textSize="14sp"
-        app:layout_constraintStart_toStartOf="@+id/guideline"
-        app:layout_constraintTop_toBottomOf="@+id/expenseTag" />
-
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/expenseParticRecy"
         android:layout_width="0dp"
         android:layout_height="150dp"
-        android:layout_marginTop="8dp"
         app:layout_constraintEnd_toStartOf="@+id/guideline3"
         app:layout_constraintStart_toStartOf="@+id/guideline"
-        app:layout_constraintTop_toBottomOf="@+id/textView3" />
+        app:layout_constraintTop_toBottomOf="@+id/paidByText" />
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guideline3"
@@ -80,37 +50,45 @@
 
     <TextView
         android:id="@+id/dateText"
-        android:layout_width="wrap_content"
+        android:layout_width="80dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="16dp"
+        android:fontFamily="@font/assistant"
         android:text="10/05/2020"
-        app:layout_constraintEnd_toStartOf="@+id/editExpenseButton"
+        android:textColor="#FFFFFF"
+        android:textSize="14sp"
+        android:textStyle="bold|italic"
+        app:layout_constraintEnd_toStartOf="@+id/guideline3"
         app:layout_constraintTop_toBottomOf="@+id/toolbar" />
 
     <TextView
         android:id="@+id/paidByText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:fontFamily="@font/assistant"
         android:text="Paid by Marie"
-        app:layout_constraintStart_toEndOf="@+id/expenseTag"
+        android:textColor="#FFFFFF"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="@+id/expenseValue"
         app:layout_constraintTop_toBottomOf="@+id/expenseValue" />
 
     <Button
         android:id="@+id/deleteExpenseButton"
         style="@style/delete_button"
+        android:layout_width="wrap_content"
         android:onClick="deleteExpense"
         android:text="DELETE EXPENSE"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/guideline3"
-        app:layout_constraintStart_toStartOf="@+id/guideline" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/button2"
+        app:layout_constraintTop_toTopOf="@+id/button2" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/expenseProductRecy"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginBottom="8dp"
-        app:layout_constraintBottom_toTopOf="@+id/deleteExpenseButton"
+        android:layout_marginBottom="16dp"
+        app:layout_constraintBottom_toTopOf="@+id/button2"
         app:layout_constraintEnd_toStartOf="@+id/guideline3"
         app:layout_constraintStart_toStartOf="@+id/guideline"
         app:layout_constraintTop_toBottomOf="@+id/expenseProductDetailText" />
@@ -120,10 +98,39 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
+        android:fontFamily="@font/assistant"
         android:text="Product details"
-        android:textColor="#020202"
+        android:textColor="#FFFFFF"
+        android:textSize="18sp"
         app:layout_constraintStart_toStartOf="@+id/guideline"
         app:layout_constraintTop_toBottomOf="@+id/expenseParticRecy" />
+
+    <TextView
+        android:id="@+id/titleTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:fontFamily="@font/convergence"
+        android:textColor="#FFFFFF"
+        android:textSize="30sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/toolbar"
+        tools:text="Title " />
+
+    <Button
+        android:id="@+id/button2"
+        style="@style/edit_button"
+        android:layout_width="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:onClick="editExpense"
+        android:text="EDIT EXPENSE"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/deleteExpenseButton"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintHorizontal_chainStyle="spread"
+        app:layout_constraintStart_toStartOf="parent" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

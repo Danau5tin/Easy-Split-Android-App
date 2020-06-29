@@ -2,6 +2,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:background="@color/colorPrimary"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".NewExpenseCreationActivity">
@@ -16,20 +17,23 @@
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/textTitleInputLayout"
-        android:layout_width="0dp"
+        android:layout_width="250dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="32dp"
-        app:layout_constraintEnd_toStartOf="@+id/imageButton2"
-        app:layout_constraintStart_toStartOf="@+id/leftGuideline"
-        app:layout_constraintTop_toBottomOf="@+id/toolbar">
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@+id/toolbar"
+        app:layout_constraintTop_toTopOf="parent">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/receiptTitleEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:focusable="auto"
-            android:hint="@string/item_title_hint" />
+            android:fontFamily="@font/convergence"
+            android:hint="@string/item_title_hint"
+            android:textColor="#FFFFFF"
+            android:textColorHint="#FFFFFF"
+            android:textSize="30sp"
+            android:textStyle="bold" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <androidx.constraintlayout.widget.Guideline
@@ -58,7 +62,12 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="4dp"
+        android:layout_marginTop="24dp"
+        android:fontFamily="@font/assistant"
         android:text="@string/item_paidby_hint"
+        android:textColor="#FFFFFF"
+        android:textSize="18sp"
+        android:textStyle="bold"
         app:layout_constraintStart_toStartOf="@+id/paidBySpinner"
         app:layout_constraintTop_toBottomOf="@+id/textTitleInputLayout" />
 
@@ -123,7 +132,9 @@
         android:paddingLeft="5dp"
         android:text="@string/when_today"
         android:textAllCaps="false"
+        android:textColor="#FFFFFF"
         android:textSize="14sp"
+        android:textStyle="italic"
         app:layout_constraintBottom_toBottomOf="@+id/imageButton2"
         app:layout_constraintEnd_toStartOf="@+id/rightGuideline"
         app:layout_constraintTop_toTopOf="@+id/imageButton2" />

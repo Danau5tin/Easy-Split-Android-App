@@ -1,14 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <item android:title="View balances"
+        android:id="@+id/groupBalances"/>
+
+    <item android:title="Settle up"
+        android:id="@+id/groupSettleUp"/>
+
     <item android:title="Add new participant"
         android:id="@+id/groupAddParticipant"/>
 
     <item android:title="Group settings"
         android:id="@+id/groupSettings"/>
-
-    <item android:title="View group totals"
-        android:id="@+id/groupBalances"/>
 
     <item android:title="Export"
         android:id="@+id/export"/>

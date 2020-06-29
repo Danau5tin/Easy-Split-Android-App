@@ -85,9 +85,10 @@ class ExpenseViewActivity : AppCompatActivity() {
         val valueText = "$currencyUiSymbol$getTotalIntent" //TODO: Ensure the correct currency is being used
         binding.expenseValue.text = valueText
         binding.paidByText.text = paidByText
+        binding.titleTextView.text = getTitleIntent
 
         setSupportActionBar(findViewById(R.id.toolbar))
-        supportActionBar?.title = getTitleIntent
+        supportActionBar?.title = ""
         supportActionBar?.apply {
             setDisplayHomeAsUpEnabled(true)
             setDisplayShowHomeEnabled(true)

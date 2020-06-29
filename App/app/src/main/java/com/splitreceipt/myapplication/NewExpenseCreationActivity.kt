@@ -130,7 +130,7 @@ class NewExpenseCreationActivity : AppCompatActivity() {
         setCurrencyCode(isEdit)
 
         setSupportActionBar(findViewById(R.id.toolbar))
-        supportActionBar?.title = "Add expense"
+        supportActionBar?.title = ""
         supportActionBar?.apply {
             setDisplayHomeAsUpEnabled(true)
             setDisplayShowHomeEnabled(true)
@@ -323,10 +323,6 @@ class NewExpenseCreationActivity : AppCompatActivity() {
                 }
             }
         }
-//        for (participant in particBalDataList){
-//            //Round to 2dp
-//            participant.balance = roundToTwoDecimalPlace(participant.balance)
-//        }
         return particBalDataList
     }
 
