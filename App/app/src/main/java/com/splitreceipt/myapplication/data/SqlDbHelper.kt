@@ -359,6 +359,7 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
     }
 
     fun loadPreviousReceipts(sqlId: String?, receiptList: ArrayList<ReceiptData>){
+        receiptList.clear()
         val reader = readableDatabase
         val columns = arrayOf(
             EXPENSE_COL_DATE, EXPENSE_COL_TITLE, EXPENSE_COL_TOTAL,

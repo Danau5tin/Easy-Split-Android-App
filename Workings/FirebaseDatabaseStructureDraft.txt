@@ -1,8 +1,8 @@
 GroupId
 |	|
-|	|
-|	|
 |	--- Info
+|	|	|
+|	|	--- accCurrency : xxx
 |	|	|
 |	|	--- LastImageEdit : xxxxxxxxx
 |	|	|
@@ -13,7 +13,6 @@ GroupId
 |	|	
 |	--- Finances
 |	|	   |
-|	|	   |
 |	|	   --- Balance : "xxx,£xx.xx/xxxxxx,£x"
 |	|	   |
 |	|	   --- Settlements: "xxx,£xx.xxxx/xxxx,£x.xx,xxx"
@@ -22,6 +21,10 @@ GroupId
 |	--- Expenses
 |	|	   |
 |	|	   --- ExpenseID
+|	|			|
+|	|			--- ExpenseCurrency: xxx
+|	|			|
+|	|			--- ExpenseExchangeRate: x.xxxx
 |	|			|
 |	|			--- LastExpenseEdit : xxxxxxxxx
 |	|			|

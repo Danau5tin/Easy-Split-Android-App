@@ -53,6 +53,7 @@ class NewGroupCreation : AppCompatActivity(), NewParticipantRecyAdapter.onPartRo
     companion object {
         var firebaseDbHelper: FirebaseDbHelper? = null
         var profileImageSavedLocally: Boolean = false
+        var newGroupCreatedIntent = "newGroupCreated"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -114,9 +115,13 @@ class NewGroupCreation : AppCompatActivity(), NewParticipantRecyAdapter.onPartRo
 
     fun addNewParticipantButton(view: View) {
         val participantName = binding.newParticipantName.text.toString()
-        participantList.add(participantName)
-        recyAdapter.notifyDataSetChanged()
-        binding.newParticipantName.setText("")
+        if (participantName.isNotEmpty()) {
+            participantList.add(participantName)
+            recyAdapter.notifyDataSetChanged()
+            binding.newParticipantName.setText("")
+        } else {
+            Toast.makeText(this, "Please type in a name for the participant", Toast.LENGTH_SHORT).show()
+        }
     }
 
     override fun onRowclick(position: Int) {
@@ -160,6 +165,7 @@ class NewGroupCreation : AppCompatActivity(), NewParticipantRecyAdapter.onPartRo
                     Toast.makeText(this, "Error #INSQ01. Contact Us", Toast.LENGTH_LONG).show()
                 }
                 else {
+                    Toast.makeText(this, "Creating group, please wait...", Toast.LENGTH_LONG).show()
                     val async = ASyncSaveImage(true, this, groupFirebaseId)
                     val intent = Intent(this, ExpenseOverviewActivity::class.java)
                     if (newBitmap == null){
@@ -170,6 +176,7 @@ class NewGroupCreation : AppCompatActivity(), NewParticipantRecyAdapter.onPartRo
                         //User has uploaded a group profile image
                         path = async.execute(newBitmap!!).get()
                     }
+                    firebaseDbHelper!!.uploadGroupProfileImage(newBitmap)
                     intent.putExtra(ExpenseOverviewActivity.ImagePathIntent, path)
                     intent.putExtra(GroupScreenActivity.sqlIntentString, sqlRow.toString())
                     intent.putExtra(GroupScreenActivity.firebaseIntentString, groupFirebaseId)
@@ -178,6 +185,7 @@ class NewGroupCreation : AppCompatActivity(), NewParticipantRecyAdapter.onPartRo
                     intent.putExtra(GroupScreenActivity.groupBaseCurrencyIntent, currencyCode)
                     intent.putExtra(GroupScreenActivity.groupBaseCurrencyUiSymbolIntent, currencySymbol)
                     intent.putExtra(ExpenseOverviewActivity.ImagePathIntent, path)
+                    intent.putExtra(newGroupCreatedIntent, true)
                     intent.putExtra(ExpenseOverviewActivity.UriIntent, uriString)
                     startActivity(intent)
                     finish()
@@ -247,7 +255,6 @@ class NewGroupCreation : AppCompatActivity(), NewParticipantRecyAdapter.onPartRo
                 } else {
                     newBitmap = bitmap
                 }
-                firebaseDbHelper!!.uploadGroupProfileImage(newBitmap)
                 uriString = uri.toString()
             }
         }

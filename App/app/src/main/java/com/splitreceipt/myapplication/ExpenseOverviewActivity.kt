@@ -26,8 +26,6 @@ import com.google.firebase.database.ValueEventListener
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
 import com.splitreceipt.myapplication.data.*
-import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_ACCOUNT_CURRENCY_SYMBOL
-import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_NAME
 import com.splitreceipt.myapplication.databinding.ActivityMainBinding
 import kotlinx.android.synthetic.main.alert_dialog_share_group.*
 import java.io.File
@@ -49,13 +47,13 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
     private lateinit var receiptList: ArrayList<ReceiptData>
     private lateinit var storageRef: StorageReference
     private lateinit var adapter: ExpenseOverViewAdapter
-    private lateinit var currencySymbol: String
-    private val seeExpenseResult = 10
-    private val addExpenseResult = 20
-    private val seeBalancesResult = 60
-    private val settingsResult = 30
-    private val requestStorage = 40
-    private val pickImage = 50
+
+    private val seeExpenseResult = 1
+    private val addExpenseResult = 2
+    private val seeBalancesResult = 6
+    private val settingsResult = 3
+    private val requestStorage = 4
+    private val pickImage = 5
     private var userSettlementString = ""
 
     companion object {
@@ -66,6 +64,7 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
         var getFirebaseId: String? = "-1"
         var getGroupName: String? = "?"
         var groupBaseCurrency: String? = ""
+        lateinit var currencySymbol: String
         var settlementArray: ArrayList<String> = ArrayList()
         const val balanced_string: String = "balanced"
         const val ImagePathIntent = "path_intent"
@@ -88,9 +87,13 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
             }
         }
 
-        fun roundToTwoDecimalPlace(number: Float): Float {
+        fun roundToTwoDecimalPlace(number: Float, ceiling: Boolean=true): Float {
             val df = DecimalFormat("#.##")
-            df.roundingMode = RoundingMode.CEILING
+            if (ceiling) {
+                df.roundingMode = RoundingMode.CEILING
+            } else {
+                df.roundingMode = RoundingMode.FLOOR
+            }
             return df.format(number).toFloat()
         }
 
@@ -153,12 +156,15 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
             setHomeAsUpIndicator(R.drawable.vector_back_arrow_white)
         }
 
+        if (intent.getBooleanExtra(NewGroupCreation.newGroupCreatedIntent, false)){
+            Log.i("ExpenseOverview", "Group entered was just created by user")
+            showInviteDialog()
+        }
+
         if (intent.getStringExtra(UriIntent) != null) {
             // New Group was just created by user, load the image Uri as image is likely still being saved in an AsyncTask.
-            Log.i("ExpenseOverview", "Group entered was just created by user")
             val uriImage: Uri = Uri.parse(intent.getStringExtra(UriIntent))
             binding.groupProfileImage.setImageURI(uriImage)
-            showInviteDialog()
         } else {
             // Group has already been created and user is re-entering or joining the group, load internally saved image.
             Log.i("ExpenseOverview", "Group entered was just re-entered or joined")
@@ -205,6 +211,11 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
             }
         })
 
+
+        adapter = ExpenseOverViewAdapter(receiptList, this)
+        binding.mainActivityRecycler.layoutManager = LinearLayoutManager(this)
+        binding.mainActivityRecycler.adapter = adapter
+
         val expenseInfoDbRef = firebaseDbHelper!!.getExpensesListeningRef()
         expenseInfoDbRef.addListenerForSingleValueEvent(object : ValueEventListener{
             override fun onCancelled(p0: DatabaseError) {
@@ -232,12 +243,15 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
                     val contribs = newExpense.expContribs
                     val scanned = newExpense.expScanned
 
+                    var changesMade = false
+
                     for (sqlExpense in sqlExpenses) {
                         if (firebaseID == sqlExpense.firebaseId){
                             // Receipt IS in the users SQL db
                             Log.i("Fbase-E", "Receipt $firebaseID IS in Sql db")
                             if (lastEdit != sqlExpense.lastEdit) {
                                 //The expense has been updated since the user has last used the app. Update changes locally.
+                                changesMade = true
                                 sqlDbHelper.updateExpense(sqlExpense.sqlRowId, date, title, total, paidBy, contribs, lastEdit)
                             }
                             exists = true
@@ -247,6 +261,7 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
                     if (!exists) {
                         // Receipt is NOT in the users SQL db
                         Log.i("Fbase-E", "Receipt $firebaseID is NOT in Sql db")
+                        changesMade = true
                         val currency = newExpense.expCurrency
                         val exchangeRate = newExpense.expExchRate
                         //Save expense into SQL
@@ -266,25 +281,26 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
                                 }
                             })
                         }
+                    }
+                    if (changesMade) {
                         //Run the new contributions through the algorithm
                         settlementString = balanceSettlementHelper.balanceAndSettlementsFromSql(contribs)
                     }
                 }
 
                 if (settlementString != null) {
-                    // User has updated new expenses from Firebase so update Firebase with new balance, settlement strings.
+                    // User has updated expenses from Firebase so update Firebase with new balance, settlement strings.
                     balanceSettlementHelper.updateFirebaseBalAndSettle(firebaseDbHelper!!)
                 } else {
                     // User has no new updated expenses downloaded from the firebase database
                     settlementString = sqlHelper.loadSqlSettlementString(getSqlGroupId)
                 }
+                sqlHelper.loadPreviousReceipts(getSqlGroupId, receiptList)
                 deconstructAndSetSettlementString(settlementString)
+                adapter.notifyDataSetChanged()
             }
         })
-        sqlHelper.loadPreviousReceipts(getSqlGroupId, receiptList)
-        adapter = ExpenseOverViewAdapter(receiptList, this)
-        binding.mainActivityRecycler.layoutManager = LinearLayoutManager(this)
-        binding.mainActivityRecycler.adapter = adapter
+
     }
 
     @SuppressLint("InflateParams")
@@ -369,7 +385,7 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
             if (resultCode == Activity.RESULT_OK) {
                 val groupName = data?.getStringExtra(GroupSettingsActivity.groupNameReturnIntent)
                 binding.groupNameTitleText.text = groupName
-                val uriString: String? = intent.getStringExtra(GroupSettingsActivity.groupImageChangedUriIntent)
+                val uriString: String? = data?.getStringExtra(GroupSettingsActivity.groupImageChangedUriIntent)!!
                 if (uriString != null) {
                     val uri = Uri.parse(uriString)
                     binding.groupProfileImage.setImageURI(uri)
@@ -404,7 +420,6 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
             settlementArray.add(getString(R.string.balanced))
             userDirectedSettlementIndexes.add(indexCount)
         } else {
-            val sharedPref = getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE)
             val splitIndividual = settlementString.split("/")
             for (settlement in splitIndividual) {
                 val splitSettlement = settlement.split(",")
@@ -439,7 +454,7 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
         val you = "you"
         val debtorLow = debtor.toLowerCase(Locale.ROOT)
         val receiverLow = receiver.toLowerCase(Locale.ROOT)
-        var fixedVal = roundToTwoDecimalPlace(value.toFloat()).toString()
+        var fixedVal = roundToTwoDecimalPlace(value.toFloat(), false).toString()
         fixedVal = SplitExpenseManuallyFragment.addStringZerosForDecimalPlace(fixedVal)
 
         finalString = if (you == debtorLow) {

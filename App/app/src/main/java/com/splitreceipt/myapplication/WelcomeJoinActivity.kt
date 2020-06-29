@@ -15,6 +15,7 @@ class WelcomeJoinActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityWelcomeJoinBinding
     private lateinit var firebaseId: String
+    private lateinit var fBaseParticipants: String
     private lateinit var fBaseName: String
     private lateinit var fBaseCurrencyCode: String
     private lateinit var fBaseCurrencySymbol: String
@@ -33,7 +34,7 @@ class WelcomeJoinActivity : AppCompatActivity() {
         binding = ActivityWelcomeJoinBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val fBaseParticipants = intent.getStringExtra(joinFireBaseParticipants)!!
+        fBaseParticipants = intent.getStringExtra(joinFireBaseParticipants)!!
         fBaseName = intent.getStringExtra(joinFireBaseName)!!
         firebaseId = intent.getStringExtra(joinFireBaseId)!!
         fBaseCurrencyCode = intent.getStringExtra(joinBaseCurrency)!!
@@ -61,6 +62,7 @@ class WelcomeJoinActivity : AppCompatActivity() {
                     sqlUser = participants[checkedRadio]
                 } else {
                     sqlUser = binding.joinNameText.text.toString()
+                    addParticipant(sqlUser)
                 }
 
                 Log.i("Join", sqlUser)
@@ -85,7 +87,13 @@ class WelcomeJoinActivity : AppCompatActivity() {
         }
     }
 
-    fun okayToProceed() : Boolean {
+    private fun addParticipant(sqlUser: String) {
+        val newParticipantString = "$fBaseParticipants,$sqlUser"
+        GroupScreenActivity.firebaseDbHelper!!.updateParticipants(newParticipantString)
+        SqlDbHelper(this).updateParticipants(newParticipantString, sqlRow)
+    }
+
+    private fun okayToProceed() : Boolean {
         if (radioRequired) {
             val checkedRadio = binding.joinRadioGroup.checkedRadioButtonId
             if (checkedRadio == -1) {
@@ -103,9 +111,19 @@ class WelcomeJoinActivity : AppCompatActivity() {
     }
 
         fun nameNotHereButton(view: View) {
-            radioRequired = false
-            binding.joinRadioGroup.visibility = View.GONE
-            binding.joinNameLayout.visibility = View.VISIBLE
+            if (radioRequired) {
+                radioRequired = false
+                binding.joinRadioGroup.visibility = View.GONE
+                binding.joinNameLayout.visibility = View.VISIBLE
+                binding.nameNotHereBut.text = "Back"
+            } else {
+                radioRequired = true
+                binding.joinRadioGroup.visibility = View.VISIBLE
+                binding.joinNameLayout.visibility = View.GONE
+                binding.nameNotHereBut.text = "Name not here?"
+            }
+
+
         }
     }
 

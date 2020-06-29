@@ -87,4 +87,15 @@ class NewParticipantInviteActivity : AppCompatActivity(), NewParticipantRecyAdap
     fun whatsappShareButton(view: View) {
         shareHelper.shareViaWhatsapp()
     }
+
+    fun addParticButton(view: View) {
+        val newParticipantName: String = binding.addParticActivtext.text.toString()
+        if (newParticipantName.isNotEmpty()) {
+            participantList.add(newParticipantName)
+            adapter.notifyDataSetChanged()
+            binding.addParticActivtext.setText("")
+        } else {
+            Toast.makeText(this, "Please type in a name for the participant", Toast.LENGTH_SHORT).show()
+        }
+    }
 }
