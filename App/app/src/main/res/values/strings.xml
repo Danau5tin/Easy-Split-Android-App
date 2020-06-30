@@ -10,13 +10,11 @@
     <string name="item_paidby_hint">Paid by</string>
     <string name="item_forwhome_hint">FOR WHOME</string>
 
-    <!-- New Account Creation -->
-    <string name="account_description_hint">Description</string>
-    <string name="account_currency_hint">Currency</string>
-    <string name="account_category_hint">Category</string>
-    <string name="account_participants_hint">Participants</string>
-    <string name="account_yourname_hint">Your name</string>
-    <string name="account_addparticipant_hint">Add participant</string>
+    <!-- New Group Creation -->
+    <string name="group_currency_hint">Choose group currency</string>
+    <string name="group_participants_hint">Participants</string>
+    <string name="group_yourname_hint">Your name</string>
+    <string name="group_add_participant_hint">Add participant</string>
 
     <!-- Receipt overview -->
     <string name="balanced">This account is balanced</string>

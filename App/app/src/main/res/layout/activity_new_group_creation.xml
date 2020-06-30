@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/colorPrimary"
     tools:context=".NewGroupCreation">
 
     <include
@@ -15,12 +16,12 @@
 
     <de.hdodenhof.circleimageview.CircleImageView
         android:id="@+id/newGroupImage"
-        android:layout_width="96dp"
-        android:layout_height="96dp"
+        android:layout_width="150dp"
+        android:layout_height="140dp"
         android:layout_marginTop="16dp"
         android:onClick="newGroupImageButton"
         android:src="@drawable/vector_person_green"
-        app:civ_border_color="@android:color/darker_gray"
+        app:civ_border_color="@android:color/white"
         app:civ_border_width="3dp"
         app:layout_constraintStart_toStartOf="@+id/leftGuideline"
         app:layout_constraintTop_toBottomOf="@+id/toolbar" />
@@ -40,7 +41,8 @@
             android:id="@+id/groupTitleEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="@string/item_title_hint" />
+            android:hint="Name"
+            android:textColor="#FFFFFF" />
 
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -62,12 +64,12 @@
     <View
         android:id="@+id/view3"
         android:layout_width="0dp"
-        android:layout_height="50dp"
-        android:layout_marginTop="60dp"
-        android:background="@color/backgroundGrey"
+        android:layout_height="40dp"
+        android:layout_marginTop="50dp"
+        android:background="@android:color/white"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/newGroupImage" />
+        app:layout_constraintTop_toBottomOf="@+id/newGroupCurrencyButton" />
 
     <View
         android:id="@+id/view4"
@@ -81,9 +83,11 @@
         android:id="@+id/participantsText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/account_participants_hint"
-        android:textSize="16sp"
+        android:text="@string/group_participants_hint"
+        android:textColor="#000000"
+        android:textSize="18sp"
         app:layout_constraintBottom_toBottomOf="@+id/view3"
+        app:layout_constraintEnd_toStartOf="@+id/rightGuideline"
         app:layout_constraintStart_toStartOf="@+id/leftGuideline"
         app:layout_constraintTop_toBottomOf="@+id/view4" />
 
@@ -100,7 +104,8 @@
             android:id="@+id/yourNameEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="@string/account_yourname_hint" />
+            android:hint="@string/group_yourname_hint"
+            android:textColor="#FFFFFF" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <androidx.recyclerview.widget.RecyclerView
@@ -121,20 +126,21 @@
         app:layout_constraintTop_toBottomOf="@+id/newParticipantRecy">
 
         <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/newParticipantName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/newParticipantName"
-            android:hint="Add participant" />
+            android:hint="Add participant"
+            android:textColor="#FFFFFF" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <Button
         android:id="@+id/changeGroupImageButton"
-        android:text="Add"
+        style="@style/add_participant_button"
         android:onClick="addNewParticipantButton"
+        android:text="Add"
         app:layout_constraintBottom_toBottomOf="@+id/textInputLayout2"
         app:layout_constraintEnd_toStartOf="@+id/rightGuideline"
-        app:layout_constraintTop_toTopOf="@+id/textInputLayout2"
-        style="@style/add_participant_button" />
+        app:layout_constraintTop_toTopOf="@+id/textInputLayout2" />
 
     <Button
         android:id="@+id/newGroupCurrencyButton"
@@ -142,10 +148,21 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:background="@drawable/image_button_outline_white_solid"
-        android:padding="5dp"
-        android:text="Choose group currency"
         android:onClick="newGroupCurrencyButton"
+        android:padding="5dp"
+        android:text="@string/group_currency_hint"
         app:layout_constraintStart_toStartOf="@+id/groupTitleText"
         app:layout_constraintTop_toBottomOf="@+id/groupTitleText" />
+
+    <TextView
+        android:id="@+id/textView"
+        style="@style/grandTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="New Group"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@+id/leftGuideline"
+        app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

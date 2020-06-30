@@ -56,8 +56,6 @@ class SplitExpenseManuallyFragment : Fragment(), NewManualExpenseRecyclerAdapter
         retrieveParticipants()
 
         binding.currencyButtonManual.text = currencyCode
-//        updateUICurrency()
-
         adapter = NewManualExpenseRecyclerAdapter(fragmentManualParticipantList, this)
         binding.fragManualRecy.layoutManager = LinearLayoutManager(activity)
         binding.fragManualRecy.adapter = adapter

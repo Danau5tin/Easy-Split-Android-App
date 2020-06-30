@@ -21,22 +21,29 @@ class CurrencySelectorAdapter(var currencyList: MutableList<String>, var onCurCl
 
     override fun onBindViewHolder(holder: CurrencyViewHolder, position: Int) {
         holder.textView.text = currencyList[position]
+        holder.code = currencyList[position].substring(0,3)
+    }
+
+    fun updateList(newList: MutableList<String>) {
+        currencyList = newList
+        notifyDataSetChanged()
     }
 
     class CurrencyViewHolder(itemView: View, var onCurClick: onCureClick) : RecyclerView.ViewHolder(itemView), View.OnClickListener{
         val textView: TextView = itemView.findViewById(R.id.currencySelectorText)
+        var code: String = ""
 
         init {
             itemView.setOnClickListener(this)
         }
 
         override fun onClick(v: View?) {
-            onCurClick.onRowClick(adapterPosition)
+            onCurClick.onRowClick(code)
         }
 
     }
 
     interface onCureClick{
-        fun onRowClick(pos: Int)
+        fun onRowClick(code: String)
     }
 }

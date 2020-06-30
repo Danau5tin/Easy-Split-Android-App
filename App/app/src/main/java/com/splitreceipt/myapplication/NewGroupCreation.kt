@@ -71,7 +71,7 @@ class NewGroupCreation : AppCompatActivity(), NewParticipantRecyAdapter.onPartRo
         firebaseDbHelper = FirebaseDbHelper(groupFirebaseId)
 
         setSupportActionBar(findViewById(R.id.toolbar))
-        supportActionBar?.title = "Add group"
+        supportActionBar?.title = ""
         supportActionBar?.apply {
             setDisplayHomeAsUpEnabled(true)
             setDisplayShowHomeEnabled(true)
@@ -144,56 +144,75 @@ class NewGroupCreation : AppCompatActivity(), NewParticipantRecyAdapter.onPartRo
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.menuNext -> {
-                val title: String = binding.groupTitleEditText.text.toString()
-                val sqlUser: String = binding.yourNameEditText.text.toString()
-                checkIfUserForgotToAddPartic()
-                val participantData: ParticipantNewGroupData = getNewParticipantData(sqlUser)
-                val participants: String = participantData.participantString
-                val balances: String = participantData.balanceString
-                val settlementString = "balanced"
-                val imageUploadLastEditTime = System.currentTimeMillis().toString()
-                val currencyCode = binding.newGroupCurrencyButton.text.toString()
-                val baseCurrencyUiSymbol = CurrencyHelper.returnUiSymbol(currencyCode)
+                if (checkOkayToProceed()) {
+                    val title: String = binding.groupTitleEditText.text.toString()
+                    val sqlUser: String = binding.yourNameEditText.text.toString()
+                    checkIfUserForgotToAddPartic()
+                    val participantData: ParticipantNewGroupData = getNewParticipantData(sqlUser)
+                    val participants: String = participantData.participantString
+                    val balances: String = participantData.balanceString
+                    val settlementString = "balanced"
+                    val imageUploadLastEditTime = System.currentTimeMillis().toString()
+                    val currencyCode = binding.newGroupCurrencyButton.text.toString()
+                    val baseCurrencyUiSymbol = CurrencyHelper.returnUiSymbol(currencyCode)
 
-                // Save to SQL and upload to firebase
-                val sqlRow = SqlDbHelper(this).insertNewGroup(groupFirebaseId, title,
-                    participants, balances, settlementString, sqlUser, imageUploadLastEditTime, currencyCode, baseCurrencyUiSymbol)
-                firebaseDbHelper!!.createNewGroup(title, balances,
-                    settlementString, participants, imageUploadLastEditTime, currencyCode)
+                    // Save to SQL and upload to firebase
+                    val sqlRow = SqlDbHelper(this).insertNewGroup(groupFirebaseId, title,
+                        participants, balances, settlementString, sqlUser, imageUploadLastEditTime, currencyCode, baseCurrencyUiSymbol)
+                    firebaseDbHelper!!.createNewGroup(title, balances,
+                        settlementString, participants, imageUploadLastEditTime, currencyCode)
 
-                if (sqlRow == -1) {
-                    Toast.makeText(this, "Error #INSQ01. Contact Us", Toast.LENGTH_LONG).show()
-                }
-                else {
-                    Toast.makeText(this, "Creating group, please wait...", Toast.LENGTH_LONG).show()
-                    val async = ASyncSaveImage(true, this, groupFirebaseId)
-                    val intent = Intent(this, ExpenseOverviewActivity::class.java)
-                    if (newBitmap == null){
-                        //User has not uploaded a group profile image. Use default logo.
-                        newBitmap = BitmapFactory.decodeResource(resources, R.drawable.easy_split_logo)
-                        path = async.execute(newBitmap!!).get()
-                    } else {
-                        //User has uploaded a group profile image
-                        path = async.execute(newBitmap!!).get()
+                    if (sqlRow == -1) {
+                        Toast.makeText(this, "Error #INSQ01. Contact Us", Toast.LENGTH_LONG).show()
                     }
-                    firebaseDbHelper!!.uploadGroupProfileImage(newBitmap)
-                    intent.putExtra(ExpenseOverviewActivity.ImagePathIntent, path)
-                    intent.putExtra(GroupScreenActivity.sqlIntentString, sqlRow.toString())
-                    intent.putExtra(GroupScreenActivity.firebaseIntentString, groupFirebaseId)
-                    intent.putExtra(GroupScreenActivity.userIntentString, sqlUser)
-                    intent.putExtra(GroupScreenActivity.groupNameIntentString, title)
-                    intent.putExtra(GroupScreenActivity.groupBaseCurrencyIntent, currencyCode)
-                    intent.putExtra(GroupScreenActivity.groupBaseCurrencyUiSymbolIntent, currencySymbol)
-                    intent.putExtra(ExpenseOverviewActivity.ImagePathIntent, path)
-                    intent.putExtra(newGroupCreatedIntent, true)
-                    intent.putExtra(ExpenseOverviewActivity.UriIntent, uriString)
-                    startActivity(intent)
-                    finish()
+                    else {
+                        Toast.makeText(this, "Creating group, please wait...", Toast.LENGTH_LONG).show()
+                        val async = ASyncSaveImage(true, this, groupFirebaseId)
+                        val intent = Intent(this, ExpenseOverviewActivity::class.java)
+                        if (newBitmap == null){
+                            //User has not uploaded a group profile image. Use default logo.
+                            newBitmap = BitmapFactory.decodeResource(resources, R.drawable.easy_split_logo)
+                            path = async.execute(newBitmap!!).get()
+                        } else {
+                            //User has uploaded a group profile image
+                            path = async.execute(newBitmap!!).get()
+                        }
+                        firebaseDbHelper!!.uploadGroupProfileImage(newBitmap)
+                        intent.putExtra(ExpenseOverviewActivity.ImagePathIntent, path)
+                        intent.putExtra(GroupScreenActivity.sqlIntentString, sqlRow.toString())
+                        intent.putExtra(GroupScreenActivity.firebaseIntentString, groupFirebaseId)
+                        intent.putExtra(GroupScreenActivity.userIntentString, sqlUser)
+                        intent.putExtra(GroupScreenActivity.groupNameIntentString, title)
+                        intent.putExtra(GroupScreenActivity.groupBaseCurrencyIntent, currencyCode)
+                        intent.putExtra(GroupScreenActivity.groupBaseCurrencyUiSymbolIntent, currencySymbol)
+                        intent.putExtra(ExpenseOverviewActivity.ImagePathIntent, path)
+                        intent.putExtra(newGroupCreatedIntent, true)
+                        intent.putExtra(ExpenseOverviewActivity.UriIntent, uriString)
+                        startActivity(intent)
+                        finish()
+                    }
                 }
+
             }
             else -> return false
         }
         return super.onOptionsItemSelected(item)
+    }
+
+    private fun checkOkayToProceed(): Boolean {
+        if (binding.groupTitleEditText.text.isNullOrBlank()){
+            Toast.makeText(this, "Please add a group name", Toast.LENGTH_SHORT).show()
+            return false
+        }
+        if (binding.yourNameEditText.text.isNullOrBlank()){
+            Toast.makeText(this, "Please add your name", Toast.LENGTH_SHORT).show()
+            return false
+        }
+        if (binding.newGroupCurrencyButton.text.toString() == getString(R.string.group_currency_hint)){
+            Toast.makeText(this, "Please choose a currency", Toast.LENGTH_SHORT).show()
+            return false
+        }
+        return true
     }
 
     private fun createFirebaseGroupId(): String? {

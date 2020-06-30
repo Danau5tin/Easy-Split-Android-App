@@ -438,6 +438,11 @@ class NewExpenseCreationActivity : AppCompatActivity() {
         return monthString
     }
 
+    override fun onBackPressed() {
+        isEdit = false
+        super.onBackPressed()
+    }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
     }
