@@ -5,4 +5,5 @@
     <color name="colorAccent">#03DAC5</color>
     <color name="backgroundGrey">#E1E6E9</color>
     <color name="harshGrey">#ABABAB</color>
+    <color name="navBar">#273238</color>
 </resources>

@@ -481,9 +481,26 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
         adapter.notifyDataSetChanged()
     }
 
-    fun balancesButtonPressed(view: View) {
+    fun balancesButtonPressed(view: View?=null) {
         val intent = Intent(this, BalanceOverviewActivity::class.java)
         startActivityForResult(intent, seeBalancesResult)
+    }
+
+    fun settingsButtonPressed(view: View?=null) {
+        val intent = Intent(this, GroupSettingsActivity::class.java)
+        intent.putExtra(GroupSettingsActivity.groupNameIntent, getGroupName)
+        intent.putExtra(GroupSettingsActivity.groupSqlIdIntent, getSqlGroupId)
+        startActivityForResult(intent, settingsResult)
+    }
+
+    fun settleButtonPressed(view: View?=null) {
+        val intent = Intent(this, SettleGroupActivity::class.java)
+        startActivityForResult(intent, addExpenseResult)
+    }
+
+    override fun onSupportNavigateUp(): Boolean {
+        finish()
+        return super.onSupportNavigateUp()
     }
 
     override fun onRowClick(
@@ -531,8 +548,7 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.groupSettleUp -> {
-                val intent = Intent(this, SettleGroupActivity::class.java)
-                startActivityForResult(intent, addExpenseResult)
+                settleButtonPressed()
                 return true
             }
             R.id.groupAddParticipant -> {
@@ -541,28 +557,26 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
                 return true
             }
             R.id.groupSettings -> {
-                val intent = Intent(this, GroupSettingsActivity::class.java)
-                intent.putExtra(GroupSettingsActivity.groupNameIntent, getGroupName)
-                intent.putExtra(GroupSettingsActivity.groupSqlIdIntent, getSqlGroupId)
-                startActivityForResult(intent, settingsResult)
+                settingsButtonPressed()
                 return true
             }
             R.id.groupBalances -> {
-                val intent = Intent(this, BalanceOverviewActivity::class.java)
-                startActivity(intent)
+                balancesButtonPressed()
                 return true
             }
-            R.id.export -> {
-                //TODO: Create export functionality.
+            R.id.feedback -> {
+                val emailIntent = Intent(
+                    Intent.ACTION_SENDTO, Uri.fromParts(
+                        "mailto", "dan96.austin@gmail.com", null
+                    )
+                )
+                emailIntent.putExtra(Intent.EXTRA_SUBJECT, "Feedback - 24hour response")
+                emailIntent.putExtra(Intent.EXTRA_EMAIL, arrayOf("dan96.austin@gmail.com"));
+                startActivity(Intent.createChooser(emailIntent, "Send e-mail to dev..."))
                 return true
             }
             else -> return false
         }
-    }
-
-    fun balanceView(view: View) {
-        val intent = Intent(this, BalanceOverviewActivity::class.java)
-        startActivity(intent)
     }
 
 }

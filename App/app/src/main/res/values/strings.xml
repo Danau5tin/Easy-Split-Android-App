@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">EasySplit</string>
+    <string name="app_name">Easy Split</string>
 
     <!-- Key Strings -->
     <string name="date_format_dd_MM_yyyy">dd/MM/yyyy</string>

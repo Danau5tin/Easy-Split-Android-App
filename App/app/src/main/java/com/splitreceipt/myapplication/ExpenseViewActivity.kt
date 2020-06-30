@@ -86,6 +86,7 @@ class ExpenseViewActivity : AppCompatActivity() {
         binding.expenseValue.text = valueText
         binding.paidByText.text = paidByText
         binding.titleTextView.text = getTitleIntent
+        binding.dateText.text = expenseDate
 
         setSupportActionBar(findViewById(R.id.toolbar))
         supportActionBar?.title = ""

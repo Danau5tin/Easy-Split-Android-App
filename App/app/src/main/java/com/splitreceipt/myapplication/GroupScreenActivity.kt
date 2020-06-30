@@ -69,4 +69,11 @@ class GroupScreenActivity : AppCompatActivity() {
             }
     }
 
+    fun originalFloatingButton(view: View) {
+        binding.addNewGroupFloatBut.visibility = View.VISIBLE
+        binding.joinNewGroupFloatBut.visibility = View.VISIBLE
+        binding.joinGroupHint.visibility = View.VISIBLE
+        binding.newGroupHint.visibility = View.VISIBLE
+    }
+
 }

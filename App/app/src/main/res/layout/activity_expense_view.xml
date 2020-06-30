@@ -111,10 +111,11 @@
 
     <TextView
         android:id="@+id/titleTextView"
+        style="@style/grandTitle"
+        android:layout_marginTop="16dp"
         app:layout_constraintStart_toStartOf="@+id/guideline"
         app:layout_constraintTop_toBottomOf="@+id/toolbar"
-        tools:text="Title "
-        style="@style/grandTitle" />
+        tools:text="Title " />
 
     <Button
         android:id="@+id/button2"

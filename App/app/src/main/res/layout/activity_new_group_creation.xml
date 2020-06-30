@@ -23,6 +23,7 @@
         android:src="@drawable/vector_person_green"
         app:civ_border_color="@android:color/white"
         app:civ_border_width="3dp"
+        app:civ_circle_background_color="@android:color/white"
         app:layout_constraintStart_toStartOf="@+id/leftGuideline"
         app:layout_constraintTop_toBottomOf="@+id/toolbar" />
 
@@ -61,44 +62,25 @@
         app:layout_constraintGuide_begin="395dp" />
 
 
-    <View
-        android:id="@+id/view3"
-        android:layout_width="0dp"
-        android:layout_height="40dp"
-        android:layout_marginTop="50dp"
-        android:background="@android:color/white"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/newGroupCurrencyButton" />
-
-    <View
-        android:id="@+id/view4"
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="@color/harshGrey"
-        app:layout_constraintTop_toTopOf="@+id/view3"
-        tools:layout_editor_absoluteX="0dp" />
-
     <TextView
         android:id="@+id/participantsText"
+        style="@style/standardWhiteText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
         android:text="@string/group_participants_hint"
-        android:textColor="#000000"
-        android:textSize="18sp"
-        app:layout_constraintBottom_toBottomOf="@+id/view3"
-        app:layout_constraintEnd_toStartOf="@+id/rightGuideline"
+        android:textColor="#FFFFFF"
+        android:textSize="20sp"
         app:layout_constraintStart_toStartOf="@+id/leftGuideline"
-        app:layout_constraintTop_toBottomOf="@+id/view4" />
+        app:layout_constraintTop_toBottomOf="@+id/newGroupCurrencyButton" />
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/yourNameText"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
         app:layout_constraintEnd_toStartOf="@+id/rightGuideline"
         app:layout_constraintStart_toStartOf="@+id/leftGuideline"
-        app:layout_constraintTop_toBottomOf="@+id/view3">
+        app:layout_constraintTop_toBottomOf="@+id/participantsText">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/yourNameEditText"
