@@ -62,8 +62,8 @@ class ExpenseViewActivity : AppCompatActivity() {
 
         getTitleIntent = intent.getStringExtra(expenseTitleIntentString)!!
         getTotalIntent = intent.getStringExtra(expenseTotalIntentString)!!
-        getPaidByIntent =
-            intent.getStringExtra(expensePaidByIntentString)!!.toLowerCase(Locale.ROOT)
+        getPaidByIntent = ExpenseOverviewActivity.changeNameToYou(intent.getStringExtra(expensePaidByIntentString)!!, false)
+
         sqlRowId = intent.getStringExtra(expenseSqlIntentString)!!
         currencyUiSymbol = intent.getStringExtra(expenseCurrencyUiSymbolIntentString)!!
         expenseCurrency = intent.getStringExtra(expenseCurrencyCodeIntentString)!!
@@ -81,7 +81,7 @@ class ExpenseViewActivity : AppCompatActivity() {
         }
         deconstructContributionString()
 
-        val paidByText = "Paid by $getPaidByIntent"
+        val paidByText = "paid by $getPaidByIntent"
         val valueText = "$currencyUiSymbol$getTotalIntent" //TODO: Ensure the correct currency is being used
         binding.expenseValue.text = valueText
         binding.paidByText.text = paidByText
@@ -221,9 +221,7 @@ class ExpenseViewActivity : AppCompatActivity() {
                 val participantName = prevParticipant.name
                 if (participantName == newParticipant.name) {
                     val change = newParticipant.balance - prevParticipant.balance
-//                    val rounded = ExpenseOverviewActivity.roundToTwoDecimalPlace(change)
                     stringBuilder.append("$participantName,")
-//                    stringBuilder.append("$rounded,")
                     stringBuilder.append("$change,")
                     stringBuilder.append("$paidBy/")
                 }
@@ -248,7 +246,8 @@ class ExpenseViewActivity : AppCompatActivity() {
 
                     Toast.makeText(context, "Deleted successfully", Toast.LENGTH_SHORT).show()
                     reversePriorExpenseAfterDeletion(prevContributionString)
-                    onBackPressed()
+                    setResult(Activity.RESULT_OK)
+                    finish()
                 }
             })
             setNegativeButton("No, cancel", object: DialogInterface.OnClickListener{

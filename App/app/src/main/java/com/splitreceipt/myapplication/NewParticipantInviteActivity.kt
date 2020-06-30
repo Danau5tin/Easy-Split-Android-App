@@ -9,6 +9,7 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.splitreceipt.myapplication.ExpenseOverviewActivity.Companion.getSqlGroupId
 import com.splitreceipt.myapplication.data.SqlDbHelper
 import com.splitreceipt.myapplication.databinding.ActivityNewParticipantInviteBinding
 
@@ -61,14 +62,7 @@ class NewParticipantInviteActivity : AppCompatActivity(), NewParticipantRecyAdap
     }
 
     private fun saveNewParticipantStrings() {
-        val stringBuilder = StringBuilder()
-        for (participant in participantList) {
-            stringBuilder.append("$participant,")
-        }
-        stringBuilder.deleteCharAt(stringBuilder.lastIndex)
-        val newParticipantString = stringBuilder.toString()
-        ExpenseOverviewActivity.firebaseDbHelper!!.updateParticipants(newParticipantString)
-        SqlDbHelper(this).updateParticipants(newParticipantString, ExpenseOverviewActivity.getSqlGroupId!!)
+        finish()
     }
 
     override fun onRowclick(position: Int) {
@@ -94,6 +88,17 @@ class NewParticipantInviteActivity : AppCompatActivity(), NewParticipantRecyAdap
             participantList.add(newParticipantName)
             adapter.notifyDataSetChanged()
             binding.addParticActivtext.setText("")
+            val stringBuilder = StringBuilder()
+            for (participant in participantList) {
+                stringBuilder.append("$participant,")
+            }
+            stringBuilder.deleteCharAt(stringBuilder.lastIndex)
+            val newParticipantString = stringBuilder.toString()
+            val sqlDbHelper = SqlDbHelper(this)
+            val prevBalanceString = sqlDbHelper.getBalanceString(getSqlGroupId!!)
+            val newBalanceString = "$prevBalanceString/$newParticipantName,0.0"
+            sqlDbHelper.updateParticipants(newParticipantString, getSqlGroupId!!, newBalanceString)
+            ExpenseOverviewActivity.firebaseDbHelper!!.updateParticipants(newParticipantString, newBalanceString)
         } else {
             Toast.makeText(this, "Please type in a name for the participant", Toast.LENGTH_SHORT).show()
         }

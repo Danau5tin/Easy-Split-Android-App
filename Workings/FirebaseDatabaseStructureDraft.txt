@@ -1,4 +1,10 @@
 GroupId
+
+ID
+  - Name
+  - Balance??
+
+
 |	|
 |	--- Info
 |	|	|

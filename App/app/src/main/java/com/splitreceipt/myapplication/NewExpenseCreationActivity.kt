@@ -21,7 +21,7 @@ import com.splitreceipt.myapplication.data.*
 import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_ACCOUNT_CURRENCY_CODE
 import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_ACCOUNT_CURRENCY_SYMBOL
 import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_NAME
-import com.splitreceipt.myapplication.databinding.ActivityNewReceiptCreationBinding
+import com.splitreceipt.myapplication.databinding.ActivityNewExpenseCreationBinding
 import kotlinx.android.synthetic.main.fragment_split_receipt_scan.*
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -35,7 +35,7 @@ class NewExpenseCreationActivity : AppCompatActivity() {
     Activity gives the user the ability to input a new receipt/ transaction
      */
 
-    private lateinit var binding: ActivityNewReceiptCreationBinding
+    private lateinit var binding: ActivityNewExpenseCreationBinding
     private var editPaidBy: String = ""
     private var firebaseEditExpenseID: String = ""
 
@@ -77,7 +77,7 @@ class NewExpenseCreationActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityNewReceiptCreationBinding.inflate(layoutInflater)
+        binding = ActivityNewExpenseCreationBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         sqlGroupId = intent.getStringExtra(intentSqlGroupIdString)

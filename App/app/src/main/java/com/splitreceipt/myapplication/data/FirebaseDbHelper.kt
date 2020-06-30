@@ -98,7 +98,7 @@ class FirebaseDbHelper(private var firebaseGroupId: String) {
                             val scannedRecExpId = receipt.key
                             if (scannedRecExpId == expenseId) {
                                 for (product in receipt.children){
-                                    //TODO: To allow for a more efficient insertion, create a lost and pass it to the sqlHelper to iterate through instead. This then requires only opening one writeable database.
+                                    //TODO: To allow for a more efficient insertion, create a list and pass it to the sqlHelper to iterate through instead. This then requires only opening one writeable database.
                                     val productData = product.getValue(FirebaseProductData::class.java)!!
                                     sqlHelper.insertReceiptItems(productData.productName, productData.productValue, productData.productOwner, expenseSqlRow)
                                 }
@@ -122,6 +122,12 @@ class FirebaseDbHelper(private var firebaseGroupId: String) {
         val accountData = FirebaseAccountFinancialData(groupSettlement, groupBalance)
         currentPath = database.getReference(groupFinancePath)
         currentPath.setValue(accountData)
+    }
+
+    private fun setGroupBalance(newBalanceString: String) {
+        val groupFinancePath = "$firebaseGroupId$groupFin"
+        currentPath = database.getReference(groupFinancePath).child("accBal")
+        currentPath.setValue(newBalanceString)
     }
 
     fun setGroupImageLastEdit(lastEdit: String) {
@@ -216,10 +222,11 @@ class FirebaseDbHelper(private var firebaseGroupId: String) {
         }
     }
 
-    fun updateParticipants(newParticipantString: String) {
+    fun updateParticipants(newParticipantString: String, newBalanceString: String) {
         val participantPath = "$firebaseGroupId$groupInfo"
         currentPath = database.getReference(participantPath).child("accParticipants")
         currentPath.setValue(newParticipantString)
+        setGroupBalance(newBalanceString)
     }
 
     fun deleteExpense(expenseId: String, scan: Boolean) {

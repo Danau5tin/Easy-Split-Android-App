@@ -532,11 +532,11 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
         close()
     }
 
-    fun getSettlementString(sqlGroupId: String?): String? {
-        val read = readableDatabase
+    fun getBalanceString(sqlGroupId: String?): String? {
         val columns = arrayOf(GROUP_COL_BALANCES)
         val where = "$GROUP_COL_ID = ?"
         val whereArgs = arrayOf(sqlGroupId)
+        val read = readableDatabase
         val cursor: Cursor = read.query(GROUP_TABLE_NAME, columns, where, whereArgs, null, null, null)
         val balIndex = cursor.getColumnIndexOrThrow(GROUP_COL_BALANCES)
         cursor.moveToNext()
@@ -546,10 +546,11 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
         return balance
     }
 
-    fun updateParticipants(newParticipantString: String, groupSqlId: String) {
+    fun updateParticipants(newParticipantString: String, groupSqlId: String, newBalanceString: String) {
         val write = writableDatabase
         val values = ContentValues().apply {
             put(GROUP_COL_PARTICIPANTS, newParticipantString)
+            put(GROUP_COL_BALANCES, newBalanceString)
         }
         val where = "$GROUP_COL_ID = ?"
         val whereArgs = arrayOf(groupSqlId)

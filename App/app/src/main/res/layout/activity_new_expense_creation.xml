@@ -2,9 +2,9 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:background="@color/colorPrimary"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/colorPrimary"
     tools:context=".NewExpenseCreationActivity">
 
     <include
@@ -17,22 +17,22 @@
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/textTitleInputLayout"
-        android:layout_width="250dp"
+        android:layout_width="180dp"
         android:layout_height="wrap_content"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="@+id/toolbar"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintStart_toStartOf="@+id/leftGuideline"
+        app:layout_constraintTop_toBottomOf="@+id/toolbar">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/receiptTitleEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:focusable="auto"
+            android:focusedByDefault="true"
             android:fontFamily="@font/convergence"
             android:hint="@string/item_title_hint"
             android:textColor="#FFFFFF"
             android:textColorHint="#FFFFFF"
-            android:textSize="30sp"
+            android:textSize="24sp"
             android:textStyle="bold" />
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -52,51 +52,56 @@
 
     <Spinner
         android:id="@+id/paidBySpinner"
-        android:layout_width="120dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:layout_constraintStart_toStartOf="@+id/leftGuideline"
-        app:layout_constraintTop_toBottomOf="@+id/paidByHintText" />
+        android:layout_marginStart="8dp"
+        android:background="@drawable/outline_primary_color"
+        android:gravity="center"
+        app:layout_constraintBottom_toBottomOf="@+id/paidByHintText"
+        app:layout_constraintStart_toEndOf="@+id/paidByHintText"
+        app:layout_constraintTop_toTopOf="@+id/paidByHintText" />
 
     <TextView
         android:id="@+id/paidByHintText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="4dp"
-        android:layout_marginTop="24dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
         android:fontFamily="@font/assistant"
         android:text="@string/item_paidby_hint"
         android:textColor="#FFFFFF"
         android:textSize="18sp"
         android:textStyle="bold"
-        app:layout_constraintStart_toStartOf="@+id/paidBySpinner"
-        app:layout_constraintTop_toBottomOf="@+id/textTitleInputLayout" />
+        app:layout_constraintBottom_toBottomOf="@+id/textTitleInputLayout"
+        app:layout_constraintStart_toEndOf="@+id/textTitleInputLayout"
+        app:layout_constraintTop_toTopOf="@+id/textTitleInputLayout" />
 
     <View
         android:id="@+id/tabLayoutOverline"
         android:layout_width="0dp"
         android:layout_height="2dp"
-        android:background="@color/harshGrey"
+        android:background="@android:color/white"
+        app:layout_constraintBottom_toTopOf="@+id/receiptTabLayout"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/receiptTabLayout" />
+        app:layout_constraintStart_toStartOf="parent" />
 
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/receiptTabLayout"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
+        android:layout_marginTop="70dp"
         android:textAllCaps="false"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/paidBySpinner">
+        app:layout_constraintTop_toBottomOf="@+id/textTitleInputLayout">
 
         <com.google.android.material.tabs.TabItem
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content" />
 
         <com.google.android.material.tabs.TabItem
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content" />
     </com.google.android.material.tabs.TabLayout>
 
     <androidx.viewpager2.widget.ViewPager2
@@ -104,23 +109,10 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginTop="3dp"
-        android:layout_marginBottom="32dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/receiptTabLayout" />
-
-    <ImageButton
-        android:id="@+id/imageButton2"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
-        android:layout_marginTop="16dp"
-        android:background="@null"
-        android:onClick="datePicker"
-        android:scaleType="center"
-        app:layout_constraintEnd_toStartOf="@+id/dateButton"
-        app:layout_constraintTop_toBottomOf="@+id/toolbar"
-        app:srcCompat="@drawable/vector_calendar_blue" />
 
     <Button
         android:id="@+id/dateButton"
@@ -136,7 +128,24 @@
         android:textSize="14sp"
         android:textStyle="italic"
         app:layout_constraintBottom_toBottomOf="@+id/imageButton2"
-        app:layout_constraintEnd_toStartOf="@+id/rightGuideline"
+        app:layout_constraintEnd_toStartOf="@+id/toolbar"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/imageButton2"
         app:layout_constraintTop_toTopOf="@+id/imageButton2" />
+
+    <ImageButton
+        android:id="@+id/imageButton2"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:background="@null"
+        android:onClick="datePicker"
+        android:scaleType="center"
+        app:layout_constraintEnd_toStartOf="@+id/dateButton"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/toolbar"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/vector_calendar_blue" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

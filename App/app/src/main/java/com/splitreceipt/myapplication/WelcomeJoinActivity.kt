@@ -89,8 +89,11 @@ class WelcomeJoinActivity : AppCompatActivity() {
 
     private fun addParticipant(sqlUser: String) {
         val newParticipantString = "$fBaseParticipants,$sqlUser"
-        GroupScreenActivity.firebaseDbHelper!!.updateParticipants(newParticipantString)
-        SqlDbHelper(this).updateParticipants(newParticipantString, sqlRow)
+        val sqlDbHelper = SqlDbHelper(this)
+        val prevBalanceString = sqlDbHelper.getBalanceString(sqlRow)
+        val newBalanceString = "$prevBalanceString/$sqlUser,0.0"
+        sqlDbHelper.updateParticipants(newParticipantString, sqlRow, newBalanceString)
+        GroupScreenActivity.firebaseDbHelper!!.updateParticipants(newParticipantString, newBalanceString)
     }
 
     private fun okayToProceed() : Boolean {

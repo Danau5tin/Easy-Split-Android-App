@@ -17,7 +17,7 @@
         android:id="@+id/expenseValue"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
+        android:layout_marginTop="24dp"
         android:fontFamily="@font/assistant"
         android:textColor="#FFFFFF"
         android:textSize="24sp"
@@ -36,7 +36,8 @@
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/expenseParticRecy"
         android:layout_width="0dp"
-        android:layout_height="150dp"
+        android:layout_height="200dp"
+        android:layout_marginTop="24dp"
         app:layout_constraintEnd_toStartOf="@+id/guideline3"
         app:layout_constraintStart_toStartOf="@+id/guideline"
         app:layout_constraintTop_toBottomOf="@+id/paidByText" />
@@ -52,25 +53,28 @@
         android:id="@+id/dateText"
         android:layout_width="80dp"
         android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
         android:fontFamily="@font/assistant"
         android:text="10/05/2020"
         android:textColor="#FFFFFF"
         android:textSize="14sp"
         android:textStyle="bold|italic"
         app:layout_constraintEnd_toStartOf="@+id/guideline3"
-        app:layout_constraintTop_toBottomOf="@+id/toolbar" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/paidByText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
         android:fontFamily="@font/assistant"
-        android:text="Paid by Marie"
+        android:text="paid by Marie"
         android:textColor="#FFFFFF"
         android:textSize="18sp"
         android:textStyle="bold"
-        app:layout_constraintStart_toStartOf="@+id/expenseValue"
-        app:layout_constraintTop_toBottomOf="@+id/expenseValue" />
+        app:layout_constraintBottom_toBottomOf="@+id/expenseValue"
+        app:layout_constraintStart_toEndOf="@+id/expenseValue"
+        app:layout_constraintTop_toTopOf="@+id/expenseValue" />
 
     <Button
         android:id="@+id/deleteExpenseButton"
@@ -109,14 +113,12 @@
         android:id="@+id/titleTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
         android:fontFamily="@font/convergence"
         android:textColor="#FFFFFF"
         android:textSize="30sp"
         android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/toolbar"
+        app:layout_constraintStart_toStartOf="@+id/guideline"
+        app:layout_constraintTop_toBottomOf="@+id/toolbar"
         tools:text="Title " />
 
     <Button

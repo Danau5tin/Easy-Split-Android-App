@@ -191,6 +191,7 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
                 val sqlGroupData = sqlHelper.retrieveSqlAccountInfoData(getSqlGroupId!!)
                 var infoChanged = false
                 var imageChanged = false
+                var participantsChanged = false
                 if (firebaseGroupData.accName != sqlGroupData.accName) {
                     binding.groupNameTitleText.text = firebaseGroupData.accName
                     infoChanged = true
@@ -207,6 +208,11 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
                 }
                 if (imageChanged) {
                     firebaseDbHelper!!.downloadGroupProfileImage(baseContext, binding.groupProfileImage)
+                }
+                if (participantsChanged) {
+                    // Update the new balance string into sql also.
+                    //TODO: CRITICAL. HOW DO WE KNOW WHO THE NEW PARTICIPANT IS?
+                    //TODO: Should I change db schema to allow for individual user profiles? Updating their names and balances?
                 }
             }
         })
@@ -369,12 +375,11 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
                     newSettlementString = data.getStringExtra(ExpenseViewActivity.expenseReturnNewSettlements)
                     if (newSettlementString == null){
                         // This means the user did not change any contributions. Therefore retrieve the old string
-                        newSettlementString = SqlDbHelper(this).getSettlementString(getSqlGroupId)
+                        newSettlementString = SqlDbHelper(this).getBalanceString(getSqlGroupId) //TODO: Should this be retrieving the settlementString?
                     }
-                    reloadRecycler()
                 }
                 deconstructAndSetSettlementString(newSettlementString!!)
-
+                reloadRecycler()
             }
         } else if (requestCode == settingsResult) {
             if (resultCode == Activity.RESULT_OK) {
@@ -553,6 +558,11 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
             }
             else -> return false
         }
+    }
+
+    fun balanceView(view: View) {
+        val intent = Intent(this, BalanceOverviewActivity::class.java)
+        startActivity(intent)
     }
 
 }
