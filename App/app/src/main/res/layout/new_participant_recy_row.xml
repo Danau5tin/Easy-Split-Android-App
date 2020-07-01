@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@color/colorPrimary">
+    android:background="@drawable/maries_outline">
 
     <TextView
         android:id="@+id/newAccountParticipantName"
@@ -25,7 +25,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="32dp"
-        android:background="@android:color/holo_red_light"
+        android:background="@null"
         app:layout_constraintBottom_toBottomOf="@+id/newAccountParticipantName"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@+id/newAccountParticipantName"

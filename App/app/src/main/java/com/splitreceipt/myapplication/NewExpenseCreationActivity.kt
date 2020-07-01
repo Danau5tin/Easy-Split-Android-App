@@ -49,6 +49,7 @@ class NewExpenseCreationActivity : AppCompatActivity() {
         const val intentSqlExpenseIdString = "sqlExpenseID"
         const val intentSqlGroupIdString = "sqlGroupID"
         const val intentFirebaseIdString = "firebaseID"
+        const val intentManualOrScan = "manual_scan"
 
         var currencyCode = ""
         var currencySymbol = ""
@@ -96,10 +97,18 @@ class NewExpenseCreationActivity : AppCompatActivity() {
         binding.receiptViewPager.adapter = pagerAdapter
         TabLayoutMediator(binding.receiptTabLayout, binding.receiptViewPager) { tab, position ->
             val tabNames = arrayOf("Split manually", "Scan receipt")
-            //To get the first name of doppelganger celebrities
             tab.text = tabNames[position]
         }.attach()
-        binding.receiptViewPager.currentItem = 0
+
+        val manualOrScan = intent.getBooleanExtra(intentManualOrScan, false)
+        if (!manualOrScan) {
+            //Show manual
+            binding.receiptViewPager.currentItem = 0
+        }
+        else {
+            //Show scan
+            binding.receiptViewPager.currentItem = 1
+        }
 
         val editTitle = intent.getStringExtra(editIntentTitleString)
         if (editTitle != null) {

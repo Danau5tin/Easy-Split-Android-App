@@ -29,13 +29,13 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@drawable/outline_primary_color"
-            android:padding="10dp"
             android:focusable="auto"
             android:focusedByDefault="true"
             android:fontFamily="@font/convergence"
             android:hint="@string/item_title_hint"
+            android:padding="10dp"
             android:textColor="@android:color/black"
-            android:textSize="24sp"
+            android:textSize="18sp"
             android:textStyle="bold" />
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -56,7 +56,7 @@
     <Spinner
         android:id="@+id/paidBySpinner"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="40dp"
         android:layout_marginStart="8dp"
         android:background="@drawable/outline_primary_color"
         android:gravity="center"
@@ -83,22 +83,35 @@
         android:id="@+id/tabLayoutOverline"
         android:layout_width="0dp"
         android:layout_height="2dp"
-        android:background="@android:color/white"
+        android:background="@color/harshGrey"
+        android:visibility="gone"
         app:layout_constraintBottom_toTopOf="@+id/receiptTabLayout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
+
+    <View
+        android:id="@+id/tabLayoutUnderline"
+        android:layout_width="0dp"
+        android:layout_height="2dp"
+        android:background="@color/harshGrey"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/receiptTabLayout" />
+
 
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/receiptTabLayout"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
+        android:layout_marginTop="40dp"
         android:background="@color/backgroundGrey"
         android:textAllCaps="false"
+        android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textTitleInputLayout"
-        app:tabBackground="@color/backgroundGrey"
+        app:tabBackground="@color/colorPrimary"
         app:tabIndicatorColor="@android:color/white"
         app:tabIndicatorGravity="stretch">
 
@@ -118,8 +131,10 @@
         android:layout_marginTop="3dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/receiptTabLayout" />
+        app:layout_constraintTop_toBottomOf="@+id/receiptTabLayout"
+        app:layout_constraintVertical_bias="1.0" />
 
     <Button
         android:id="@+id/dateButton"

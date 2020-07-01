@@ -44,7 +44,7 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
      */
 
     private lateinit var binding: ActivityMainBinding
-    private lateinit var receiptList: ArrayList<ReceiptData>
+    private lateinit var expenseList: ArrayList<ReceiptData>
     private lateinit var storageRef: StorageReference
     private lateinit var adapter: ExpenseOverViewAdapter
 
@@ -55,6 +55,7 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
     private val requestStorage = 4
     private val pickImage = 5
     private var userSettlementString = ""
+    private var floatingButtonsShowing: Boolean = false
 
     companion object {
         var firebaseDbHelper: FirebaseDbHelper? = null // Globally used throughout the application
@@ -125,7 +126,7 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        receiptList = ArrayList()
+        expenseList = ArrayList()
         storageRef = FirebaseStorage.getInstance().reference
         getSqlGroupId = intent.getStringExtra(GroupScreenActivity.sqlIntentString)
         getSqlUser = intent.getStringExtra(GroupScreenActivity.userIntentString)
@@ -218,7 +219,7 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
         })
 
 
-        adapter = ExpenseOverViewAdapter(receiptList, this)
+        adapter = ExpenseOverViewAdapter(expenseList, this)
         binding.mainActivityRecycler.layoutManager = LinearLayoutManager(this)
         binding.mainActivityRecycler.adapter = adapter
 
@@ -301,12 +302,24 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
                     // User has no new updated expenses downloaded from the firebase database
                     settlementString = sqlHelper.loadSqlSettlementString(getSqlGroupId)
                 }
-                sqlHelper.loadPreviousReceipts(getSqlGroupId, receiptList)
+                sqlHelper.loadPreviousReceipts(getSqlGroupId, expenseList)
                 deconstructAndSetSettlementString(settlementString)
                 adapter.notifyDataSetChanged()
+                refreshStatistics()
             }
         })
+    }
 
+    private fun refreshStatistics() {
+        binding.totalNumberExpensesText.text = expenseList.size.toString()
+        var expensesTotal = 0.0F
+        for (expense in expenseList){
+            expensesTotal += expense.total
+        }
+        expensesTotal = roundToTwoDecimalPlace(expensesTotal)
+        val total = SplitExpenseManuallyFragment.addStringZerosForDecimalPlace(expensesTotal.toString())
+        val expenseTotalString = "$currencySymbol$total"
+        binding.totalAmountExpensesText.text = expenseTotalString
     }
 
     @SuppressLint("InflateParams")
@@ -334,10 +347,36 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
         startActivityForResult(intent, pickImage)
     }
 
-    fun addNewReceiptButton(view: View) {
+    fun addNewReceiptButton(view: View?=null) {
+        if (!floatingButtonsShowing) {
+            binding.floatingActionButtonManual.visibility = View.VISIBLE
+            binding.floatingActionButtonScan.visibility = View.VISIBLE
+            binding.manualHintText.visibility = View.VISIBLE
+            binding.scanHintText.visibility = View.VISIBLE
+            binding.mainActivityRecycler.alpha = 0.5F
+            floatingButtonsShowing = true
+        } else {
+            binding.floatingActionButtonManual.visibility = View.INVISIBLE
+            binding.floatingActionButtonScan.visibility = View.INVISIBLE
+            binding.manualHintText.visibility = View.INVISIBLE
+            binding.scanHintText.visibility = View.INVISIBLE
+            binding.mainActivityRecycler.alpha = 1.0F
+            floatingButtonsShowing = false
+        }
+    }
+
+    fun startManualExpense(view: View) {
         val intent = Intent(this, NewExpenseCreationActivity::class.java)
         intent.putExtra(NewExpenseCreationActivity.intentSqlGroupIdString, getSqlGroupId)
         intent.putExtra(NewExpenseCreationActivity.intentFirebaseIdString, getFirebaseId)
+        startActivityForResult(intent, addExpenseResult)
+    }
+
+    fun startScanExpense(view: View) {
+        val intent = Intent(this, NewExpenseCreationActivity::class.java)
+        intent.putExtra(NewExpenseCreationActivity.intentSqlGroupIdString, getSqlGroupId)
+        intent.putExtra(NewExpenseCreationActivity.intentFirebaseIdString, getFirebaseId)
+        intent.putExtra(NewExpenseCreationActivity.intentManualOrScan, true)
         startActivityForResult(intent, addExpenseResult)
     }
 
@@ -357,6 +396,8 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
                 newSettlementString = newContributionUpdates(contributions!!)
                 deconstructAndSetSettlementString(newSettlementString)
                 reloadRecycler()
+                refreshStatistics()
+                addNewReceiptButton()
             }
         } else if (requestCode == seeExpenseResult) {
             if (resultCode == Activity.RESULT_OK) {
@@ -380,6 +421,7 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
                 }
                 deconstructAndSetSettlementString(newSettlementString!!)
                 reloadRecycler()
+                refreshStatistics()
             }
         } else if (requestCode == settingsResult) {
             if (resultCode == Activity.RESULT_OK) {
@@ -476,8 +518,8 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
 
     private fun reloadRecycler() {
         // Clears the list and refreshes receipts from SQL db back into it.
-        receiptList.clear()
-        SqlDbHelper(this).loadPreviousReceipts(getSqlGroupId, receiptList)
+        expenseList.clear()
+        SqlDbHelper(this).loadPreviousReceipts(getSqlGroupId, expenseList)
         adapter.notifyDataSetChanged()
     }
 

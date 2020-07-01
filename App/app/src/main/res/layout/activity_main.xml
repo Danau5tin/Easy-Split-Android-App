@@ -21,6 +21,7 @@
         android:id="@+id/imageView6"
         android:layout_width="66dp"
         android:layout_height="77dp"
+        android:alpha="0.5"
         app:layout_constraintBottom_toTopOf="@+id/textView17"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -31,7 +32,8 @@
         style="@style/grandTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="40dp"
+        android:layout_marginBottom="80dp"
+        android:alpha="0.5"
         android:text="@string/app_name"
         app:layout_constraintBottom_toTopOf="@+id/floatingActionButton3"
         app:layout_constraintEnd_toEndOf="parent"
@@ -93,8 +95,8 @@
         android:gravity="center"
         android:padding="10dp"
         android:text="You owe Marie £20.00"
-        android:textColor="#000000"
-        android:textSize="18sp"
+        android:textColor="#8A8585"
+        android:textSize="16sp"
         app:layout_constraintBottom_toBottomOf="@+id/groupProfileImage"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.673"
@@ -180,9 +182,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
-        android:text="£110.56"
+        android:textStyle="normal"
         app:layout_constraintStart_toStartOf="@+id/textView18"
-        app:layout_constraintTop_toBottomOf="@+id/textView18" />
+        app:layout_constraintTop_toBottomOf="@+id/textView18"
+        tools:text="£110.56" />
 
     <TextView
         android:id="@+id/textView21"
@@ -201,8 +204,60 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="2dp"
-        android:text="25"
+        android:textStyle="normal"
         app:layout_constraintEnd_toEndOf="@+id/textView21"
-        app:layout_constraintTop_toBottomOf="@+id/textView21" />
+        app:layout_constraintTop_toBottomOf="@+id/textView21"
+        tools:text="25" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/floatingActionButtonScan"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="24dp"
+        android:layout_marginBottom="24dp"
+        android:clickable="true"
+        android:onClick="startScanExpense"
+        android:visibility="invisible"
+        app:backgroundTint="#FFFFFF"
+        app:layout_constraintBottom_toTopOf="@+id/floatingActionButton3"
+        app:layout_constraintEnd_toStartOf="@+id/floatingActionButton3"
+        app:srcCompat="@drawable/vector_add_image_blue" />
+
+    <TextView
+        android:id="@+id/scanHintText"
+        style="@style/standardWhiteText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Scan receipt"
+        android:visibility="invisible"
+        app:layout_constraintEnd_toEndOf="@+id/floatingActionButtonScan"
+        app:layout_constraintStart_toStartOf="@+id/floatingActionButtonScan"
+        app:layout_constraintTop_toBottomOf="@+id/floatingActionButtonScan" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/floatingActionButtonManual"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginBottom="24dp"
+        android:clickable="true"
+        android:onClick="startManualExpense"
+        android:visibility="invisible"
+        app:backgroundTint="#FFFFFF"
+        app:layout_constraintBottom_toTopOf="@+id/floatingActionButton3"
+        app:layout_constraintStart_toEndOf="@+id/floatingActionButton3"
+        app:srcCompat="@drawable/ic_add_black_24dp" />
+
+    <TextView
+        android:id="@+id/manualHintText"
+        style="@style/standardWhiteText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="New Expense"
+        android:visibility="invisible"
+        app:layout_constraintEnd_toEndOf="@+id/floatingActionButtonManual"
+        app:layout_constraintStart_toStartOf="@+id/floatingActionButtonManual"
+        app:layout_constraintTop_toBottomOf="@+id/floatingActionButtonManual" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
