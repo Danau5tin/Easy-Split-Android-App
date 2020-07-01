@@ -15,6 +15,7 @@ class SettleGroupActivity : AppCompatActivity() {
     private lateinit var binding: ActivitySettleGroupBinding
     private lateinit var paidBy: String
     private lateinit var paidTo: String
+    
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

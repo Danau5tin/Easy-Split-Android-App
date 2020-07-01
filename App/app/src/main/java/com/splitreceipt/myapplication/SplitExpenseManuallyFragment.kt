@@ -7,6 +7,7 @@ import android.content.SharedPreferences
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -22,7 +23,7 @@ import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_ACCOUNT
 import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_NAME
 import com.splitreceipt.myapplication.databinding.FragmentSplitReceiptManuallyBinding
 
-class SplitExpenseManuallyFragment : Fragment(), NewManualExpenseRecyclerAdapter.onRecyRowCheked {
+class SplitExpenseManuallyFragment : Fragment(), NewManualExpenseRecyclerAdapter.OnRecyRowCheked {
 
     private lateinit var binding: FragmentSplitReceiptManuallyBinding
     private lateinit var adapter: NewManualExpenseRecyclerAdapter
@@ -30,7 +31,6 @@ class SplitExpenseManuallyFragment : Fragment(), NewManualExpenseRecyclerAdapter
     private lateinit var contxt: Context
     private var everybodyEqual: Boolean = true
     private lateinit var sharedPreferences: SharedPreferences
-
 
     companion object{
 
@@ -65,6 +65,7 @@ class SplitExpenseManuallyFragment : Fragment(), NewManualExpenseRecyclerAdapter
             override fun afterTextChanged(s: Editable?) {}
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(text: CharSequence?, start: Int, before: Int, count: Int) {
+
                 val correctNumber: CharSequence
                 if (!text.isNullOrBlank()){
                     val allText = text.toString()
@@ -186,12 +187,19 @@ class SplitExpenseManuallyFragment : Fragment(), NewManualExpenseRecyclerAdapter
         fragmentManualParticipantList[pos].contributing = false
         fragmentManualParticipantList[pos].contributionValue = zeroCurrency
         setContributionStatus(true)
-        binding.fragManualRecy.post(Runnable { adapter.notifyDataSetChanged() })
+        if (!binding.fragManualRecy.isComputingLayout) {
+            binding.fragManualRecy.post(Runnable { adapter.notifyDataSetChanged() })
+        }
+
+
     }
 
     override fun onRecyChecked(pos: Int) {
+        Log.i("DEBUG", "onRecyCheck pos: $pos")
         fragmentManualParticipantList[pos].contributing = true
         setContributionStatus(true)
-        binding.fragManualRecy.post(Runnable { adapter.notifyDataSetChanged() })
+        if (!binding.fragManualRecy.isComputingLayout) {
+            binding.fragManualRecy.post { adapter.notifyDataSetChanged() }
+        }
     }
 }

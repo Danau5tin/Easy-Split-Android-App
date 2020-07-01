@@ -155,7 +155,7 @@ class SplitReceiptScanFragment : Fragment(), NewScannedReceiptRecyclerAdapter.on
 
     private fun okayToProceed(): Boolean {
         if(binding.currencyAmountScan.text.toString().isBlank()){
-            Toast.makeText(contxt, "Please enter receipt total", Toast.LENGTH_SHORT).show()
+            Toast.makeText(contxt, "Please enter receipt amount", Toast.LENGTH_SHORT).show()
             return false
         } else if (binding.numberScanItemsText.text.toString().isBlank()){
             Toast.makeText(contxt, "Please enter number of items on receipt", Toast.LENGTH_LONG).show()

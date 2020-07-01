@@ -145,6 +145,7 @@ class NewGroupCreation : AppCompatActivity(), NewParticipantRecyAdapter.onPartRo
         when (item.itemId) {
             R.id.menuNext -> {
                 if (checkOkayToProceed()) {
+                    Toast.makeText(this, "Creating group, please wait...", Toast.LENGTH_LONG).show()
                     val title: String = binding.groupTitleEditText.text.toString()
                     val sqlUser: String = binding.yourNameEditText.text.toString()
                     checkIfUserForgotToAddPartic()
@@ -166,7 +167,6 @@ class NewGroupCreation : AppCompatActivity(), NewParticipantRecyAdapter.onPartRo
                         Toast.makeText(this, "Error #INSQ01. Contact Us", Toast.LENGTH_LONG).show()
                     }
                     else {
-                        Toast.makeText(this, "Creating group, please wait...", Toast.LENGTH_LONG).show()
                         val async = ASyncSaveImage(true, this, groupFirebaseId)
                         val intent = Intent(this, ExpenseOverviewActivity::class.java)
                         if (newBitmap == null){
@@ -275,6 +275,8 @@ class NewGroupCreation : AppCompatActivity(), NewParticipantRecyAdapter.onPartRo
                     newBitmap = bitmap
                 }
                 uriString = uri.toString()
+                binding.addPhotoHint.visibility = View.INVISIBLE
+                binding.addPhotoImageHint.visibility = View.INVISIBLE
             }
         }
         else if (requestCode == baseCurrencySelection) {

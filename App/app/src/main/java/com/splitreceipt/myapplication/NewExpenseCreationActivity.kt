@@ -92,7 +92,6 @@ class NewExpenseCreationActivity : AppCompatActivity() {
             R.layout.support_simple_spinner_dropdown_item, participantList
         )
         binding.paidBySpinner.adapter = spinnerAdapter
-
         val pagerAdapter = ExpensePagerAdapter(this)
         binding.receiptViewPager.adapter = pagerAdapter
         TabLayoutMediator(binding.receiptTabLayout, binding.receiptViewPager) { tab, position ->
@@ -109,6 +108,8 @@ class NewExpenseCreationActivity : AppCompatActivity() {
             //Show scan
             binding.receiptViewPager.currentItem = 1
         }
+
+        binding.receiptViewPager.isUserInputEnabled = false
 
         val editTitle = intent.getStringExtra(editIntentTitleString)
         if (editTitle != null) {

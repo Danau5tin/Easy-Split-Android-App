@@ -51,7 +51,7 @@
     <string name="row_overview_paidby_example">Dan paid £10.00</string>
 
     <string name="row_item_example_item">Strawberries</string>
-    <string name="row_item_example_price">£2.99</string>
+    <string name="row_item_example_price">2.99</string>
     <string name="row_item_sample_name1">Daniel</string>
     <string name="row_item_sample_name2">Marie</string>
 

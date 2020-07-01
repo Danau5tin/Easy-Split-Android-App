@@ -11,7 +11,7 @@
         android:id="@+id/currencyButtonManual"
         android:layout_width="65dp"
         android:layout_height="32dp"
-        android:layout_marginStart="8dp"
+        android:layout_marginStart="16dp"
         android:layout_marginTop="10dp"
         android:background="@drawable/maries_outline"
         android:gravity="center|center_vertical"

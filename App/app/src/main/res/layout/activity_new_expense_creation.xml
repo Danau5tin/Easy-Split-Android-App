@@ -79,26 +79,6 @@
         app:layout_constraintStart_toEndOf="@+id/textTitleInputLayout"
         app:layout_constraintTop_toTopOf="@+id/textTitleInputLayout" />
 
-    <View
-        android:id="@+id/tabLayoutOverline"
-        android:layout_width="0dp"
-        android:layout_height="2dp"
-        android:background="@color/harshGrey"
-        android:visibility="gone"
-        app:layout_constraintBottom_toTopOf="@+id/receiptTabLayout"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <View
-        android:id="@+id/tabLayoutUnderline"
-        android:layout_width="0dp"
-        android:layout_height="2dp"
-        android:background="@color/harshGrey"
-        android:visibility="gone"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/receiptTabLayout" />
-
 
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/receiptTabLayout"
@@ -134,7 +114,7 @@
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/receiptTabLayout"
-        app:layout_constraintVertical_bias="1.0" />
+        app:layout_constraintVertical_bias="0.0" />
 
     <Button
         android:id="@+id/dateButton"

@@ -5,32 +5,32 @@
     android:id="@+id/constraintLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/colorPrimary"
     tools:context=".SplitReceiptScanFragment">
 
     <ImageButton
         android:id="@+id/addReceiptImageButton"
         android:layout_width="62dp"
         android:layout_height="53dp"
-        android:layout_marginEnd="32dp"
-        android:background="@drawable/image_button_outline"
+        android:layout_marginTop="24dp"
+        android:background="@drawable/outline_primary_color"
         android:padding="5dp"
         android:paddingBottom="10dp"
         android:scaleType="fitCenter"
-        app:layout_constraintBottom_toBottomOf="@+id/textInputLayout6"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/textInputLayout5"
-        app:srcCompat="@drawable/vector_add_photo_grey" />
+        app:layout_constraintStart_toEndOf="@+id/textInputLayout5"
+        app:layout_constraintTop_toBottomOf="@+id/textInputLayout6"
+        app:srcCompat="@drawable/vector_add_photo_blue" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/scannedRecy"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="24dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textInputLayout6" />
+        app:layout_constraintTop_toBottomOf="@+id/textView20" />
 
     <Button
         android:id="@+id/currencyButtonScan"
@@ -49,8 +49,9 @@
         android:id="@+id/textInputLayout5"
         android:layout_width="100dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:background="@drawable/maries_outline"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="24dp"
+        android:textColorHint="@android:color/darker_gray"
         app:layout_constraintStart_toEndOf="@+id/currencyButtonScan"
         app:layout_constraintTop_toTopOf="parent">
 
@@ -58,25 +59,44 @@
             android:id="@+id/currencyAmountScan"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:background="@drawable/outline_primary_color"
             android:focusable="auto"
-            android:hint="Amount" />
+            android:hint="Amount"
+            android:padding="5dp"
+            android:textColor="@android:color/black" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/textInputLayout6"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginStart="24dp"
         android:layout_marginEnd="32dp"
-        app:layout_constraintEnd_toEndOf="@+id/textInputLayout5"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/currencyButtonScan">
+        android:textColorHint="@android:color/darker_gray"
+        app:layout_constraintBottom_toBottomOf="@+id/textInputLayout5"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/textInputLayout5"
+        app:layout_constraintTop_toTopOf="@+id/textInputLayout5">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/numberScanItemsText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Number of items" />
+            android:background="@drawable/outline_primary_color"
+            android:gravity="center"
+            android:hint="Number of items"
+            android:padding="5dp"
+            android:textColor="#000000" />
     </com.google.android.material.textfield.TextInputLayout>
+
+    <TextView
+        android:id="@+id/textView20"
+        style="@style/standardWhiteText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="11dp"
+        android:text="Take a photo of your receipt"
+        app:layout_constraintEnd_toEndOf="@+id/addReceiptImageButton"
+        app:layout_constraintStart_toStartOf="@+id/addReceiptImageButton"
+        app:layout_constraintTop_toBottomOf="@+id/addReceiptImageButton" />
 </androidx.constraintlayout.widget.ConstraintLayout>

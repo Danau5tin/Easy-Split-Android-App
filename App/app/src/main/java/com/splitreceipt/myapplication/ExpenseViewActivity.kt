@@ -82,7 +82,7 @@ class ExpenseViewActivity : AppCompatActivity() {
         deconstructContributionString()
 
         val paidByText = "paid by $getPaidByIntent"
-        val valueText = "$currencyUiSymbol$getTotalIntent" //TODO: Ensure the correct currency is being used
+        val valueText = "$currencyUiSymbol$getTotalIntent"
         binding.expenseValue.text = valueText
         binding.paidByText.text = paidByText
         binding.titleTextView.text = getTitleIntent
@@ -114,7 +114,7 @@ class ExpenseViewActivity : AppCompatActivity() {
             var value = ExpenseOverviewActivity.roundToTwoDecimalPlace(originalContribution).toString()
             value = SplitExpenseManuallyFragment.addStringZerosForDecimalPlace(value)
 
-            val newString = "$contributor contributed $currencyUiSymbol$value" //TODO: Ensure the correct currency
+            val newString = "$contributor contributed $currencyUiSymbol$value"
             contributionList.add(ExpenseAdapterData(newString, value.toString()))
         }
     }
@@ -154,7 +154,7 @@ class ExpenseViewActivity : AppCompatActivity() {
                 supportActionBar?.title = data?.getStringExtra(expenseReturnEditTitle)
                 val total = SplitExpenseManuallyFragment.addStringZerosForDecimalPlace(data?.
                                                 getStringExtra(expenseReturnEditTotal).toString())
-                val totalWithCurrency = "$currencyUiSymbol$total" //TODO: Ensure correct user currency is displayed
+                val totalWithCurrency = "$currencyUiSymbol$total"
                 binding.expenseValue.text = totalWithCurrency
                 val newPaidBy = data?.getStringExtra(expenseReturnEditPaidBy)
                 binding.paidByText.text = newPaidBy

@@ -15,7 +15,7 @@ class BalanceOverviewActivity : AppCompatActivity(), BalanceOverviewAdapter.bala
     private val settleResult: Int = 10
 
     companion object {
-        val balanceResult = "balanceResult"
+        const val balanceResult = "balanceResult"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

@@ -199,6 +199,7 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
                 }
                 if (firebaseGroupData.accParticipants != sqlGroupData.accParticipants){
                     infoChanged = true
+                    participantsChanged = true
                 }
                 if (firebaseGroupData.accLastImage != sqlGroupData.accLastImage) {
                     imageChanged = true
@@ -212,7 +213,6 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
                 }
                 if (participantsChanged) {
                     // Update the new balance string into sql also.
-                    //TODO: CRITICAL. HOW DO WE KNOW WHO THE NEW PARTICIPANT IS?
                     //TODO: Should I change db schema to allow for individual user profiles? Updating their names and balances?
                 }
             }
@@ -397,7 +397,9 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
                 deconstructAndSetSettlementString(newSettlementString)
                 reloadRecycler()
                 refreshStatistics()
-                addNewReceiptButton()
+                if (floatingButtonsShowing) {
+                    addNewReceiptButton()
+                }
             }
         } else if (requestCode == seeExpenseResult) {
             if (resultCode == Activity.RESULT_OK) {
@@ -422,15 +424,21 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
                 deconstructAndSetSettlementString(newSettlementString!!)
                 reloadRecycler()
                 refreshStatistics()
+                if (floatingButtonsShowing) {
+                    addNewReceiptButton()
+                }
             }
         } else if (requestCode == settingsResult) {
             if (resultCode == Activity.RESULT_OK) {
                 val groupName = data?.getStringExtra(GroupSettingsActivity.groupNameReturnIntent)
                 binding.groupNameTitleText.text = groupName
-                val uriString: String? = data?.getStringExtra(GroupSettingsActivity.groupImageChangedUriIntent)!!
+                val uriString: String? = data?.getStringExtra(GroupSettingsActivity.groupImageChangedUriIntent)
                 if (uriString != null) {
                     val uri = Uri.parse(uriString)
                     binding.groupProfileImage.setImageURI(uri)
+                }
+                if (floatingButtonsShowing) {
+                    addNewReceiptButton()
                 }
             }
         } else if (requestCode == pickImage) {
@@ -438,12 +446,18 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
                 val uri: Uri? = data!!.data
                 GroupSettingsActivity.handleNewImage(this, uri!!, binding.groupProfileImage)
             }
+            if (floatingButtonsShowing) {
+                addNewReceiptButton()
+            }
         } else if (requestCode == seeBalancesResult){
             if (resultCode == Activity.RESULT_OK){
                 val settle = data?.getBooleanExtra(BalanceOverviewActivity.balanceResult, false)
                 if (settle!!) {
                     val intent = Intent(this, SettleGroupActivity::class.java)
                     startActivityForResult(intent, addExpenseResult)
+                }
+                if (floatingButtonsShowing) {
+                    addNewReceiptButton()
                 }
             }
         }
@@ -477,13 +491,19 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
                 indexCount++
             }
         }
-        for (index in userDirectedSettlementIndexes) {
-            sb.append(settlementArray[index]).append("\n")
+        if (userDirectedSettlementIndexes.size > 1) {
+            binding.settlementStringTextView.visibility = View.INVISIBLE
+            binding.seeBalancesButton.visibility = View.VISIBLE
         }
-        sb.deleteCharAt(sb.lastIndex)
-        val newString = sb.toString()
-        binding.receiptOverBalanceString.text = newString
-        userSettlementString = newString
+        else {
+            binding.settlementStringTextView.visibility = View.VISIBLE
+            binding.seeBalancesButton.visibility = View.GONE
+            val newString = settlementArray[userDirectedSettlementIndexes[0]]
+            binding.settlementStringTextView.text = newString
+            userSettlementString = newString
+        }
+
+
     }
 
     private fun createSettlementString(

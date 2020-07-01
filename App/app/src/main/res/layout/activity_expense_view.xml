@@ -36,6 +36,7 @@
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/expenseParticRecy"
         android:layout_width="0dp"
+        android:scrollbars="vertical"
         android:layout_height="200dp"
         android:layout_marginTop="24dp"
         app:layout_constraintEnd_toStartOf="@+id/guideline3"
@@ -92,6 +93,7 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginBottom="16dp"
+        android:scrollbars="vertical"
         app:layout_constraintBottom_toTopOf="@+id/button2"
         app:layout_constraintEnd_toStartOf="@+id/guideline3"
         app:layout_constraintStart_toStartOf="@+id/guideline"

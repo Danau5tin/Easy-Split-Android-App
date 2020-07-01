@@ -95,11 +95,9 @@ class BalanceSettlementHelper(var context: Context, var groupSqlRow: String) {
                 for (participantBalanceItem in prevBalances) {
                     if (contributor == participantBalanceItem.name) {
                         participantBalanceItem.balance += contribValue
-//                        participantBalanceItem.balance = ExpenseOverviewActivity.roundToTwoDecimalPlace(participantBalanceItem.balance)
                     }
                     else if (contributee == participantBalanceItem.name) {
                         participantBalanceItem.balance -= contribValue
-//                        participantBalanceItem.balance = ExpenseOverviewActivity.roundToTwoDecimalPlace(participantBalanceItem.balance)
                     }
                     participantBalanceItem.balance = errorRate(participantBalanceItem.balance)
                 }
@@ -145,7 +143,6 @@ class BalanceSettlementHelper(var context: Context, var groupSqlRow: String) {
             //Step 1: Identify the participants with the largest negative balance & largest positive balance
             for (participant in participantBalanceDataList) {
 
-//                participant.balance = ExpenseOverviewActivity.roundToTwoDecimalPlace(participant.balance)
 
                 val participantBalance = participant.balance
                 if (participantBalance <= 0) {

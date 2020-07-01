@@ -1,5 +1,6 @@
 package com.splitreceipt.myapplication
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -9,7 +10,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.splitreceipt.myapplication.NewExpenseCreationActivity.Companion.currencySymbol
 import com.splitreceipt.myapplication.data.ParticipantData
 
-class NewManualExpenseRecyclerAdapter(var participantList: ArrayList<ParticipantData>, var onRecyInt: onRecyRowCheked) : RecyclerView.Adapter<NewManualExpenseRecyclerAdapter.ItemizedViewholder>() {
+class NewManualExpenseRecyclerAdapter(var participantList: ArrayList<ParticipantData>, private var onRecyInt: OnRecyRowCheked) : RecyclerView.Adapter<NewManualExpenseRecyclerAdapter.ItemizedViewholder>() {
 
     override fun onCreateViewHolder(
         parent: ViewGroup,
@@ -26,6 +27,13 @@ class NewManualExpenseRecyclerAdapter(var participantList: ArrayList<Participant
 
     override fun onBindViewHolder(holder: ItemizedViewholder, position: Int) {
         holder.participantCheckBox.text = participantList[position].name
+
+        if (participantList[position].contributing){
+            holder.participantCheckBox.isChecked = true
+        } else {
+            holder.participantCheckBox.isChecked = false
+        }
+
         holder.participantCheckBox.setOnCheckedChangeListener { _, isChecked ->
             if (!isChecked){
                 holder.onRec.onRecyUnCheck(holder.adapterPosition)
@@ -34,14 +42,12 @@ class NewManualExpenseRecyclerAdapter(var participantList: ArrayList<Participant
             }
         }
 
-        if (participantList[position].contributing){
-            holder.participantCheckBox.isChecked = true
-        }
         holder.currencySymbol.text = currencySymbol
         holder.participantContribution.text = participantList[position].contributionValue
+        Log.i("DEBUG", "Position of adapter: $position")
     }
 
-    class ItemizedViewholder(itemView: View, onRecyInt: onRecyRowCheked) : RecyclerView.ViewHolder(itemView){
+    class ItemizedViewholder(itemView: View, onRecyInt: OnRecyRowCheked) : RecyclerView.ViewHolder(itemView){
 
         val participantCheckBox: CheckBox = itemView.findViewById(R.id.participantCheckbox)
         val participantContribution: TextView = itemView.findViewById(R.id.participantContribution)
@@ -49,7 +55,7 @@ class NewManualExpenseRecyclerAdapter(var participantList: ArrayList<Participant
         val onRec = onRecyInt
     }
 
-    interface onRecyRowCheked {
+    interface OnRecyRowCheked {
         fun onRecyUnCheck(pos: Int)
         fun onRecyChecked(pos: Int)
     }
