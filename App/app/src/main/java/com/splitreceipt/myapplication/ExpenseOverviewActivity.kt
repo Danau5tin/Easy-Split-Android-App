@@ -197,7 +197,7 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
                     binding.groupNameTitleText.text = firebaseGroupData.accName
                     infoChanged = true
                 }
-                if (firebaseGroupData.accParticipants != sqlGroupData.accParticipants){
+                if (firebaseGroupData.accParticipantLastEdit != sqlGroupData.accParticipantLastEdit){
                     infoChanged = true
                     participantsChanged = true
                 }
@@ -212,12 +212,46 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
                     firebaseDbHelper!!.downloadGroupProfileImage(baseContext, binding.groupProfileImage)
                 }
                 if (participantsChanged) {
-                    // Update the new balance string into sql also.
-                    //TODO: Should I change db schema to allow for individual user profiles? Updating their names and balances?
+                    // Save the new users into SQL
+                    val usersDbRef = firebaseDbHelper!!.getUsersListeningRef()
+                    usersDbRef.addListenerForSingleValueEvent(object : ValueEventListener{
+                        override fun onCancelled(error: DatabaseError) {}
+                        override fun onDataChange(snapshot: DataSnapshot) {
+                            val allSqlUsers: ArrayList<ParticipantBalanceData> = ArrayList()
+                            sqlHelper.retrieveParticipants(allSqlUsers, getSqlGroupId!!)
+                            for (fbUser in snapshot.children) {
+                                var userExists = false
+                                val fBaseKey = fbUser.key.toString()
+                                val downloadedUser = fbUser.getValue(ParticipantBalanceData::class.java)
+                                downloadedUser!!.userKey = fBaseKey
+                                for (sqlUser in allSqlUsers) {
+                                    if (sqlUser.userKey == fBaseKey) {
+                                        // User exists in SQL Database
+                                        userExists = true
+                                        if (sqlUser.userName != downloadedUser.userName) {
+                                            //Users name has been changed. Update SQL.
+                                            sqlHelper.updateParticipantsName(sqlUser,
+                                                downloadedUser.userName, firebaseGroupData.accParticipantLastEdit, getSqlGroupId!!)
+                                            Log.i("Participants", "Participant: ${sqlUser.userName} exists in DB. Name has been changed to ${downloadedUser.userName}")
+                                        } else {
+                                            Log.i("Participants", "Participant: ${sqlUser.userName} exists in DB. Name unchanged.")
+                                        }
+                                        break
+                                    }
+                                }
+                                if (!userExists) {
+                                    // User has been added to the group since last update
+                                    sqlHelper.setGroupParticipants(downloadedUser, getSqlGroupId!!, firebaseGroupData.accParticipantLastEdit)
+                                    Log.i("Participants", "Participant: ${downloadedUser
+                                        .userName} of key: ${downloadedUser.userKey} is new and has been added to SQL")
+                                }
+                            }
+                        }
+
+                    })
                 }
             }
         })
-
 
         adapter = ExpenseOverViewAdapter(expenseList, this)
         binding.mainActivityRecycler.layoutManager = LinearLayoutManager(this)
@@ -228,7 +262,7 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
             override fun onCancelled(p0: DatabaseError) {
                 Toast.makeText(baseContext, "Failed to sync changes", Toast.LENGTH_SHORT).show()
             }
-            override fun onDataChange(data: DataSnapshot) {
+            override fun onDataChange(snapshot: DataSnapshot) {
                 /*
                  Check if any of the expenses in Firebase are not in the users SQL db.
                  If they are not then we will recalculate the expenses.
@@ -237,10 +271,10 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
                 val sqlExpenses = sqlDbHelper.retrieveBasicExpenseSqlData(getSqlGroupId!!)
                 var settlementString: String? = null
                 val balanceSettlementHelper = BalanceSettlementHelper(applicationContext, getSqlGroupId!!)
-                for (expense in data.children){
+                for (expense in snapshot.children){
                     val firebaseID = expense.key
                     var exists = false
-                    val expen = data.child(firebaseID!!)
+                    val expen = snapshot.child(firebaseID!!)
                     val newExpense = expen.getValue(FirebaseExpenseData::class.java)!!
                     val lastEdit = newExpense.expLastEdit
                     val date = newExpense.expDate
@@ -297,7 +331,7 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
 
                 if (settlementString != null) {
                     // User has updated expenses from Firebase so update Firebase with new balance, settlement strings.
-                    balanceSettlementHelper.updateFirebaseBalAndSettle(firebaseDbHelper!!)
+                    balanceSettlementHelper.updateFirebaseSettle(firebaseDbHelper!!)
                 } else {
                     // User has no new updated expenses downloaded from the firebase database
                     settlementString = sqlHelper.loadSqlSettlementString(getSqlGroupId)
@@ -386,13 +420,8 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
 
         if (requestCode == addExpenseResult) {
             if (resultCode == Activity.RESULT_OK) {
-                val contributions = data?.getStringExtra(
-                    NewExpenseCreationActivity.CONTRIBUTION_INTENT_DATA
-                )
-                Log.i(
-                    "Algorithm",
-                    "Contribution string returned from the recent transaction: $contributions \n\n"
-                )
+                val contributions = data?.getStringExtra(NewExpenseCreationActivity.CONTRIBUTION_INTENT_DATA)
+                Log.i("Algorithm", "Contribution string returned from the recent transaction: $contributions")
                 newSettlementString = newContributionUpdates(contributions!!)
                 deconstructAndSetSettlementString(newSettlementString)
                 reloadRecycler()
@@ -418,10 +447,10 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
                     newSettlementString = data.getStringExtra(ExpenseViewActivity.expenseReturnNewSettlements)
                     if (newSettlementString == null){
                         // This means the user did not change any contributions. Therefore retrieve the old string
-                        newSettlementString = SqlDbHelper(this).getBalanceString(getSqlGroupId) //TODO: Should this be retrieving the settlementString?
+                        newSettlementString = SqlDbHelper(this).loadSqlSettlementString(getSqlGroupId)
                     }
                 }
-                deconstructAndSetSettlementString(newSettlementString!!)
+                deconstructAndSetSettlementString(newSettlementString)
                 reloadRecycler()
                 refreshStatistics()
                 if (floatingButtonsShowing) {
@@ -469,7 +498,6 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
          After this it will identify any strings relevant to the current user and add them to a separate list which will be showcased in UI
          */
         settlementArray.clear()
-        val sb: StringBuilder = java.lang.StringBuilder()
         val userDirectedSettlementIndexes: ArrayList<Int> = ArrayList()
         var indexCount = 0
         if (settlementString == balanced_string) {
@@ -532,7 +560,7 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
     private fun newContributionUpdates(newContributions: String): String {
         val balanceSettlementHelper = BalanceSettlementHelper(this, getSqlGroupId.toString())
         val settlementString = balanceSettlementHelper.balanceAndSettlementsFromSql(newContributions)
-        firebaseDbHelper!!.setGroupFinance(settlementString, balanceSettlementHelper.balanceString!!)
+        firebaseDbHelper!!.setGroupFinance(settlementString)
         return settlementString
     }
 

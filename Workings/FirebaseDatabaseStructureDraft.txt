@@ -1,10 +1,14 @@
 GroupId
 
-ID
-  - Name
-  - Balance??
-
-
+ID------
+|	|
+|	---Users
+|	|	|
+|	|	UserID
+|	|	     |
+|	|	     --- UName
+|	|	     |
+|	|	     --- UBalance
 |	|
 |	--- Info
 |	|	|
@@ -14,12 +18,10 @@ ID
 |	|	|
 |	|	--- Name : xxxxxxxx
 |	|	|
-|	|	--- Participants: "xxxx,xxxxx,xxxx"
+|	|	--- ParticipantsLastEdit: xxxxxxxx
 |	|	
 |	|	
 |	--- Finances
-|	|	   |
-|	|	   --- Balance : "xxx,£xx.xx/xxxxxx,£x"
 |	|	   |
 |	|	   --- Settlements: "xxx,£xx.xxxx/xxxx,£x.xx,xxx"
 |	|

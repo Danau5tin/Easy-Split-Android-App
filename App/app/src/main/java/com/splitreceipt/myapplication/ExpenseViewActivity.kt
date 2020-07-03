@@ -181,7 +181,7 @@ class ExpenseViewActivity : AppCompatActivity() {
                         balSetHelper.balanceAndSettlementsFromSql(reverseContribs)
                     }
                     val settlementString = balSetHelper.balanceAndSettlementsFromSql(calculatedContributions)
-                    ExpenseOverviewActivity.firebaseDbHelper!!.setGroupFinance(settlementString, balSetHelper.balanceString!!)
+                    ExpenseOverviewActivity.firebaseDbHelper!!.setGroupFinance(settlementString)
                     intent.putExtra(expenseReturnNewSettlements, settlementString)
                     setResult(Activity.RESULT_OK, intent)
                 }
@@ -219,9 +219,9 @@ class ExpenseViewActivity : AppCompatActivity() {
         val stringBuilder = StringBuilder()
         for (prevParticipant in prevContrib) {
             for (newParticipant in newContrib) {
-                val participantName = prevParticipant.name
-                if (participantName == newParticipant.name) {
-                    val change = newParticipant.balance - prevParticipant.balance
+                val participantName = prevParticipant.userName
+                if (participantName == newParticipant.userName) {
+                    val change = newParticipant.userBalance - prevParticipant.userBalance
                     stringBuilder.append("$participantName,")
                     stringBuilder.append("$change,")
                     stringBuilder.append("$paidBy/")

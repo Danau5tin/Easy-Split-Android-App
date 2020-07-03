@@ -320,14 +320,14 @@ class NewExpenseCreationActivity : AppCompatActivity() {
                 // This product is going to be split evenly between all participants
                 val equalSplit: Float = roundToTwoDecimalPlace(itemValue / numberParticipants)
                 for (participant in particBalDataList) {
-                    participant.balance += equalSplit
+                    participant.userBalance += equalSplit
                 }
             }
             else {
                 // This product is being paid for only by one participant
                 for (participant in particBalDataList) {
-                    if (participant.name == itemOwnership) {
-                        participant.balance += itemValue
+                    if (participant.userName == itemOwnership) {
+                        participant.userBalance += itemValue
                         break
                     }
                 }
@@ -354,10 +354,10 @@ class NewExpenseCreationActivity : AppCompatActivity() {
     private fun createContribString(updatedContribList: ArrayList<ParticipantBalanceData>, paidBy: String): String {
         val sb = StringBuilder()
         for (participant in updatedContribList) {
-            val name = participant.name
+            val name = participant.userName
             val nameString = "$name,"
             sb.append(nameString)
-            val value = participant.balance.toString()
+            val value = participant.userBalance.toString()
             val valString = "$value,"
             sb.append(valString)
             val paidByString = "$paidBy/"

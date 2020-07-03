@@ -5,19 +5,19 @@ import android.content.Context
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
+import android.provider.Telephony
 import android.util.Log
 import com.splitreceipt.myapplication.ExpenseViewActivity
 import com.splitreceipt.myapplication.SplitExpenseManuallyFragment
-import com.splitreceipt.myapplication.data.DbManager.CurrencyTable.CURRENCY_BASE
-import com.splitreceipt.myapplication.data.DbManager.CurrencyTable.CURRENCY_CODE
-import com.splitreceipt.myapplication.data.DbManager.CurrencyTable.CURRENCY_ID
-import com.splitreceipt.myapplication.data.DbManager.CurrencyTable.CURRENCY_LAST_UPDATE
-import com.splitreceipt.myapplication.data.DbManager.CurrencyTable.CURRENCY_RATE
+import com.splitreceipt.myapplication.data.DbManager.CurrencyTable.CURRENCY_COL_BASE
+import com.splitreceipt.myapplication.data.DbManager.CurrencyTable.CURRENCY_COL_CODE
+import com.splitreceipt.myapplication.data.DbManager.CurrencyTable.CURRENCY_COL_ID
+import com.splitreceipt.myapplication.data.DbManager.CurrencyTable.CURRENCY_COL_LAST_UPDATE
+import com.splitreceipt.myapplication.data.DbManager.CurrencyTable.CURRENCY_COL_RATE
 import com.splitreceipt.myapplication.data.DbManager.CurrencyTable.CURRENCY_TABLE_NAME
-import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_BALANCES
 import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_NAME
 import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_ID
-import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_PARTICIPANTS
+import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_PARTICIPANTS_LAST_EDIT
 import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_FIREBASE_ID
 import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_SETTLEMENTS
 import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_USER
@@ -45,6 +45,12 @@ import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_TABLE_
 import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_BASE_CURRENCY
 import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_BASE_CURRENCY_UI_SYMBOL
 import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_LAST_IMAGE_EDIT
+import com.splitreceipt.myapplication.data.DbManager.ParticipantTable.PARTICIPANTS_COL_FK_GROUP_ID
+import com.splitreceipt.myapplication.data.DbManager.ParticipantTable.PARTICIPANT_COL_F_BASE_KEY
+import com.splitreceipt.myapplication.data.DbManager.ParticipantTable.PARTICIPANT_COL_ID
+import com.splitreceipt.myapplication.data.DbManager.ParticipantTable.PARTICIPANT_COL_U_BALANCE
+import com.splitreceipt.myapplication.data.DbManager.ParticipantTable.PARTICIPANT_COL_U_NAME
+import com.splitreceipt.myapplication.data.DbManager.ParticipantTable.PARTICIPANT_TABLE_NAME
 
 class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
     DATABASE_NAME, null,
@@ -61,8 +67,7 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
                 "$GROUP_COL_ID INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "$GROUP_COL_FIREBASE_ID TEXT, " +
                 "$GROUP_COL_NAME TEXT, " +
-                "$GROUP_COL_PARTICIPANTS TEXT, " +
-                "$GROUP_COL_BALANCES TEXT, " +
+                "$GROUP_COL_PARTICIPANTS_LAST_EDIT TEXT, " +
                 "$GROUP_COL_SETTLEMENTS TEXT, " +
                 "$GROUP_COL_USER TEXT, " +
                 "$GROUP_COL_LAST_IMAGE_EDIT TEXT, " +
@@ -99,12 +104,22 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
         private const val DELETE_RECEIPT_ITEMS_ENTRIES = "DROP TABLE IF EXISTS $ITEMS_TABLE_NAME"
 
         private const val CREATE_CURRENCY_TABLE = "CREATE TABLE $CURRENCY_TABLE_NAME (" +
-                "$CURRENCY_ID INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                "$CURRENCY_BASE TEXT, " +
-                "$CURRENCY_CODE TEXT, " +
-                "$CURRENCY_RATE REAL, " +
-                "$CURRENCY_LAST_UPDATE TEXT)"
+                "$CURRENCY_COL_ID INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "$CURRENCY_COL_BASE TEXT, " +
+                "$CURRENCY_COL_CODE TEXT, " +
+                "$CURRENCY_COL_RATE REAL, " +
+                "$CURRENCY_COL_LAST_UPDATE TEXT)"
         private const val DELETE_CURRENCY_ENTRIES = "DROP TABLE IF EXISTS $CURRENCY_TABLE_NAME"
+
+        private const val CREATE_PARTICIPANT_TABLE = "CREATE TABLE $PARTICIPANT_TABLE_NAME (" +
+                "$PARTICIPANT_COL_ID INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "$PARTICIPANT_COL_F_BASE_KEY TEXT, " +
+                "$PARTICIPANT_COL_U_NAME TEXT, " +
+                "$PARTICIPANT_COL_U_BALANCE REAL, " +
+                "$PARTICIPANTS_COL_FK_GROUP_ID INTEGER, " +
+                "FOREIGN KEY ($PARTICIPANTS_COL_FK_GROUP_ID) REFERENCES $GROUP_TABLE_NAME" +
+                "($GROUP_COL_ID) ON DELETE CASCADE)"
+        private const val DELETE_PARTICIPANT_ENTRIES = "DROP TABLE IF EXISTS $PARTICIPANT_TABLE_NAME"
     }
 
     override fun onOpen(db: SQLiteDatabase?) {
@@ -117,6 +132,7 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
         db.execSQL(CREATE_EXPENSE_TABLE)
         db.execSQL(CREATE_RECEIPT_ITEMS_TABLE)
         db.execSQL(CREATE_CURRENCY_TABLE)
+        db.execSQL(CREATE_PARTICIPANT_TABLE)
     }
 
     override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
@@ -124,16 +140,16 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
         db.execSQL(DELETE_EXPENSE_ENTRIES)
         db.execSQL(DELETE_RECEIPT_ITEMS_ENTRIES)
         db.execSQL(DELETE_CURRENCY_ENTRIES)
+        db.execSQL(DELETE_PARTICIPANT_ENTRIES)
     }
 
-    fun insertNewGroup(fireBaseId: String, title: String, participants: String,
-                       balances: String, settlements: String, sqlUser: String,
-                       lastImageEdit: String, baseCurrency: String, currencyUiSymbol: String) : Int{
+    fun insertNewGroup(fireBaseId: String, title: String, participantLastEdit: String,
+                       settlements: String, sqlUser: String, lastImageEdit: String,
+                       baseCurrency: String, currencyUiSymbol: String) : Int{
         val values: ContentValues = ContentValues().apply {
             put(GROUP_COL_FIREBASE_ID, fireBaseId)
             put(GROUP_COL_NAME, title)
-            put(GROUP_COL_PARTICIPANTS, participants)
-            put(GROUP_COL_BALANCES, balances)
+            put(GROUP_COL_PARTICIPANTS_LAST_EDIT, participantLastEdit)
             put(GROUP_COL_SETTLEMENTS, settlements)
             put(GROUP_COL_USER, sqlUser)
             put(GROUP_COL_LAST_IMAGE_EDIT, lastImageEdit)
@@ -184,10 +200,10 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
         val write = writableDatabase
         for (currency in currencyList) {
             val values = ContentValues().apply {
-                put(CURRENCY_BASE, baseCurrency)
-                put(CURRENCY_CODE, currency.currencyCode)
-                put(CURRENCY_RATE, currency.rate)
-                put(CURRENCY_LAST_UPDATE, timestamp)
+                put(CURRENCY_COL_BASE, baseCurrency)
+                put(CURRENCY_COL_CODE, currency.currencyCode)
+                put(CURRENCY_COL_RATE, currency.rate)
+                put(CURRENCY_COL_LAST_UPDATE, timestamp)
             }
             write.insert(CURRENCY_TABLE_NAME, null, values)
             Log.i("Currency", "Inserted base: $baseCurrency for country: ${currency.currencyCode} at rate: ${currency.rate}" )
@@ -199,10 +215,10 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
         val write = writableDatabase
         for (currency in currencyList) {
             val values = ContentValues().apply {
-                put(CURRENCY_RATE, currency.rate)
-                put(CURRENCY_LAST_UPDATE, timestamp)
+                put(CURRENCY_COL_RATE, currency.rate)
+                put(CURRENCY_COL_LAST_UPDATE, timestamp)
             }
-            val where = "$CURRENCY_BASE = ? AND $CURRENCY_CODE = ?"
+            val where = "$CURRENCY_COL_BASE = ? AND $CURRENCY_COL_CODE = ?"
             val whereArgs = arrayOf(baseCurrency, currency.currencyCode)
             write.update(CURRENCY_TABLE_NAME, values, where, whereArgs)
         }
@@ -295,25 +311,46 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
         close()
     }
 
-    fun retrieveParticipants(participantList: ArrayList<String>, sqlAccountId: String) : ArrayList<String> {
+    fun retrieveParticipants(participantListObjects: ArrayList<ParticipantBalanceData>, sqlGroupId: String, objects: Boolean=true) : ArrayList<ParticipantBalanceData> {
+        /*
+        Query the sql DB for the current group to find its participants
+         */
+        participantListObjects.clear()
+        val reader = readableDatabase
+        val columns = arrayOf(PARTICIPANT_COL_ID, PARTICIPANT_COL_U_NAME, PARTICIPANT_COL_U_BALANCE, PARTICIPANT_COL_F_BASE_KEY)
+        val where = "$PARTICIPANTS_COL_FK_GROUP_ID = ?"
+        val whereArgs = arrayOf(sqlGroupId)
+        val cursor: Cursor = reader.query(PARTICIPANT_TABLE_NAME, columns, where, whereArgs, null, null, null)
+        val sqlRowIdIndex = cursor.getColumnIndexOrThrow(PARTICIPANT_COL_ID)
+        val uNameIndex = cursor.getColumnIndexOrThrow(PARTICIPANT_COL_U_NAME)
+        val uBalanceIndex = cursor.getColumnIndexOrThrow(PARTICIPANT_COL_U_BALANCE)
+        val fBaseKeyIndex = cursor.getColumnIndexOrThrow(PARTICIPANT_COL_F_BASE_KEY)
+        while (cursor.moveToNext()) {
+            val sqlRow = cursor.getString(uNameIndex)
+            val uName = cursor.getString(sqlRowIdIndex)
+            val uBal = cursor.getFloat(uBalanceIndex)
+            val fKey = cursor.getString(fBaseKeyIndex)
+            participantListObjects.add(ParticipantBalanceData(uName, uBal, fKey, sqlRow))
+        }
+        cursor.close()
+        close()
+        return participantListObjects
+    }
+
+    fun retrieveParticipants(participantList: ArrayList<String>, sqlGroupId: String) : ArrayList<String> {
         /*
         Query the sql DB for the current group to find its participants
          */
         participantList.clear()
         val reader = readableDatabase
-        val columns = arrayOf(GROUP_COL_PARTICIPANTS)
-        val selectClause = "$GROUP_COL_ID = ?"
-        val selectArgs = arrayOf(sqlAccountId)
-        val cursor: Cursor = reader.query(
-            DbManager.GroupTable.GROUP_TABLE_NAME, columns, selectClause, selectArgs,
-            null, null, null)
-        val particColIndex = cursor.getColumnIndexOrThrow(GROUP_COL_PARTICIPANTS)
-        while (cursor.moveToNext()){
-            val participantsString = cursor.getString(particColIndex)
-            val splitParticipants = participantsString.split(",")
-            for (participant in splitParticipants) {
-                participantList.add(participant)
-            }
+        val columns = arrayOf(PARTICIPANT_COL_U_NAME)
+        val where = "$PARTICIPANTS_COL_FK_GROUP_ID = ?"
+        val whereArgs = arrayOf(sqlGroupId)
+        val cursor: Cursor = reader.query(PARTICIPANT_TABLE_NAME, columns, where, whereArgs, null, null, null)
+        val userNameIdIndex = cursor.getColumnIndexOrThrow(PARTICIPANT_COL_U_NAME)
+        while (cursor.moveToNext()) {
+            val uName = cursor.getString(userNameIdIndex)
+            participantList.add(uName)
         }
         cursor.close()
         close()
@@ -322,12 +359,12 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
 
     fun retrieveSqlAccountInfoData(sqlGroupId: String) : FirebaseAccountInfoData {
         val read = readableDatabase
-        val columns = arrayOf(GROUP_COL_NAME, GROUP_COL_PARTICIPANTS, GROUP_COL_LAST_IMAGE_EDIT, GROUP_COL_BASE_CURRENCY)
+        val columns = arrayOf(GROUP_COL_NAME, GROUP_COL_PARTICIPANTS_LAST_EDIT, GROUP_COL_LAST_IMAGE_EDIT, GROUP_COL_BASE_CURRENCY)
         val where = "$GROUP_COL_ID = ?"
         val whereArgs = arrayOf(sqlGroupId)
         val cursor: Cursor = read.query(GROUP_TABLE_NAME, columns, where, whereArgs, null, null, null)
         val nameIndex = cursor.getColumnIndexOrThrow(GROUP_COL_NAME)
-        val participantIndex = cursor.getColumnIndexOrThrow(GROUP_COL_PARTICIPANTS)
+        val participantIndex = cursor.getColumnIndexOrThrow(GROUP_COL_PARTICIPANTS_LAST_EDIT)
         val lastImageIndex = cursor.getColumnIndexOrThrow(GROUP_COL_LAST_IMAGE_EDIT)
         val baseCurrCol = cursor.getColumnIndexOrThrow(GROUP_COL_BASE_CURRENCY)
         cursor.moveToNext()
@@ -532,37 +569,107 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
         close()
     }
 
-    fun getBalanceString(sqlGroupId: String?): String? {
-        val columns = arrayOf(GROUP_COL_BALANCES)
-        val where = "$GROUP_COL_ID = ?"
-        val whereArgs = arrayOf(sqlGroupId)
-        val read = readableDatabase
-        val cursor: Cursor = read.query(GROUP_TABLE_NAME, columns, where, whereArgs, null, null, null)
-        val balIndex = cursor.getColumnIndexOrThrow(GROUP_COL_BALANCES)
-        cursor.moveToNext()
-        val balance = cursor.getString(balIndex)
-        cursor.close()
+
+    fun setGroupParticipants(newParticipants: ArrayList<ParticipantBalanceData>, groupSqlId: String) {
+        val write = writableDatabase
+        for (participant in newParticipants) {
+            val values = ContentValues().apply {
+                put(PARTICIPANT_COL_F_BASE_KEY, participant.userKey)
+                put(PARTICIPANT_COL_U_NAME, participant.userName)
+                put(PARTICIPANT_COL_U_BALANCE, participant.userBalance)
+                put(PARTICIPANTS_COL_FK_GROUP_ID, groupSqlId)
+            }
+            write.insert(PARTICIPANT_TABLE_NAME, null, values)
+        }
         close()
-        return balance
     }
 
-    fun updateParticipants(newParticipantString: String, groupSqlId: String, newBalanceString: String) {
+    fun setGroupParticipants(newParticipant: ParticipantBalanceData, groupSqlId: String, timestamp: String) {
         val write = writableDatabase
         val values = ContentValues().apply {
-            put(GROUP_COL_PARTICIPANTS, newParticipantString)
-            put(GROUP_COL_BALANCES, newBalanceString)
+            put(PARTICIPANT_COL_F_BASE_KEY, newParticipant.userKey)
+            put(PARTICIPANT_COL_U_NAME, newParticipant.userName)
+            put(PARTICIPANT_COL_U_BALANCE, newParticipant.userBalance)
+            put(PARTICIPANTS_COL_FK_GROUP_ID, groupSqlId)
+        }
+        write.insert(GROUP_TABLE_NAME, null, values)
+        updateParticipantLastEdit(timestamp, write, groupSqlId)
+        close()
+    }
+
+    fun updateParticipantsName(participant: ParticipantBalanceData, newName: String,
+                               participantLastEdit: String, groupSqlId: String) {
+        val write = writableDatabase
+        val values = ContentValues().apply {
+            put(PARTICIPANT_COL_U_NAME, newName)
+        }
+        val where = "$PARTICIPANT_COL_ID = ?"
+        val whereArgs = arrayOf(participant.userSqlRow)
+        write.update(PARTICIPANT_TABLE_NAME, values, where, whereArgs)
+        updateParticipantLastEdit(participantLastEdit, write, groupSqlId)
+    }
+
+    private fun updateParticipantLastEdit(timestamp: String, writeableDB: SQLiteDatabase, groupSqlId: String) {
+        val values = ContentValues().apply {
+            put(GROUP_COL_PARTICIPANTS_LAST_EDIT, timestamp)
         }
         val where = "$GROUP_COL_ID = ?"
         val whereArgs = arrayOf(groupSqlId)
-        write.update(GROUP_TABLE_NAME, values, where, whereArgs)
+        writeableDB.update(GROUP_TABLE_NAME, values, where, whereArgs)
+    }
+
+    fun loadPreviousBalanceToObjects(groupSqlRowID: String) : ArrayList<ParticipantBalanceData> {
+        val participantList: ArrayList<ParticipantBalanceData> = ArrayList()
+        val reader = readableDatabase
+        val columns = arrayOf(PARTICIPANT_COL_F_BASE_KEY, PARTICIPANT_COL_ID,
+            PARTICIPANT_COL_U_NAME, PARTICIPANT_COL_U_BALANCE)
+        val where = "$PARTICIPANTS_COL_FK_GROUP_ID = ?"
+        val whereArgs = arrayOf(groupSqlRowID)
+        val cursor: Cursor = reader.query(PARTICIPANT_TABLE_NAME, columns, where, whereArgs, null, null, null)
+        val sqlRowIDIndex = cursor.getColumnIndexOrThrow(PARTICIPANT_COL_ID)
+        val fBaseKeyIndex = cursor.getColumnIndexOrThrow(PARTICIPANT_COL_F_BASE_KEY)
+        val userNameIndex = cursor.getColumnIndexOrThrow(PARTICIPANT_COL_U_NAME)
+        val userBalanceIndex = cursor.getColumnIndexOrThrow(PARTICIPANT_COL_U_BALANCE)
+        while (cursor.moveToNext()) {
+            val sqlRow = cursor.getString(sqlRowIDIndex)
+            val fBaseKey = cursor.getString(fBaseKeyIndex)
+            val userName = cursor.getString(userNameIndex)
+            val userBalance = cursor.getFloat(userBalanceIndex)
+            participantList.add(ParticipantBalanceData(userName, userBalance, fBaseKey, sqlRow))
+        }
+        cursor.close()
         close()
+        return participantList
+    }
+
+    fun updateSqlSettlementString(settlementStr: String, sqlGroupId: String) : String{
+        val writer = writableDatabase
+        val values = ContentValues().apply {
+            put(GROUP_COL_SETTLEMENTS, settlementStr)
+        }
+        val where = "${GROUP_COL_ID} = ?"
+        val whereargs = arrayOf(sqlGroupId)
+        writer.update(GROUP_TABLE_NAME, values, where, whereargs)
+        return settlementStr
+    }
+
+    fun updateSqlBalances(newBalancesObjects: ArrayList<ParticipantBalanceData>) {
+        val writer = writableDatabase
+        for (participant in newBalancesObjects) {
+            val values = ContentValues().apply {
+                put(PARTICIPANT_COL_U_BALANCE, participant.userBalance)
+            }
+            val where = "$PARTICIPANT_COL_ID = ?"
+            val whereArgs = arrayOf(participant.userSqlRow)
+            writer.update(PARTICIPANT_TABLE_NAME, values, where, whereArgs)
+        }
     }
 
     fun updateGroupInfo(firebaseGroupData: FirebaseAccountInfoData, sqlGroupId: String) {
         val write = writableDatabase
         val values = ContentValues().apply {
             put(GROUP_COL_NAME, firebaseGroupData.accName)
-            put(GROUP_COL_PARTICIPANTS, firebaseGroupData.accParticipants)
+            put(GROUP_COL_PARTICIPANTS_LAST_EDIT, firebaseGroupData.accParticipantLastEdit)
             put(GROUP_COL_LAST_IMAGE_EDIT, firebaseGroupData.accLastImage)
         }
         val where = "$GROUP_COL_ID = ?"
@@ -573,13 +680,13 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
     fun checkIfCurrencyExists(currencyCode: String) : Long {
         // Checks if the base currency exists in the SQL db and if it does when it was last updated.
         val read = readableDatabase
-        val columns = arrayOf(CURRENCY_BASE, CURRENCY_LAST_UPDATE)
-        val where = "$CURRENCY_BASE = ?"
+        val columns = arrayOf(CURRENCY_COL_BASE, CURRENCY_COL_LAST_UPDATE)
+        val where = "$CURRENCY_COL_BASE = ?"
         val whereArgs = arrayOf(currencyCode)
         val cursor: Cursor = read.query(CURRENCY_TABLE_NAME, columns, where, whereArgs, null, null, null)
         val exists = cursor.moveToNext()
         if (exists) {
-            val lastUpdateIndex = cursor.getColumnIndexOrThrow(CURRENCY_LAST_UPDATE)
+            val lastUpdateIndex = cursor.getColumnIndexOrThrow(CURRENCY_COL_LAST_UPDATE)
             val lastUpdate = cursor.getLong(lastUpdateIndex)
             cursor.close()
             return lastUpdate
@@ -592,12 +699,12 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
     fun retrieveExchangeRate(baseCurrency: String, expenseCurrency: String) : Float {
         val read = readableDatabase
         val columns = arrayOf(
-            CURRENCY_RATE
+            CURRENCY_COL_RATE
         )
-        val where = "$CURRENCY_BASE = ? AND $CURRENCY_CODE = ?"
+        val where = "$CURRENCY_COL_BASE = ? AND $CURRENCY_COL_CODE = ?"
         val whereArgs = arrayOf(baseCurrency, expenseCurrency)
         val cursor: Cursor = read.query(CURRENCY_TABLE_NAME, columns, where, whereArgs, null, null, null)
-        val rateColIndex = cursor.getColumnIndexOrThrow(CURRENCY_RATE)
+        val rateColIndex = cursor.getColumnIndexOrThrow(CURRENCY_COL_RATE)
         val rate: Float
         if (cursor.moveToNext()) {
             rate = cursor.getFloat(rateColIndex)

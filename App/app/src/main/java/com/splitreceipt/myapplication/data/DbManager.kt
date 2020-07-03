@@ -9,8 +9,7 @@ object DbManager {
         const val GROUP_COL_ID = BaseColumns._ID
         const val GROUP_COL_FIREBASE_ID = "group_unique_id"
         const val GROUP_COL_NAME = "group_name"
-        const val GROUP_COL_PARTICIPANTS = "items"
-        const val GROUP_COL_BALANCES = "balances_string"
+        const val GROUP_COL_PARTICIPANTS_LAST_EDIT = "items"
         const val GROUP_COL_SETTLEMENTS = "settlements"
         const val GROUP_COL_USER = "sql_user"
         const val GROUP_COL_LAST_IMAGE_EDIT = "last_image_edit"
@@ -46,11 +45,20 @@ object DbManager {
 
     object CurrencyTable: BaseColumns {
         const val CURRENCY_TABLE_NAME = "currencies"
-        const val CURRENCY_ID = BaseColumns._ID
-        const val CURRENCY_CODE = "currency_code"
-        const val CURRENCY_BASE = "base_currency"
-        const val CURRENCY_RATE = "rate"
-        const val CURRENCY_LAST_UPDATE = "last_update"
+        const val CURRENCY_COL_ID = BaseColumns._ID
+        const val CURRENCY_COL_CODE = "currency_code"
+        const val CURRENCY_COL_BASE = "base_currency"
+        const val CURRENCY_COL_RATE = "rate"
+        const val CURRENCY_COL_LAST_UPDATE = "last_update"
+    }
+
+    object ParticipantTable: BaseColumns {
+        const val PARTICIPANT_TABLE_NAME = "participants"
+        const val PARTICIPANT_COL_ID= BaseColumns._ID
+        const val PARTICIPANT_COL_F_BASE_KEY = "f_base_key"
+        const val PARTICIPANT_COL_U_NAME = "user_name"
+        const val PARTICIPANT_COL_U_BALANCE = "user_balance"
+        const val PARTICIPANTS_COL_FK_GROUP_ID = "group_id"
     }
 
 }

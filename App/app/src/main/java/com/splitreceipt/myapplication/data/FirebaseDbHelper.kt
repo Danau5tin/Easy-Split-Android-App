@@ -8,7 +8,6 @@ import android.util.Log
 import android.widget.Toast
 import com.google.firebase.database.*
 import com.google.firebase.storage.FirebaseStorage
-import com.splitreceipt.myapplication.ASyncCurrencyDownload
 import com.splitreceipt.myapplication.ASyncSaveImage
 import com.splitreceipt.myapplication.CurrencyHelper
 import com.splitreceipt.myapplication.WelcomeJoinActivity
@@ -25,6 +24,7 @@ class FirebaseDbHelper(private var firebaseGroupId: String) {
     private var groupFin = "/finance"
     private var expenses = "/expenses"
     private var scanned = "/scanned"
+    private var participants = "/users"
 
     init{
         database = FirebaseDatabase.getInstance()
@@ -42,7 +42,7 @@ class FirebaseDbHelper(private var firebaseGroupId: String) {
                     val groupData = snapshot.getValue(FirebaseAccountInfoData::class.java)
                     if (groupData != null) {
                         val intent = Intent(context, WelcomeJoinActivity::class.java)
-                        intent.putExtra(WelcomeJoinActivity.joinFireBaseParticipants, groupData.accParticipants)
+                        intent.putExtra(WelcomeJoinActivity.joinFireBaseParticipants, groupData.accParticipantLastEdit)
                         intent.putExtra(WelcomeJoinActivity.joinFireBaseId, firebaseGroupId)
                         intent.putExtra(WelcomeJoinActivity.joinFireBaseName, groupData.accName)
                         intent.putExtra(WelcomeJoinActivity.joinBaseCurrency, groupData.accCurrency)
@@ -78,7 +78,7 @@ class FirebaseDbHelper(private var firebaseGroupId: String) {
                 val currencyHelper = CurrencyHelper
                 val baseCurrencyUiSymbol = currencyHelper.returnUiSymbol(infoData.accCurrency)
                 val sqlRow = sqlHelper.insertNewGroup(firebaseGroupId, infoData.accName,
-                    infoData.accParticipants, financeData.accBal, financeData.accSettle, "u",
+                    infoData.accParticipantLastEdit, financeData.accSettle, "u",
                     infoData.accLastImage, infoData.accCurrency, baseCurrencyUiSymbol)
 
                 val sqlRowString = sqlRow.toString()
@@ -111,15 +111,46 @@ class FirebaseDbHelper(private var firebaseGroupId: String) {
         })
     }
 
-    fun createNewGroup(groupName: String, groupBalance: String, groupSettlement: String,
-                       participantString: String, lastImageEdit: String, baseCurrency: String){
-        setGroupInfo(groupName, participantString, lastImageEdit, baseCurrency)
-        setGroupFinance(groupSettlement, groupBalance)
+    fun createNewGroup(groupName: String, groupSettlement: String, participantLastEditString: String,
+                       lastImageEdit: String, baseCurrency: String, groupParticipants: ArrayList<ParticipantBalanceData>){
+        setGroupInfo(groupName, participantLastEditString, lastImageEdit, baseCurrency) //TODO: Give the last edit time here
+        setGroupFinance(groupSettlement)
+        this.setGroupParticipants(groupParticipants)
     }
 
-    fun setGroupFinance(groupSettlement: String, groupBalance: String) {
+    private fun setGroupParticipants(newParticipants: ArrayList<ParticipantBalanceData>) {
+        val participantPath = "$firebaseGroupId$participants"
+        for (participant in newParticipants) {
+            currentPath = database.getReference(participantPath).child(participant.userKey)
+            currentPath.setValue(participant)
+        }
+    }
+
+    fun setGroupParticipants(newParticipant: ParticipantBalanceData, timeStamp: String) {
+        val participantPath = "$firebaseGroupId$participants"
+        currentPath = database.getReference(participantPath).child(newParticipant.userKey)
+        currentPath.setValue(newParticipant)
+        updateParticipantLastEdit(timeStamp)
+    }
+
+    private fun updateParticipantLastEdit(timeStamp: String) {
+        val participantLastEditPath = "$firebaseGroupId$groupInfo"
+        currentPath = database.getReference(participantLastEditPath).child("accParticipantLastEdit")
+        currentPath.setValue(timeStamp)
+    }
+
+    fun updateParticipantBalances(newBalanceObjects: ArrayList<ParticipantBalanceData>) {
+        // This function will update the groups balances with the most recent balances.
+        val participantPath = "$firebaseGroupId$participants"
+        for (participant in newBalanceObjects) {
+            currentPath = database.getReference(participantPath).child(participant.userKey)
+            currentPath.setValue(participant)
+        }
+    }
+
+    fun setGroupFinance(groupSettlement: String) {
         val groupFinancePath = "$firebaseGroupId$groupFin"
-        val accountData = FirebaseAccountFinancialData(groupSettlement, groupBalance)
+        val accountData = FirebaseAccountFinancialData(groupSettlement)
         currentPath = database.getReference(groupFinancePath)
         currentPath.setValue(accountData)
     }
@@ -167,6 +198,11 @@ class FirebaseDbHelper(private var firebaseGroupId: String) {
     fun getScannedListeningRef(firebaseExpenseId: String) : DatabaseReference {
         val path = "$firebaseGroupId$scanned/$firebaseExpenseId"
         currentPath = database.getReference(path)
+        return currentPath
+    }
+
+    fun getUsersListeningRef() : DatabaseReference {
+        currentPath = database.getReference("$firebaseGroupId$participants")
         return currentPath
     }
 
@@ -222,12 +258,6 @@ class FirebaseDbHelper(private var firebaseGroupId: String) {
         }
     }
 
-    fun updateParticipants(newParticipantString: String, newBalanceString: String) {
-        val participantPath = "$firebaseGroupId$groupInfo"
-        currentPath = database.getReference(participantPath).child("accParticipants")
-        currentPath.setValue(newParticipantString)
-        setGroupBalance(newBalanceString)
-    }
 
     fun deleteExpense(expenseId: String, scan: Boolean) {
         val expensePath = "$firebaseGroupId$expenses/$expenseId"

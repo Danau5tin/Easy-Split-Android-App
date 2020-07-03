@@ -8,6 +8,7 @@ import android.view.View
 import android.widget.RadioButton
 import android.widget.Toast
 import com.splitreceipt.myapplication.data.FirebaseDbHelper
+import com.splitreceipt.myapplication.data.ParticipantBalanceData
 import com.splitreceipt.myapplication.data.SqlDbHelper
 import com.splitreceipt.myapplication.databinding.ActivityWelcomeJoinBinding
 
@@ -88,12 +89,12 @@ class WelcomeJoinActivity : AppCompatActivity() {
     }
 
     private fun addParticipant(sqlUser: String) {
-        val newParticipantString = "$fBaseParticipants,$sqlUser"
         val sqlDbHelper = SqlDbHelper(this)
-        val prevBalanceString = sqlDbHelper.getBalanceString(sqlRow)
-        val newBalanceString = "$prevBalanceString/$sqlUser,0.0"
-        sqlDbHelper.updateParticipants(newParticipantString, sqlRow, newBalanceString)
-        GroupScreenActivity.firebaseDbHelper!!.updateParticipants(newParticipantString, newBalanceString)
+        val fBaseKey = NewGroupCreation.generateFbaseUserKey(sqlUser)
+        val timestamp = System.currentTimeMillis().toString()
+        val newParticipant = ParticipantBalanceData(sqlUser, fBaseKey=fBaseKey)
+        sqlDbHelper.setGroupParticipants(newParticipant, sqlRow, timestamp)
+        GroupScreenActivity.firebaseDbHelper!!.setGroupParticipants(newParticipant, timestamp)
     }
 
     private fun okayToProceed() : Boolean {

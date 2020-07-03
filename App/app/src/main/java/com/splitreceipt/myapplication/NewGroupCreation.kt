@@ -21,8 +21,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
 import com.splitreceipt.myapplication.data.FirebaseDbHelper
+import com.splitreceipt.myapplication.data.ParticipantBalanceData
 import com.splitreceipt.myapplication.data.SqlDbHelper
-import com.splitreceipt.myapplication.data.ParticipantNewGroupData
 import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_ACCOUNT_CURRENCY_CODE
 import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_ACCOUNT_CURRENCY_SYMBOL
 import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_NAME
@@ -54,6 +54,13 @@ class NewGroupCreation : AppCompatActivity(), NewParticipantRecyAdapter.onPartRo
         var firebaseDbHelper: FirebaseDbHelper? = null
         var profileImageSavedLocally: Boolean = false
         var newGroupCreatedIntent = "newGroupCreated"
+
+        fun generateFbaseUserKey(participant: String): String {
+            val timestamp = System.currentTimeMillis().toString().substring(7,9)
+            val randomGen = UUID.randomUUID().toString().replace("-", "").substring(5, 7)
+            val fBaseKey = "${participant[0]}$timestamp$randomGen"
+            return fBaseKey
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -88,29 +95,14 @@ class NewGroupCreation : AppCompatActivity(), NewParticipantRecyAdapter.onPartRo
         }
     }
 
-    private fun getNewParticipantData(creator: String): ParticipantNewGroupData {
-        // Simple function is able to construct the strings required for SQL storage of both the participants and the original balances.
-        val stringBuilderParticipant = StringBuilder()
-        val stringBuilderBalance = StringBuilder()
-        val originalBalance = "0.00"
-
-        val sqlUserNameString = "$creator,"
-        stringBuilderParticipant.append(sqlUserNameString)
-        stringBuilderBalance.append(sqlUserNameString)
-        val sqlUserBalanceString = "$originalBalance/"
-        stringBuilderBalance.append(sqlUserBalanceString)
-
+    private fun getNewParticipantData(): ArrayList<ParticipantBalanceData> {
+        // Creates new participant objects ready for sql and firebase insertion
+        val newParticipants: ArrayList<ParticipantBalanceData> = ArrayList()
         for (participant in participantList) {
-            val nameString = "$participant,"
-            stringBuilderParticipant.append(nameString)
-
-            stringBuilderBalance.append(nameString)
-            val balanceString = "$originalBalance/"
-            stringBuilderBalance.append(balanceString)
+            val fBaseUserKey = generateFbaseUserKey(participant)
+            newParticipants.add(ParticipantBalanceData(participant, fBaseKey = fBaseUserKey))
         }
-        stringBuilderParticipant.deleteCharAt(stringBuilderParticipant.lastIndex)
-        stringBuilderBalance.deleteCharAt(stringBuilderBalance.lastIndex)
-        return ParticipantNewGroupData(stringBuilderParticipant.toString(), stringBuilderBalance.toString())
+        return newParticipants
     }
 
     fun addNewParticipantButton(view: View) {
@@ -148,20 +140,20 @@ class NewGroupCreation : AppCompatActivity(), NewParticipantRecyAdapter.onPartRo
                     Toast.makeText(this, "Creating group, please wait...", Toast.LENGTH_LONG).show()
                     val title: String = binding.groupTitleEditText.text.toString()
                     val sqlUser: String = binding.yourNameEditText.text.toString()
+                    participantList.add(sqlUser)
                     checkIfUserForgotToAddPartic()
-                    val participantData: ParticipantNewGroupData = getNewParticipantData(sqlUser)
-                    val participants: String = participantData.participantString
-                    val balances: String = participantData.balanceString
+                    val newParticipants: ArrayList<ParticipantBalanceData> = getNewParticipantData()
                     val settlementString = "balanced"
-                    val imageUploadLastEditTime = System.currentTimeMillis().toString()
+                    val lastEditTime = System.currentTimeMillis().toString()
                     val currencyCode = binding.newGroupCurrencyButton.text.toString()
                     val baseCurrencyUiSymbol = CurrencyHelper.returnUiSymbol(currencyCode)
 
                     // Save to SQL and upload to firebase
-                    val sqlRow = SqlDbHelper(this).insertNewGroup(groupFirebaseId, title,
-                        participants, balances, settlementString, sqlUser, imageUploadLastEditTime, currencyCode, baseCurrencyUiSymbol)
-                    firebaseDbHelper!!.createNewGroup(title, balances,
-                        settlementString, participants, imageUploadLastEditTime, currencyCode)
+                    val sqlDbHelper = SqlDbHelper(this)
+                    val sqlRow = sqlDbHelper.insertNewGroup(groupFirebaseId, title,
+                        lastEditTime, settlementString, sqlUser, lastEditTime, currencyCode, baseCurrencyUiSymbol)
+                    firebaseDbHelper!!.createNewGroup(title, settlementString, lastEditTime, lastEditTime, currencyCode, newParticipants)
+                    sqlDbHelper.setGroupParticipants(newParticipants, sqlRow.toString())
 
                     if (sqlRow == -1) {
                         Toast.makeText(this, "Error #INSQ01. Contact Us", Toast.LENGTH_LONG).show()

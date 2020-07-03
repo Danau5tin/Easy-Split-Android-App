@@ -30,9 +30,9 @@ object CurrencyHelper {
             }
             // Take the participant data contributions and exchange them to base currency
             for (participant in participantBalDataList) {
-                val particBalance = participant.balance
+                val particBalance = participant.userBalance
                 if (particBalance> 0.0F) {
-                    participant.balance = particBalance / exchangeRate
+                    participant.userBalance = particBalance / exchangeRate
                 }
             }
             return exchangeRate
