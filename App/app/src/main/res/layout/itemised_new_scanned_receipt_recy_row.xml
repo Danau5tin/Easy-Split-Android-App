@@ -5,7 +5,7 @@
     android:id="@+id/scannedConstraint"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/confident_scanned_row_outline"
+    android:background="@color/recyViewLightBlue"
     android:padding="12dp">
 
     <TextView
@@ -13,11 +13,11 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="5dp"
         android:layout_marginEnd="8dp"
         android:layout_marginBottom="24dp"
         android:text="@string/row_item_example_item"
-        android:textColor="#000000"
+        android:textColor="#424140"
         android:textSize="16sp"
         app:layout_constraintBottom_toTopOf="@+id/horizontalScroll"
         app:layout_constraintEnd_toStartOf="@+id/scannedCurrencySymbol"
@@ -54,7 +54,7 @@
         android:id="@+id/horizontalScroll"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="8dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.497"
         app:layout_constraintStart_toStartOf="parent"
@@ -75,5 +75,16 @@
 
         </RadioGroup>
     </HorizontalScrollView>
+
+    <View
+        android:id="@+id/view3"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:layout_marginTop="8dp"
+        android:background="@android:color/darker_gray"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/horizontalScroll" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

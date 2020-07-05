@@ -26,14 +26,12 @@
         app:layout_constraintTop_toTopOf="parent" />
 
 
-
-
     <de.hdodenhof.circleimageview.CircleImageView
         android:id="@+id/groupProfileImage"
         android:layout_width="150dp"
         android:layout_height="140dp"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="16dp"
         android:src="@drawable/vector_person_green"
         app:civ_border_color="@android:color/white"
         app:civ_border_width="3dp"
@@ -45,12 +43,12 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.92" />
+        app:layout_constraintGuide_percent="0.9" />
 
     <View
         android:id="@+id/view2"
         android:layout_width="0dp"
-        android:layout_height="60dp"
+        android:layout_height="70dp"
         android:background="@color/navBar"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -69,6 +67,8 @@
     <TextView
         android:id="@+id/groupNameTitleText"
         style="@style/grandTitle"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="24dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/groupProfileImage"
         app:layout_constraintTop_toBottomOf="@+id/toolbar"
@@ -78,19 +78,20 @@
         android:id="@+id/settlementStringTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="4dp"
         android:layout_marginEnd="8dp"
         android:background="@drawable/outline_primary_color"
         android:fontFamily="@font/assistant"
         android:gravity="center"
         android:padding="10dp"
-        android:text="You owe Marie £20.00"
-        android:textColor="#8A8585"
+        android:textColor="#636060"
         android:textSize="16sp"
         app:layout_constraintBottom_toBottomOf="@+id/groupProfileImage"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.673"
         app:layout_constraintStart_toEndOf="@+id/groupProfileImage"
-        app:layout_constraintTop_toBottomOf="@+id/groupProfileImage" />
+        app:layout_constraintTop_toBottomOf="@+id/groupProfileImage"
+        tools:text="You owe Marie £20.00" />
 
     <ImageView
         android:id="@+id/imageView2"
@@ -160,7 +161,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="24dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="16dp"
         android:text="Total expenses:"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/guideline2" />
@@ -181,7 +182,7 @@
         style="@style/standardWhiteText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
         android:text="# of Expenses:"
         app:layout_constraintEnd_toEndOf="parent"
@@ -254,12 +255,13 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:background="@drawable/outline_primary_color"
-        android:text="See balances"
         android:onClick="balancesButtonPressed"
+        android:text="See balances"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="@+id/settlementStringTextView"
-        app:layout_constraintEnd_toEndOf="@+id/settlementStringTextView"
-        app:layout_constraintStart_toStartOf="@+id/settlementStringTextView"
-        app:layout_constraintTop_toTopOf="@+id/settlementStringTextView" />
+        app:layout_constraintEnd_toEndOf="@+id/imageView3"
+        app:layout_constraintStart_toStartOf="@+id/imageView4"
+        app:layout_constraintTop_toTopOf="@+id/settlementStringTextView"
+        tools:visibility="invisible" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,11 +1,13 @@
 package com.splitreceipt.myapplication
 
+import android.content.Context
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.RadioButton
+import android.widget.RadioGroup
 import android.widget.Toast
 import com.splitreceipt.myapplication.data.FirebaseDbHelper
 import com.splitreceipt.myapplication.data.ParticipantBalanceData
@@ -16,7 +18,7 @@ class WelcomeJoinActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityWelcomeJoinBinding
     private lateinit var firebaseId: String
-    private lateinit var fBaseParticipants: String
+    private lateinit var fBaseParticipantLastEdit: String
     private lateinit var fBaseName: String
     private lateinit var fBaseCurrencyCode: String
     private lateinit var fBaseCurrencySymbol: String
@@ -28,6 +30,15 @@ class WelcomeJoinActivity : AppCompatActivity() {
         var joinFireBaseId: String = "firebaseId"
         var joinBaseCurrency: String = "baseCurrency"
         var sqlRow = "-1"
+
+        fun populateRadioButtons (context: Context, participants: ArrayList<String>, radioGroup: RadioGroup) {
+            for ((count, participant) in participants.withIndex()) {
+                val radioButton = RadioButton(context)
+                radioButton.text = participant
+                radioButton.id = count
+                radioGroup.addView(radioButton)
+            }
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -35,25 +46,19 @@ class WelcomeJoinActivity : AppCompatActivity() {
         binding = ActivityWelcomeJoinBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        fBaseParticipants = intent.getStringExtra(joinFireBaseParticipants)!!
+        fBaseParticipantLastEdit = intent.getStringExtra(joinFireBaseParticipants)!!
         fBaseName = intent.getStringExtra(joinFireBaseName)!!
         firebaseId = intent.getStringExtra(joinFireBaseId)!!
         fBaseCurrencyCode = intent.getStringExtra(joinBaseCurrency)!!
         fBaseCurrencySymbol = CurrencyHelper.returnUiSymbol(fBaseCurrencyCode)
 
+        val participants: ArrayList<String> = ArrayList()
         val firebaseDbHelper: FirebaseDbHelper = GroupScreenActivity.firebaseDbHelper!!
-        firebaseDbHelper.downloadToSql(this)
+        firebaseDbHelper.downloadToSql(this, participants, binding.joinRadioGroup)
         firebaseDbHelper.downloadGroupProfileImage(this, binding.circleImageViewWelcome)
 
         val welcome = "Welcome to: '$fBaseName'"
         binding.joinWelcome.text = welcome
-        val participants = fBaseParticipants.split(",")
-        for ((count, participant) in participants.withIndex()) {
-            val radioButton = RadioButton(this)
-            radioButton.text = participant
-            radioButton.id = count
-            binding.joinRadioGroup.addView(radioButton)
-        }
 
         binding.joinContinueButton.setOnClickListener {
             if (okayToProceed()) {

@@ -51,6 +51,14 @@ object CurrencyHelper {
         }
     }
 
+    fun quickExchange(exchangeRate: Float, value: Float) : Float {
+        if (exchangeRate == 1.0F) {
+            return value
+        } else {
+            return value / exchangeRate
+        }
+    }
+
     fun returnUiSymbol(countryCode: String) : String{
         for (currency in currencyArray) {
             if (countryCode == currency.countryCode) {
@@ -197,7 +205,7 @@ object CurrencyHelper {
         CurrencyUiData("STD", "São Tomé and Príncipe dobra", "Db"),
         CurrencyUiData("SYP", "Syrian pound", "LS"),
         CurrencyUiData("SZL", "Swazi lilangeni", "E"),
-        CurrencyUiData("THB", "Thai baht", "B"),
+        CurrencyUiData("THB", "Thai baht"),
         CurrencyUiData("TJS", "Tajikistani somoni", "SM"),
         CurrencyUiData("TMT", "Turkmenistan manat", "T"),
         CurrencyUiData("TND", "Tunisian dinar"),
@@ -211,7 +219,7 @@ object CurrencyHelper {
         CurrencyUiData("UYU", "Peso Uruguayo", "$", "UYU$"),
         CurrencyUiData("UZS", "Uzbekistani soʻm"),
         CurrencyUiData("VEF", "Venezuelan bolívar"),
-        CurrencyUiData("VND", "Vietnamese dong", "d"),
+        CurrencyUiData("VND", "Vietnamese dong"),
         CurrencyUiData("VUV", "Vanuatu vatu", "VT"),
         CurrencyUiData("WST", "Samoan tala", "SAT"),
         CurrencyUiData("XAF", "Central African CFA franc", "FCFA"),

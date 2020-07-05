@@ -5,6 +5,7 @@ import android.app.DatePickerDialog
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -80,9 +81,7 @@ class NewExpenseCreationActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityNewExpenseCreationBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
         sqlGroupId = intent.getStringExtra(intentSqlGroupIdString)
-
         participantList = ArrayList()
         participantDataEditList = ArrayList()
         participantList = SqlDbHelper(this).retrieveParticipants(participantList, sqlGroupId!!)
@@ -186,7 +185,6 @@ class NewExpenseCreationActivity : AppCompatActivity() {
                 val currentPage = binding.receiptViewPager.currentItem
                 val okayToProceed = checkAllInputsAreValid(currentPage)
                 if (okayToProceed) {
-                    val expenseCurrencyButton: Button
                     val sqlDbHelper = SqlDbHelper(this)
                     val writeableDB = sqlDbHelper.writableDatabase
                     //Obtain global receipt details
@@ -226,21 +224,30 @@ class NewExpenseCreationActivity : AppCompatActivity() {
                             return true
                         } else {
                             // Update previous entry in SQL DB
-                            val sqlRow = sqlDbHelper.updateExpense(editSqlRowId, date, title, total,
-                                paidBy, contributionsString, lastEdit)
-                            sqlDbHelper.close()
-                            firebaseDbHelper!!.createUpdateNewExpense(firebaseEditExpenseID, date,
-                                title, total, paidBy, contributionsString, false, lastEdit, currencyCode, exchangeRate)
-                            intent.putExtra(ExpenseViewActivity.expenseReturnEditSql, sqlRow) //TODO: Is this necessary?
-                            intent.putExtra(ExpenseViewActivity.expenseReturnEditDate, date)
-                            intent.putExtra(ExpenseViewActivity.expenseReturnEditTotal, total.toString())
-                            intent.putExtra(ExpenseViewActivity.expenseReturnEditTitle, title)
-                            intent.putExtra(ExpenseViewActivity.expenseReturnEditPaidBy, paidBy)
-                            intent.putExtra(ExpenseViewActivity.expenseReturnEditContributions, contributionsString)
-                            setResult(Activity.RESULT_OK, intent)
-                            isEdit = false
-                            finish()
-                            return true
+                            if (editTotal == total.toString() && editPaidBy == paidBy){
+                                Log.i("Edit", "Total and PaidBy are the same. User has just edited cosmetics")
+                                sqlDbHelper.updateExpense(editSqlRowId, date, title, lastEdit)
+                                firebaseDbHelper!!.createUpdateNewExpense(firebaseEditExpenseID, date,
+                                    title, total, paidBy, contributionsString, false, lastEdit, currencyCode, exchangeRate)
+                            }
+                            else {
+                                Log.i("Edit", "User has edited some financials")
+                                sqlDbHelper.updateExpense(editSqlRowId, date, title, total,
+                                    paidBy, contributionsString, lastEdit)
+                                sqlDbHelper.close()
+                                firebaseDbHelper!!.createUpdateNewExpense(firebaseEditExpenseID, date,
+                                    title, total, paidBy, contributionsString, false, lastEdit, currencyCode, exchangeRate)
+                                intent.putExtra(ExpenseViewActivity.expenseReturnEditDate, date)
+                                intent.putExtra(ExpenseViewActivity.expenseReturnEditTotal, total.toString())
+                                intent.putExtra(ExpenseViewActivity.expenseReturnEditTitle, title)
+                                intent.putExtra(ExpenseViewActivity.expenseReturnEditPaidBy, paidBy)
+                                intent.putExtra(ExpenseViewActivity.expenseReturnEditContributions, contributionsString)
+                                setResult(Activity.RESULT_OK, intent)
+                                isEdit = false
+                                finish()
+                                return true
+                            }
+
                         }
                     }
                     else if (currentPage == 1){

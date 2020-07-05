@@ -36,7 +36,7 @@ class NewScannedReceiptRecyclerAdapter(var participantList: MutableList<String>,
         if (itemizedList[position].potentialError){
             holder.constraintHolder.setBackgroundResource(R.drawable.confident_not_scanned_row_otline)
         } else {
-            holder.constraintHolder.setBackgroundResource(R.drawable.confident_scanned_row_outline)
+            holder.constraintHolder.setBackgroundResource(R.color.recyViewLightBlue)
         }
         holder.radioGroup.removeAllViews()
         for (participant in participantList) {

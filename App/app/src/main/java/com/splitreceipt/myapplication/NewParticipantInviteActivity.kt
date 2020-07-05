@@ -2,21 +2,25 @@ package com.splitreceipt.myapplication
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.splitreceipt.myapplication.ExpenseOverviewActivity.Companion.firebaseDbHelper
 import com.splitreceipt.myapplication.ExpenseOverviewActivity.Companion.getSqlGroupId
 import com.splitreceipt.myapplication.data.ParticipantBalanceData
 import com.splitreceipt.myapplication.data.SqlDbHelper
 import com.splitreceipt.myapplication.databinding.ActivityNewParticipantInviteBinding
+import kotlinx.android.synthetic.main.alert_dialog_edit_participant.view.*
 
-class NewParticipantInviteActivity : AppCompatActivity(), NewParticipantRecyAdapter.onPartRowClick{
+class NewParticipantInviteActivity : AppCompatActivity(),  InviteParticipantRecyAdapter.InviteRecyClick{
 
     private lateinit var binding: ActivityNewParticipantInviteBinding
-    private lateinit var adapter: NewParticipantRecyAdapter
-    private lateinit var participantList: ArrayList<String>
+    private lateinit var adapter: InviteParticipantRecyAdapter
+    private lateinit var participantList: ArrayList<ParticipantBalanceData>
     private lateinit var shareHelper: ShareGroupHelper
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -27,7 +31,7 @@ class NewParticipantInviteActivity : AppCompatActivity(), NewParticipantRecyAdap
         participantList = ArrayList()
         participantList = SqlDbHelper(this).retrieveParticipants(participantList, getSqlGroupId!!)
 
-        adapter = NewParticipantRecyAdapter(participantList, this)
+        adapter = InviteParticipantRecyAdapter(participantList, this)
         binding.recyclerViewNewParti.adapter = adapter
         binding.recyclerViewNewParti.layoutManager = LinearLayoutManager(this)
 
@@ -64,11 +68,6 @@ class NewParticipantInviteActivity : AppCompatActivity(), NewParticipantRecyAdap
         finish()
     }
 
-    override fun onRowclick(position: Int) {
-        participantList.removeAt(position)
-        adapter.notifyDataSetChanged()
-    }
-
     fun copyLinkButton(view: View) {
         shareHelper.clipboardShareCopy()
     }
@@ -84,7 +83,6 @@ class NewParticipantInviteActivity : AppCompatActivity(), NewParticipantRecyAdap
     fun addParticButton(view: View) {
         val newParticipantName: String = binding.addParticActivtext.text.toString()
         if (newParticipantName.isNotEmpty()) {
-            participantList.add(newParticipantName)
             adapter.notifyDataSetChanged()
             binding.addParticActivtext.setText("")
             val sqlDbHelper = SqlDbHelper(this)
@@ -93,8 +91,35 @@ class NewParticipantInviteActivity : AppCompatActivity(), NewParticipantRecyAdap
             val newParticipant = ParticipantBalanceData(newParticipantName, fBaseKey = fBaseKey)
             sqlDbHelper.setGroupParticipants(newParticipant, getSqlGroupId!!, timestamp)
             ExpenseOverviewActivity.firebaseDbHelper!!.setGroupParticipants(newParticipant, timestamp)
+            participantList.add(newParticipant)
         } else {
             Toast.makeText(this, "Please type in a name for the participant", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    override fun onInviteRowClick(pos: Int) {
+        val clickedParticipant = participantList[pos]
+        val diagView = LayoutInflater.from(this).inflate(R.layout.alert_dialog_edit_participant, null)
+        val builder = AlertDialog.Builder(this).setTitle("Edit Participant").setView(diagView).show()
+        val textString = "Change ${clickedParticipant.userName}'s name to..."
+        diagView.newNameTextView.text = textString
+        diagView.newNameCancelButton.setOnClickListener {
+            builder.cancel()
+        }
+        diagView.newNameUpdateButton.setOnClickListener {
+            val newNameEditText = diagView.newNameEditText
+            if (newNameEditText.text.toString().isEmpty()) {
+                Toast.makeText(this, "Check new name", Toast.LENGTH_SHORT).show()
+            } else {
+                val newName = newNameEditText.text.toString()
+                val timestamp = System.currentTimeMillis().toString()
+                firebaseDbHelper!!.updateParticipantName(clickedParticipant, newName, timestamp)
+                SqlDbHelper(this).updateParticipantsName(clickedParticipant, newName, timestamp, getSqlGroupId!!)
+                clickedParticipant.userName = newName
+                //TODO: Is it not worth re-writing the above update functions for the db's so that they just take the newParticipant as an arg with the new name already overwritten in the object?
+                adapter.notifyItemChanged(pos)
+                builder.dismiss()
+            }
         }
     }
 }

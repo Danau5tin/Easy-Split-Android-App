@@ -11,7 +11,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="16dp"
         android:text="@string/row_overview_title_example"
         android:textColor="#000000"
         android:textSize="16sp"
@@ -34,12 +34,11 @@
         android:id="@+id/receiptPaidBy"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
         android:layout_marginTop="8dp"
         android:text="@string/row_overview_paidby_example"
         android:textColor="#000000"
         android:textStyle="bold"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintStart_toStartOf="@+id/receiptTitle"
         app:layout_constraintTop_toBottomOf="@+id/receiptTitle" />
 
     <View
@@ -49,4 +48,5 @@
         android:background="@color/harshGrey"
         app:layout_constraintTop_toBottomOf="@+id/receiptPaidBy"
         tools:layout_editor_absoluteX="0dp" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

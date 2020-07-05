@@ -7,7 +7,7 @@ import android.widget.ImageButton
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
-class NewParticipantRecyAdapter(var participantList: ArrayList<String>, var onPartRowClickInter: onPartRowClick) : RecyclerView.Adapter<NewParticipantRecyAdapter.ParticipantViewHolder>() {
+class NewParticipantRecyAdapter(var participantList: ArrayList<String>, var onPartRowClickInter: OnPartRowClick) : RecyclerView.Adapter<NewParticipantRecyAdapter.ParticipantViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ParticipantViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         val view = inflater.inflate(R.layout.new_participant_recy_row, parent, false)
@@ -22,7 +22,7 @@ class NewParticipantRecyAdapter(var participantList: ArrayList<String>, var onPa
         holder.nameTextView.text = participantList[position]
     }
 
-    class ParticipantViewHolder(itemView: View, onPartRowClickInter: onPartRowClick) : RecyclerView.ViewHolder(itemView) {
+    class ParticipantViewHolder(itemView: View, onPartRowClickInter: OnPartRowClick) : RecyclerView.ViewHolder(itemView) {
 
         val nameTextView: TextView = itemView.findViewById(R.id.newAccountParticipantName)
         val deleteparticipantButton: ImageButton = itemView.findViewById(R.id.newParticipantDelete)
@@ -34,7 +34,7 @@ class NewParticipantRecyAdapter(var participantList: ArrayList<String>, var onPa
         }
     }
 
-    interface onPartRowClick{
+    interface OnPartRowClick{
         fun onRowclick(position: Int)
     }
 

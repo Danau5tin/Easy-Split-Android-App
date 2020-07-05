@@ -9,14 +9,15 @@ import android.widget.Toast
 
 class ShareGroupHelper(var context: Context, firebaseGroupId: String) {
 
-    private var shareText: String = "You can now join my expense group! Download **** and join with code $firebaseGroupId"
+    private var shareText: String = "Join our expense group by getting Easy Split" +
+            " (https://www.easysplitapp.com) and joining with group code $firebaseGroupId"
     private val whatsAppPackage = "com.whatsapp"
 
     fun clipboardShareCopy() {
         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         val clipData = ClipData.newPlainText("simple text", shareText)
         clipboard.setPrimaryClip(clipData)
-        Toast.makeText(context, "Copied to clipboard", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, "Copied.", Toast.LENGTH_SHORT).show()
     }
 
     fun shareViaEmail() {

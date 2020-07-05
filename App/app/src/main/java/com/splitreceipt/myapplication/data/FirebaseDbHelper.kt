@@ -5,11 +5,13 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Log
+import android.widget.RadioGroup
 import android.widget.Toast
 import com.google.firebase.database.*
 import com.google.firebase.storage.FirebaseStorage
 import com.splitreceipt.myapplication.ASyncSaveImage
 import com.splitreceipt.myapplication.CurrencyHelper
+import com.splitreceipt.myapplication.FirebaseUpdateHelper
 import com.splitreceipt.myapplication.WelcomeJoinActivity
 import de.hdodenhof.circleimageview.CircleImageView
 import java.io.ByteArrayOutputStream
@@ -56,7 +58,7 @@ class FirebaseDbHelper(private var firebaseGroupId: String) {
                 } } })
     }
 
-    fun downloadToSql(context: Context){
+    fun downloadToSql(context: Context, participantList: ArrayList<String>? = null, joinRadioGroup: RadioGroup?=null){
         /*
         Downloads and saves to SQL the joined group info, finances, expenses and currency conversions.
          */
@@ -72,6 +74,7 @@ class FirebaseDbHelper(private var firebaseGroupId: String) {
                 val financeChild = snapshot.child(groupFin.substring(1))
                 val expensesChild = snapshot.child(expenses.substring(1))
                 val scannedChild = snapshot.child(scanned.substring(1))
+                val participantsChild = snapshot.child(participants.substring(1))
                 val infoData = infoChild.getValue(FirebaseAccountInfoData::class.java)!!
                 val financeData = financeChild.getValue(FirebaseAccountFinancialData::class.java)!!
                 val sqlHelper = SqlDbHelper(context)
@@ -83,6 +86,10 @@ class FirebaseDbHelper(private var firebaseGroupId: String) {
 
                 val sqlRowString = sqlRow.toString()
                 WelcomeJoinActivity.sqlRow = sqlRowString
+
+                FirebaseUpdateHelper.checkParticipants(sqlRowString, sqlHelper,
+                    FirebaseDbHelper(firebaseGroupId), infoData.accParticipantLastEdit,
+                    participantList, context, joinRadioGroup!!)
 
                 for (expense in expensesChild.children) {
                     val expenseData = expense.getValue(FirebaseExpenseData::class.java)!!
@@ -130,6 +137,13 @@ class FirebaseDbHelper(private var firebaseGroupId: String) {
         val participantPath = "$firebaseGroupId$participants"
         currentPath = database.getReference(participantPath).child(newParticipant.userKey)
         currentPath.setValue(newParticipant)
+        updateParticipantLastEdit(timeStamp)
+    }
+
+    fun updateParticipantName(participant: ParticipantBalanceData, newName: String, timeStamp: String) {
+        val participantPath = "$firebaseGroupId$participants"
+        currentPath = database.getReference(participantPath).child(participant.userKey).child("userName")
+        currentPath.setValue(newName)
         updateParticipantLastEdit(timeStamp)
     }
 

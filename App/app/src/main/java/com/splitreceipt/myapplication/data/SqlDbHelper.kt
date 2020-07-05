@@ -300,6 +300,19 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
         return write.update(EXPENSE_TABLE_NAME, values, whereClause, whereArgs).toString()
     }
 
+    fun updateExpense(editSqlRowId: String, date: String, title: String, lastEdit: String) {
+        // User only updated the cosmetics of the expense
+        val write = writableDatabase
+        val values = ContentValues().apply {
+            put(EXPENSE_COL_DATE, date)
+            put(EXPENSE_COL_TITLE, title)
+            put(EXPENSE_COL_LAST_EDIT, lastEdit)
+        }
+        val where = "$EXPENSE_COL_ID = ?"
+        val whereArgs = arrayOf(editSqlRowId)
+        write.update(EXPENSE_TABLE_NAME, values, where, whereArgs)
+    }
+
     fun updateGroupName(groupSqlId: String, groupName: String) {
         val write = writableDatabase
         val values = ContentValues().apply {
@@ -326,11 +339,12 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
         val uBalanceIndex = cursor.getColumnIndexOrThrow(PARTICIPANT_COL_U_BALANCE)
         val fBaseKeyIndex = cursor.getColumnIndexOrThrow(PARTICIPANT_COL_F_BASE_KEY)
         while (cursor.moveToNext()) {
-            val sqlRow = cursor.getString(uNameIndex)
-            val uName = cursor.getString(sqlRowIdIndex)
+            val sqlRow = cursor.getString(sqlRowIdIndex)
+            val uName = cursor.getString(uNameIndex)
             val uBal = cursor.getFloat(uBalanceIndex)
             val fKey = cursor.getString(fBaseKeyIndex)
             participantListObjects.add(ParticipantBalanceData(uName, uBal, fKey, sqlRow))
+            Log.i("SQL Participants", "Retrieved participant name: $uName")
         }
         cursor.close()
         close()
@@ -400,7 +414,8 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
         val reader = readableDatabase
         val columns = arrayOf(
             EXPENSE_COL_DATE, EXPENSE_COL_TITLE, EXPENSE_COL_TOTAL,
-            EXPENSE_COL_PAID_BY, EXPENSE_COL_ID, EXPENSE_COL_SCANNED, EXPENSE_COL_UI_SYMBOL,EXPENSE_COL_CURRENCY
+            EXPENSE_COL_PAID_BY, EXPENSE_COL_ID, EXPENSE_COL_SCANNED,
+            EXPENSE_COL_UI_SYMBOL, EXPENSE_COL_CURRENCY, EXPENSE_COL_EXCHANGE_RATE
         )
         val selectClause = "$EXPENSE_COL_FK_GROUP_ID = ?"
         val selectArgs = arrayOf("$sqlId")
@@ -416,6 +431,7 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
         val scannedColIndex = cursor.getColumnIndexOrThrow(EXPENSE_COL_SCANNED)
         val currencyUiSymbolColIndex = cursor.getColumnIndexOrThrow(EXPENSE_COL_UI_SYMBOL)
         val currencyCodeColIndex = cursor.getColumnIndexOrThrow(EXPENSE_COL_CURRENCY)
+        val currencyExchangeColIndex = cursor.getColumnIndexOrThrow(EXPENSE_COL_EXCHANGE_RATE)
         while (cursor.moveToNext()) {
             val receiptDate = cursor.getString(dateColIndex)
             val receiptTitle = cursor.getString(titleColIndex)
@@ -426,18 +442,9 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
             val scanned = receiptScannedInt == 1
             val currencyUiSymbol = cursor.getString(currencyUiSymbolColIndex)
             val currencyCode = cursor.getString(currencyCodeColIndex)
-            receiptList.add(
-                ReceiptData(
-                    receiptDate,
-                    receiptTitle,
-                    receiptTotal,
-                    receiptPaidBy,
-                    receiptSqlId,
-                    scanned,
-                    currencyUiSymbol,
-                    currencyCode
-                )
-            )
+            val currencyExchangeRate = cursor.getFloat(currencyExchangeColIndex)
+            receiptList.add(ReceiptData(receiptDate, receiptTitle, receiptTotal, receiptPaidBy,
+                receiptSqlId, scanned, currencyUiSymbol, currencyCode, currencyExchangeRate))
         }
         cursor.close()
     }
@@ -592,7 +599,7 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
             put(PARTICIPANT_COL_U_BALANCE, newParticipant.userBalance)
             put(PARTICIPANTS_COL_FK_GROUP_ID, groupSqlId)
         }
-        write.insert(GROUP_TABLE_NAME, null, values)
+        write.insert(PARTICIPANT_TABLE_NAME, null, values)
         updateParticipantLastEdit(timestamp, write, groupSqlId)
         close()
     }

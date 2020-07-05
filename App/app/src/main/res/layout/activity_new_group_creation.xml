@@ -27,37 +27,40 @@
         android:id="@+id/newGroupImage"
         android:layout_width="150dp"
         android:layout_height="140dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="24dp"
         android:onClick="newGroupImageButton"
         android:src="@color/colorPrimary"
         app:civ_border_color="@android:color/white"
         app:civ_border_width="3dp"
         app:civ_circle_background_color="@android:color/white"
+        app:layout_constraintEnd_toStartOf="@+id/rightGuideline"
         app:layout_constraintStart_toStartOf="@+id/leftGuideline"
-        app:layout_constraintTop_toBottomOf="@+id/toolbar" />
+        app:layout_constraintTop_toBottomOf="@+id/groupTitleText" />
 
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/groupTitleText"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:textColorHint="@android:color/darker_gray"
-        app:layout_constraintBottom_toBottomOf="@+id/newGroupImage"
-        app:layout_constraintEnd_toStartOf="@+id/rightGuideline"
-        app:layout_constraintStart_toEndOf="@+id/newGroupImage"
-        app:layout_constraintTop_toTopOf="@+id/newGroupImage">
+        android:layout_marginStart="100dp"
+        android:layout_marginEnd="100dp"
+        android:textColorHint="@android:color/white"
+        app:layout_constraintEnd_toEndOf="@+id/toolbar"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/toolbar">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/groupTitleEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/outline_primary_color"
+            android:background="@drawable/maries_outline"
+            android:gravity="center"
             android:hint="Group name"
             android:padding="5dp"
             android:paddingStart="10dp"
             android:paddingEnd="10dp"
-            android:textColor="#000000" />
+            android:textColor="#FFFFFF"
+            android:textSize="24sp" />
 
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -81,7 +84,7 @@
         style="@style/standardWhiteText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
+        android:layout_marginTop="24dp"
         android:text="@string/group_participants_hint"
         android:textColor="#FFFFFF"
         android:textSize="20sp"
@@ -154,24 +157,14 @@
         android:id="@+id/newGroupCurrencyButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="24dp"
         android:background="@drawable/image_button_outline_white_solid"
         android:onClick="newGroupCurrencyButton"
         android:padding="5dp"
         android:text="@string/group_currency_hint"
-        app:layout_constraintStart_toStartOf="@+id/groupTitleText"
-        app:layout_constraintTop_toBottomOf="@+id/groupTitleText" />
-
-    <TextView
-        android:id="@+id/textView"
-        style="@style/grandTitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="New Group"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/rightGuideline"
         app:layout_constraintStart_toStartOf="@+id/leftGuideline"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/newGroupImage" />
 
     <TextView
         android:id="@+id/addPhotoHint"

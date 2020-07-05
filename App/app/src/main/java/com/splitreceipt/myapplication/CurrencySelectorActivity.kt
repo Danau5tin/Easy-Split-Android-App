@@ -59,6 +59,16 @@ class CurrencySelectorActivity : AppCompatActivity(), CurrencySelectorAdapter.on
                     }
                     adapter.updateList(currencyTempList)
                 } } })
+
+
+
+        setSupportActionBar(findViewById(R.id.toolbar))
+        supportActionBar?.title = ""
+        supportActionBar?.apply {
+            setDisplayShowHomeEnabled(true)
+            setDisplayHomeAsUpEnabled(true)
+            setHomeAsUpIndicator(R.drawable.vector_x_white)
+        }
     }
 
     private fun fillCompleteCurrencyList() {
@@ -96,5 +106,10 @@ class CurrencySelectorActivity : AppCompatActivity(), CurrencySelectorAdapter.on
 
         setResult(Activity.RESULT_OK)
         finish()
+    }
+
+    override fun onSupportNavigateUp(): Boolean {
+        onBackPressed()
+        return super.onSupportNavigateUp()
     }
 }

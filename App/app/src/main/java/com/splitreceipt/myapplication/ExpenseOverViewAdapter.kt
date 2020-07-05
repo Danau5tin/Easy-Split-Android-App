@@ -27,7 +27,7 @@ class ExpenseOverViewAdapter(var receiptList: ArrayList<ReceiptData>, var onRecR
         val totalToString = receiptList[position].total.toString()
         val totalFixedString = SplitExpenseManuallyFragment.addStringZerosForDecimalPlace(totalToString)
         val currencyUiSymbol = receiptList[position].currencyUiSymbol
-        val totalString = "$currencyUiSymbol$totalFixedString" //TODO: Ensure the correct currency symbol used here is the users preference
+        val totalString = "$currencyUiSymbol$totalFixedString"
         holder.receiptTotalTextView.text = totalString
 
         val paidBy = ExpenseOverviewActivity.changeNameToYou(receiptList[position].paidBy, true)

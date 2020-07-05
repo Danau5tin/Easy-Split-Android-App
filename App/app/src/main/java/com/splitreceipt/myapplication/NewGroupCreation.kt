@@ -31,7 +31,7 @@ import java.util.*
 import kotlin.collections.ArrayList
 
 
-class NewGroupCreation : AppCompatActivity(), NewParticipantRecyAdapter.onPartRowClick {
+class NewGroupCreation : AppCompatActivity(), NewParticipantRecyAdapter.OnPartRowClick {
 
     /*
     This activity allows the user to create a new group

@@ -14,30 +14,36 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <include
+        layout="@layout/easy_split_fade_brand"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="350dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/receiptTabLayout" />
 
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/textTitleInputLayout"
+
+    <EditText
+        android:id="@+id/receiptTitleEditText"
         android:layout_width="180dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="32dp"
+        android:background="@drawable/outline_primary_color"
+        android:focusable="auto"
+        android:focusedByDefault="true"
+        android:fontFamily="@font/convergence"
+        android:hint="@string/item_title_hint"
+        android:inputType="textEmailSubject"
+        android:padding="10dp"
+        android:textColor="@android:color/black"
         android:textColorHint="@android:color/darker_gray"
+        android:textSize="18sp"
+        android:textStyle="bold"
         app:layout_constraintStart_toStartOf="@+id/leftGuideline"
-        app:layout_constraintTop_toBottomOf="@+id/toolbar">
+        app:layout_constraintTop_toBottomOf="@+id/toolbar" />
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/receiptTitleEditText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@drawable/outline_primary_color"
-            android:focusable="auto"
-            android:focusedByDefault="true"
-            android:fontFamily="@font/convergence"
-            android:hint="@string/item_title_hint"
-            android:padding="10dp"
-            android:textColor="@android:color/black"
-            android:textSize="18sp"
-            android:textStyle="bold" />
-    </com.google.android.material.textfield.TextInputLayout>
+
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/leftGuideline"
@@ -69,15 +75,14 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="8dp"
         android:fontFamily="@font/assistant"
         android:text="@string/item_paidby_hint"
         android:textColor="#FFFFFF"
         android:textSize="18sp"
         android:textStyle="bold"
-        app:layout_constraintBottom_toBottomOf="@+id/textTitleInputLayout"
-        app:layout_constraintStart_toEndOf="@+id/textTitleInputLayout"
-        app:layout_constraintTop_toTopOf="@+id/textTitleInputLayout" />
+        app:layout_constraintBottom_toBottomOf="@+id/receiptTitleEditText"
+        app:layout_constraintStart_toEndOf="@+id/receiptTitleEditText"
+        app:layout_constraintTop_toTopOf="@+id/receiptTitleEditText" />
 
 
     <com.google.android.material.tabs.TabLayout
@@ -90,7 +95,7 @@
         android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textTitleInputLayout"
+        app:layout_constraintTop_toBottomOf="@+id/receiptTitleEditText"
         app:tabBackground="@color/colorPrimary"
         app:tabIndicatorColor="@android:color/white"
         app:tabIndicatorGravity="stretch">
@@ -108,7 +113,7 @@
         android:id="@+id/receiptViewPager"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginTop="3dp"
+        android:layout_marginTop="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"

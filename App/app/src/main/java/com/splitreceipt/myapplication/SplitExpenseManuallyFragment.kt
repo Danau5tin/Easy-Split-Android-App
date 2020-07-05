@@ -89,6 +89,11 @@ class SplitExpenseManuallyFragment : Fragment(), NewManualExpenseRecyclerAdapter
 
         if (NewExpenseCreationActivity.isEdit) {
             binding.currencyButtonManual.isEnabled = false
+
+            if (!NewExpenseCreationActivity.isScanned){
+                binding.currencyAmountManual.setText(NewExpenseCreationActivity.editTotal)
+            }
+            
         } else {
             binding.currencyButtonManual.isEnabled = true
             binding.currencyButtonManual.setOnClickListener{
@@ -96,12 +101,6 @@ class SplitExpenseManuallyFragment : Fragment(), NewManualExpenseRecyclerAdapter
                 startActivityForResult(intent, currencyIntent)
             }
         }
-
-
-        if (!NewExpenseCreationActivity.isScanned){
-            binding.currencyAmountManual.setText(NewExpenseCreationActivity.editTotal)
-        }
-
 
         return binding.root
     }

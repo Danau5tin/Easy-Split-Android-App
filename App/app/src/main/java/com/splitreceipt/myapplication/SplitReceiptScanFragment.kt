@@ -82,7 +82,6 @@ class SplitReceiptScanFragment : Fragment(), NewScannedReceiptRecyclerAdapter.on
         itemizedArrayList = ArrayList()
         participantList = ArrayList()
 
-//        updateUICurrency()
         binding.currencyButtonScan.text = currencyCode
 
         retrieveParticipants()

@@ -98,12 +98,7 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
             return df.format(number).toFloat()
         }
 
-        fun loadImageFromStorage(
-            context: Context,
-            profile: Boolean,
-            fileName: String,
-            extension: String = ".jpg"
-        ): Bitmap? {
+        fun loadImageFromStorage(context: Context, profile: Boolean, fileName: String, extension: String = ".jpg"): Bitmap? {
             val directory: File
             return try {
                 directory = if (profile) {
@@ -111,7 +106,6 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
                 } else {
                     context.getDir(ASyncSaveImage.scannedImageDir, Context.MODE_PRIVATE)
                 }
-
                 val f = File(directory, "$fileName$extension")
                 val b = BitmapFactory.decodeStream(FileInputStream(f))
                 b
@@ -181,77 +175,8 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
             }
         }
 
-        val accountInfoDbRef = firebaseDbHelper!!.getAccountInfoListeningRef()
-        accountInfoDbRef.addListenerForSingleValueEvent(object : ValueEventListener {
-            //Listens for changes to the account information
-            override fun onCancelled(p0: DatabaseError) {
-                Toast.makeText(baseContext, "Failed to sync changes", Toast.LENGTH_SHORT).show()
-            }
-            override fun onDataChange(data: DataSnapshot) {
-                val firebaseGroupData = data.getValue(FirebaseAccountInfoData::class.java)!!
-                val sqlGroupData = sqlHelper.retrieveSqlAccountInfoData(getSqlGroupId!!)
-                var infoChanged = false
-                var imageChanged = false
-                var participantsChanged = false
-                if (firebaseGroupData.accName != sqlGroupData.accName) {
-                    binding.groupNameTitleText.text = firebaseGroupData.accName
-                    infoChanged = true
-                }
-                if (firebaseGroupData.accParticipantLastEdit != sqlGroupData.accParticipantLastEdit){
-                    infoChanged = true
-                    participantsChanged = true
-                }
-                if (firebaseGroupData.accLastImage != sqlGroupData.accLastImage) {
-                    imageChanged = true
-                    infoChanged = true
-                }
-                if (infoChanged) {
-                    sqlHelper.updateGroupInfo(firebaseGroupData, getSqlGroupId!!)
-                }
-                if (imageChanged) {
-                    firebaseDbHelper!!.downloadGroupProfileImage(baseContext, binding.groupProfileImage)
-                }
-                if (participantsChanged) {
-                    // Save the new users into SQL
-                    val usersDbRef = firebaseDbHelper!!.getUsersListeningRef()
-                    usersDbRef.addListenerForSingleValueEvent(object : ValueEventListener{
-                        override fun onCancelled(error: DatabaseError) {}
-                        override fun onDataChange(snapshot: DataSnapshot) {
-                            val allSqlUsers: ArrayList<ParticipantBalanceData> = ArrayList()
-                            sqlHelper.retrieveParticipants(allSqlUsers, getSqlGroupId!!)
-                            for (fbUser in snapshot.children) {
-                                var userExists = false
-                                val fBaseKey = fbUser.key.toString()
-                                val downloadedUser = fbUser.getValue(ParticipantBalanceData::class.java)
-                                downloadedUser!!.userKey = fBaseKey
-                                for (sqlUser in allSqlUsers) {
-                                    if (sqlUser.userKey == fBaseKey) {
-                                        // User exists in SQL Database
-                                        userExists = true
-                                        if (sqlUser.userName != downloadedUser.userName) {
-                                            //Users name has been changed. Update SQL.
-                                            sqlHelper.updateParticipantsName(sqlUser,
-                                                downloadedUser.userName, firebaseGroupData.accParticipantLastEdit, getSqlGroupId!!)
-                                            Log.i("Participants", "Participant: ${sqlUser.userName} exists in DB. Name has been changed to ${downloadedUser.userName}")
-                                        } else {
-                                            Log.i("Participants", "Participant: ${sqlUser.userName} exists in DB. Name unchanged.")
-                                        }
-                                        break
-                                    }
-                                }
-                                if (!userExists) {
-                                    // User has been added to the group since last update
-                                    sqlHelper.setGroupParticipants(downloadedUser, getSqlGroupId!!, firebaseGroupData.accParticipantLastEdit)
-                                    Log.i("Participants", "Participant: ${downloadedUser
-                                        .userName} of key: ${downloadedUser.userKey} is new and has been added to SQL")
-                                }
-                            }
-                        }
-
-                    })
-                }
-            }
-        })
+        FirebaseUpdateHelper.checkGroup(getSqlGroupId!!, this, sqlHelper, firebaseDbHelper!!,
+            binding.groupNameTitleText, binding.groupProfileImage)
 
         adapter = ExpenseOverViewAdapter(expenseList, this)
         binding.mainActivityRecycler.layoutManager = LinearLayoutManager(this)
@@ -345,10 +270,15 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
     }
 
     private fun refreshStatistics() {
+        // Totals the groups expenses and provides the number of expenses also for view in UI.
         binding.totalNumberExpensesText.text = expenseList.size.toString()
         var expensesTotal = 0.0F
         for (expense in expenseList){
-            expensesTotal += expense.total
+            val expenseTotal = expense.total
+            val expenseExchangeRate = expense.exchangeRate
+            val baseTotal = CurrencyHelper.quickExchange(expenseExchangeRate, expenseTotal)
+            expensesTotal += baseTotal
+            Log.i("Statistics", "Expense total: $expenseTotal, exchangeRate: $expenseExchangeRate, base total: $baseTotal... ExpensesTOTAL = $expensesTotal")
         }
         expensesTotal = roundToTwoDecimalPlace(expensesTotal)
         val total = SplitExpenseManuallyFragment.addStringZerosForDecimalPlace(expensesTotal.toString())
@@ -418,6 +348,10 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
         super.onActivityResult(requestCode, resultCode, data)
         var newSettlementString: String?
 
+        if (floatingButtonsShowing) {
+            addNewReceiptButton()
+        }
+
         if (requestCode == addExpenseResult) {
             if (resultCode == Activity.RESULT_OK) {
                 val contributions = data?.getStringExtra(NewExpenseCreationActivity.CONTRIBUTION_INTENT_DATA)
@@ -426,9 +360,6 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
                 deconstructAndSetSettlementString(newSettlementString)
                 reloadRecycler()
                 refreshStatistics()
-                if (floatingButtonsShowing) {
-                    addNewReceiptButton()
-                }
             }
         } else if (requestCode == seeExpenseResult) {
             if (resultCode == Activity.RESULT_OK) {
@@ -451,12 +382,10 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
                     }
                 }
                 deconstructAndSetSettlementString(newSettlementString)
-                reloadRecycler()
-                refreshStatistics()
-                if (floatingButtonsShowing) {
-                    addNewReceiptButton()
-                }
+
             }
+            reloadRecycler()
+            refreshStatistics()
         } else if (requestCode == settingsResult) {
             if (resultCode == Activity.RESULT_OK) {
                 val groupName = data?.getStringExtra(GroupSettingsActivity.groupNameReturnIntent)
@@ -465,9 +394,6 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
                 if (uriString != null) {
                     val uri = Uri.parse(uriString)
                     binding.groupProfileImage.setImageURI(uri)
-                }
-                if (floatingButtonsShowing) {
-                    addNewReceiptButton()
                 }
             }
         } else if (requestCode == pickImage) {
@@ -484,9 +410,6 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
                 if (settle!!) {
                     val intent = Intent(this, SettleGroupActivity::class.java)
                     startActivityForResult(intent, addExpenseResult)
-                }
-                if (floatingButtonsShowing) {
-                    addNewReceiptButton()
                 }
             }
         }
@@ -522,24 +445,29 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
         if (userDirectedSettlementIndexes.size > 1) {
             binding.settlementStringTextView.visibility = View.INVISIBLE
             binding.seeBalancesButton.visibility = View.VISIBLE
+            Log.i("BalancesButton", "Button IS visible. settlement list size: ${userDirectedSettlementIndexes.size}")
         }
         else {
             binding.settlementStringTextView.visibility = View.VISIBLE
             binding.seeBalancesButton.visibility = View.GONE
-            val newString = settlementArray[userDirectedSettlementIndexes[0]]
+            val newString: String
+            if (userDirectedSettlementIndexes.isNotEmpty()){
+                newString = settlementArray[userDirectedSettlementIndexes[0]]
+            }
+            else {
+                // Participant has no money owed or owing. Others in the group still owe.
+                newString = "You are settled up."
+            }
+
             binding.settlementStringTextView.text = newString
             userSettlementString = newString
+            Log.i("BalancesButton", "Button is NOT visible. settlement list size: ${userDirectedSettlementIndexes.size}")
         }
 
 
     }
 
-    private fun createSettlementString(
-        debtor: String,
-        value: String,
-        receiver: String,
-        currencySymbol: String
-    ): String {
+    private fun createSettlementString(debtor: String, value: String, receiver: String, currencySymbol: String): String {
         val finalString: String
         val you = "you"
         val debtorLow = debtor.toLowerCase(Locale.ROOT)
@@ -567,6 +495,7 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
     private fun reloadRecycler() {
         // Clears the list and refreshes receipts from SQL db back into it.
         expenseList.clear()
+        Log.i("Expense Overview", "Recycler - reloaded")
         SqlDbHelper(this).loadPreviousReceipts(getSqlGroupId, expenseList)
         adapter.notifyDataSetChanged()
     }

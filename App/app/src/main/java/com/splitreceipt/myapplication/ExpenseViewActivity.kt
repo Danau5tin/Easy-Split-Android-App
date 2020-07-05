@@ -45,7 +45,6 @@ class ExpenseViewActivity : AppCompatActivity() {
 
         const val expenseReturnNewContributions: String = "exp_return_contributions"
         const val expenseReturnNewSettlements: String = "exp_return_settlements"
-        const val expenseReturnEditSql: String = "exp_edit_sql"
         const val expenseReturnEditDate: String = "exp_edit_date"
         const val expenseReturnEditTitle: String = "exp_edit_title"
         const val expenseReturnEditTotal: String = "exp_edit_total"
@@ -151,7 +150,7 @@ class ExpenseViewActivity : AppCompatActivity() {
             if (resultCode == Activity.RESULT_OK) {
                 // Below code retrieves the edited intents after they have already been saved.
                 Toast.makeText(this, "Expense edited", Toast.LENGTH_SHORT).show()
-                supportActionBar?.title = data?.getStringExtra(expenseReturnEditTitle)
+                binding.titleTextView.text = data?.getStringExtra(expenseReturnEditTitle)
                 val total = SplitExpenseManuallyFragment.addStringZerosForDecimalPlace(data?.
                                                 getStringExtra(expenseReturnEditTotal).toString())
                 val totalWithCurrency = "$currencyUiSymbol$total"
@@ -185,10 +184,6 @@ class ExpenseViewActivity : AppCompatActivity() {
                     intent.putExtra(expenseReturnNewSettlements, settlementString)
                     setResult(Activity.RESULT_OK, intent)
                 }
-                else{
-                    //Contributions did not change. Therefore we just need to return the original settlement string in the ExpenseOverViewActivity
-                }
-
                 // Set new contributions
                 contributionString = calculatedContributions
                 deconstructContributionString()
@@ -284,6 +279,11 @@ class ExpenseViewActivity : AppCompatActivity() {
             // User has edited the expense and also changed the person who paid so we must null the initial contributions.
             return newContribs
         }
+    }
+
+    override fun onBackPressed() {
+
+        super.onBackPressed()
     }
 
     override fun onSupportNavigateUp(): Boolean {

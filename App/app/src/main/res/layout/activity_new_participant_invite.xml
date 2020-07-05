@@ -17,10 +17,9 @@
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewNewParti"
         android:layout_width="match_parent"
-        android:layout_height="250dp"
-        android:layout_marginStart="16dp"
+        android:layout_height="300dp"
         android:layout_marginTop="32dp"
-        android:layout_marginEnd="16dp"
+        android:scrollbars="horizontal"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/toolbar" />
@@ -41,9 +40,8 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:layout_marginBottom="32dp"
-        app:layout_constraintBottom_toTopOf="@+id/textView4"
         app:layout_constraintEnd_toStartOf="@+id/button3"
+        android:textColorHint="@android:color/darker_gray"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/recyclerViewNewParti">
 
@@ -51,7 +49,12 @@
             android:id="@+id/addParticActivtext"
             android:layout_width="match_parent"
             android:layout_height="45dp"
-            android:hint="@string/group_add_participant_hint" />
+            android:background="@drawable/outline_primary_color"
+            android:hint="@string/group_add_participant_hint"
+            android:padding="5dp"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
+            android:textColor="#000000" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <TextView
@@ -59,25 +62,25 @@
         style="@style/standardWhiteText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
+        android:layout_marginTop="32dp"
         android:text="Share group"
         android:textSize="24sp"
-        app:layout_constraintBottom_toTopOf="@+id/whatsappShareButton"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textInputLayout7" />
 
     <ImageButton
         android:id="@+id/whatsappShareButton"
         android:layout_width="58dp"
         android:layout_height="59dp"
-        android:layout_marginBottom="8dp"
+        android:layout_marginTop="24dp"
         android:background="@null"
         android:onClick="whatsappShareButton"
         android:scaleType="fitCenter"
-        app:layout_constraintBottom_toTopOf="@+id/textView6"
         app:layout_constraintEnd_toStartOf="@+id/shareEmailButton"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toEndOf="@+id/copyLinkButton"
+        app:layout_constraintTop_toBottomOf="@+id/textView4"
         app:srcCompat="@drawable/whatsapp" />
 
     <ImageButton
@@ -114,33 +117,30 @@
         style="@style/standardWhiteText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="50dp"
         android:text="Copy sharing link"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="@+id/copyLinkButton"
-        app:layout_constraintStart_toStartOf="@+id/copyLinkButton" />
+        app:layout_constraintStart_toStartOf="@+id/copyLinkButton"
+        app:layout_constraintTop_toTopOf="@+id/textView6" />
 
     <TextView
         android:id="@+id/textView6"
         style="@style/standardWhiteText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="50dp"
         android:text="Whatsapp"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="@+id/whatsappShareButton"
-        app:layout_constraintStart_toStartOf="@+id/whatsappShareButton" />
+        app:layout_constraintStart_toStartOf="@+id/whatsappShareButton"
+        app:layout_constraintTop_toBottomOf="@+id/whatsappShareButton" />
 
     <TextView
         android:id="@+id/textView7"
         style="@style/standardWhiteText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="50dp"
         android:text="E-mail"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="@+id/shareEmailButton"
-        app:layout_constraintStart_toStartOf="@+id/shareEmailButton" />
+        app:layout_constraintStart_toStartOf="@+id/shareEmailButton"
+        app:layout_constraintTop_toTopOf="@+id/textView6" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
