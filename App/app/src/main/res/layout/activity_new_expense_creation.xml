@@ -126,7 +126,7 @@
         android:layout_width="100dp"
         android:layout_height="0dp"
         android:background="@null"
-        android:gravity="left|center_vertical"
+        android:gravity="start|center_vertical"
         android:onClick="datePicker"
         android:paddingLeft="5dp"
         android:text="@string/when_today"

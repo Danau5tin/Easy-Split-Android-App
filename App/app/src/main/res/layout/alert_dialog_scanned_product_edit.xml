@@ -20,7 +20,7 @@
             android:id="@+id/dialogProductName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Product name" />
+            android:hint="@string/product_name" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
@@ -38,7 +38,7 @@
             android:id="@+id/dialogProductValue"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Product price"
+            android:hint="@string/product_price"
             android:inputType="numberDecimal" />
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -58,7 +58,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="32dp"
         android:layout_marginEnd="16dp"
-        android:text="Update"
+        android:text="@string/common_google_play_services_update_button"
         app:layout_constraintEnd_toEndOf="@+id/textInputLayout4"
         app:layout_constraintTop_toBottomOf="@+id/textInputLayout4" />
 
@@ -69,7 +69,7 @@
         android:layout_height="35dp"
         android:layout_marginTop="24dp"
         android:layout_marginBottom="24dp"
-        android:text="Delete Product"
+        android:text="@string/delete_product"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -88,7 +88,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="32dp"
-        android:text="Ownership"
+        android:text="@string/ownership"
         app:layout_constraintStart_toStartOf="@+id/dialogSpinner"
         app:layout_constraintTop_toBottomOf="@+id/dialogCancelButton" />
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -93,7 +93,7 @@ class SplitExpenseManuallyFragment : Fragment(), NewManualExpenseRecyclerAdapter
             if (!NewExpenseCreationActivity.isScanned){
                 binding.currencyAmountManual.setText(NewExpenseCreationActivity.editTotal)
             }
-            
+
         } else {
             binding.currencyButtonManual.isEnabled = true
             binding.currencyButtonManual.setOnClickListener{

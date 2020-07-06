@@ -4,41 +4,84 @@
     <!-- Key Strings -->
     <string name="date_format_dd_MM_yyyy">dd/MM/yyyy</string>
 
+
     <!-- Itemised View -->
     <string name="item_title_hint">Title</string>
     <string name="item_date_hint">Date</string>
     <string name="item_paidby_hint">Paid by</string>
     <string name="item_forwhome_hint">FOR WHOME</string>
 
+
     <!-- New Group Creation -->
     <string name="group_currency_hint">Choose group currency</string>
     <string name="group_participants_hint">Participants</string>
-    <string name="group_yourname_hint">Your name</string>
+    <string name="group_your_name_hint">Your name</string>
     <string name="group_add_participant_hint">Add participant</string>
+    <string name="add">Add</string>
+    <string name="add_group_image">Add group image</string>
 
-    <!-- Receipt overview -->
+
+    <!-- New Participant Invite -->
+    <string name="share_group">Share group</string>
+    <string name="copy_sharing_link">Copy sharing link</string>
+    <string name="whatsapp">Whatsapp</string>
+    <string name="e_mail">E-mail</string>
+
+    <!-- Settle Group -->
+    <string name="settlement">Settlement</string>
+    <string name="from">From</string>
+    <string name="to">To</string>
+    <string name="amount">Amount</string>
+
+
+    <!-- Welcome Join -->
+    <string name="continue_to_group">Continue to group</string>
+    <string name="choose_your_name">Please choose your name below</string>
+    <string name="add_your_name">Add your name</string>
+    <string name="name_not_here">Name not here?</string>
+
+
+    <!--Currency Selector -->
+    <string name="currency_selector_hint">Search…</string>
+
+
+    <!-- Expense overview -->
     <string name="balanced">This account is balanced</string>
+    <string name="expenses">Expenses</string>
+    <string name="total_expenses">Total expenses:</string>
+    <string name="number_of_expenses"># of Expenses:</string>
+    <string name="scan_receipt">Scan receipt</string>
+    <string name="new_expense">New expense</string>
+
 
     <!-- Expense View -->
     <string name="expense_details">Split details</string>
+
 
     <!-- New Receipt Creation -->
     <string name="when_today">Today</string>
     <string name="when_yesterday">Yesterday</string>
 
-    <string-array name="new_receipt_when">
-        <item>@string/when_today</item>
-        <item>@string/when_yesterday</item>
-        <item>Select another date</item>
-    </string-array>
 
-    <string-array name="new_recipt_currency">
-        <item>GBP</item>
-        <item>USD</item>
-        <item>EUR</item>
-        <item>AUD</item>
-        <item>CAD</item>
-    </string-array>
+    <!-- Expense View -->
+    <string name="product_details">Product details</string>
+
+
+    <!-- Group Screen -->
+    <string name="groups">Groups</string>
+    <string name="create_new_group">Create new group</string>
+    <string name="join_new_group">Join existing group</string>
+
+
+    <!-- Group Settings -->
+    <string name="delete_group">Delete Group</string>
+    <string name="group_name">Group name</string>
+    <string name="change_group_image">Change group image</string>
+
+
+    <!-- Fragment Scan -->
+    <string name="number_of_items">Number of items</string>
+    <string name="take_a_photo_of_receipt">Take a photo of your receipt</string>
 
 
     <!-- Recycler View Rows -->
@@ -57,12 +100,46 @@
 
     <string name="row_scanned_sample_name">Dan</string>
 
+
     <!-- Alert dialogs -->
     <string name="how_many_items_desc">Take a look at your receipt. Does it show you the number of items?</string>
     <string name="how_many_hint">(We need it for accuracy)\n\nYou should find it next to the balance/ receipt total.</string>
+    <string name="new_name">New name</string>
+    <string name="group_code">Group code…</string>
+    <string name="product_name">Product name</string>
+    <string name="product_price">Product price</string>
+    <string name="delete_product">Delete Product</string>
+    <string name="ownership">Ownership</string>
+    <string name="share_whatsapp">Share via Whatsapp</string>
+    <string name="share_e_mail">Share via E-mail</string>
+    <string name="copy_share_link">Copy sharing link</string>
+    <string name="settle">Settle</string>
+
+
+    <!-- Options Menu -->
+    <string name="options_menu_rate">Rate app</string>
+    <string name="options_menu_balances">View balances</string>
+    <string name="options_menu_settle">Settle up</string>
+    <string name="options_menu_participant">Add new participant</string>
+    <string name="options_menu_settings">Group settings</string>
+    <string name="options_menu_feedback">Developer feedback</string>
+
 
     <!-- Common Texts -->
     <string name="finished">Finished</string>
     <string name="next">Next</string>
+
+
+    <!-- Buttons -->
+    <string name="delete_expense">DELETE EXPENSE</string>
+    <string name="edit_expense">EDIT EXPENSE</string>
+
+
+    <!-- Misc -->
+    <string-array name="new_receipt_when">
+        <item>@string/when_today</item>
+        <item>@string/when_yesterday</item>
+        <item>Select another date</item>
+    </string-array>
 
 </resources>

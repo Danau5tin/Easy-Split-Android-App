@@ -2,7 +2,7 @@ package com.splitreceipt.myapplication
 
 import android.annotation.SuppressLint
 import android.app.Activity
-import android.app.AlertDialog
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -12,7 +12,6 @@ import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
-import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -27,7 +26,6 @@ import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
 import com.splitreceipt.myapplication.data.*
 import com.splitreceipt.myapplication.databinding.ActivityMainBinding
-import kotlinx.android.synthetic.main.alert_dialog_share_group.*
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileNotFoundException
@@ -130,15 +128,7 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
         groupBaseCurrency = intent.getStringExtra(GroupScreenActivity.groupBaseCurrencyIntent)!!
         currencySymbol = intent.getStringExtra(GroupScreenActivity.groupBaseCurrencyUiSymbolIntent)!!
 
-        firebaseDbHelper = null
-        firebaseDbHelper = if (NewGroupCreation.firebaseDbHelper != null) {
-            NewGroupCreation.firebaseDbHelper!!
-        } else if (GroupScreenActivity.firebaseDbHelper != null){
-            GroupScreenActivity.firebaseDbHelper!!
-        }
-        else {
-            FirebaseDbHelper(getFirebaseId!!)
-        }
+        firebaseDbHelper = FirebaseDbHelper(getFirebaseId!!)
 
         val sqlHelper = SqlDbHelper(this)
         ASyncCurrencyDownload(sqlHelper).execute(groupBaseCurrency) // Checks if we need to update the latest currency conversions.
@@ -153,7 +143,7 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
 
         if (intent.getBooleanExtra(NewGroupCreation.newGroupCreatedIntent, false)){
             Log.i("ExpenseOverview", "Group entered was just created by user")
-            showInviteDialog()
+            ShareGroupHelper(this, getFirebaseId!!)
         }
 
         if (intent.getStringExtra(UriIntent) != null) {
@@ -286,26 +276,6 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
         binding.totalAmountExpensesText.text = expenseTotalString
     }
 
-    @SuppressLint("InflateParams")
-    private fun showInviteDialog() {
-        val diagView = LayoutInflater.from(this).inflate(R.layout.alert_dialog_share_group, null)
-        val builder = AlertDialog.Builder(this).setTitle("Share")
-            .setView(diagView).show()
-        val shareGroupHelper = ShareGroupHelper(this, getFirebaseId!!)
-        builder.copyLinkButton2.setOnClickListener {
-            shareGroupHelper.clipboardShareCopy()
-        }
-        builder.whatsappShareButton2.setOnClickListener {
-            shareGroupHelper.shareViaWhatsapp()
-        }
-        builder.shareEmailButton2.setOnClickListener {
-            shareGroupHelper.shareViaEmail()
-        }
-        builder.shareContinue.setOnClickListener {
-            builder.dismiss()
-        }
-    }
-
     private fun openGallery() {
         val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
         startActivityForResult(intent, pickImage)
@@ -347,11 +317,9 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         var newSettlementString: String?
-
         if (floatingButtonsShowing) {
             addNewReceiptButton()
         }
-
         if (requestCode == addExpenseResult) {
             if (resultCode == Activity.RESULT_OK) {
                 val contributions = data?.getStringExtra(NewExpenseCreationActivity.CONTRIBUTION_INTENT_DATA)
@@ -463,8 +431,6 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
             userSettlementString = newString
             Log.i("BalancesButton", "Button is NOT visible. settlement list size: ${userDirectedSettlementIndexes.size}")
         }
-
-
     }
 
     private fun createSettlementString(debtor: String, value: String, receiver: String, currencySymbol: String): String {
@@ -566,6 +532,16 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
+            R.id.groupRate -> {
+                val appPackageName = this.packageName
+                try {
+                    startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$appPackageName")))
+                }
+                catch (anfe: ActivityNotFoundException) {
+                    startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=$appPackageName")))
+                }
+                return true
+            }
             R.id.groupSettleUp -> {
                 settleButtonPressed()
                 return true

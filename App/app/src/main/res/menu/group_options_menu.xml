@@ -1,18 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <item android:title="View balances"
+    <item android:title="@string/options_menu_rate"
+        android:id="@+id/groupRate"/>
+
+    <item android:title="@string/options_menu_balances"
         android:id="@+id/groupBalances"/>
 
-    <item android:title="Settle up"
+    <item android:title="@string/options_menu_settle"
         android:id="@+id/groupSettleUp"/>
 
-    <item android:title="Add new participant"
+    <item android:title="@string/group_add_participant_hint"
         android:id="@+id/groupAddParticipant"/>
 
-    <item android:title="Group settings"
+    <item android:title="@string/options_menu_settings"
         android:id="@+id/groupSettings"/>
 
-    <item android:title="Feedback"
+    <item android:title="@string/options_menu_feedback"
         android:id="@+id/feedback"/>
 </menu>

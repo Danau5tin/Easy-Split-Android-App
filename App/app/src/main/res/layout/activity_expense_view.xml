@@ -56,12 +56,12 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:fontFamily="@font/assistant"
-        android:text="10/05/2020"
         android:textColor="#FFFFFF"
         android:textSize="14sp"
         android:textStyle="bold|italic"
         app:layout_constraintEnd_toStartOf="@+id/guideline3"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="10/05/20" />
 
     <TextView
         android:id="@+id/paidByText"
@@ -69,20 +69,20 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:fontFamily="@font/assistant"
-        android:text="paid by Marie"
         android:textColor="#FFFFFF"
         android:textSize="18sp"
         android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="@+id/expenseValue"
         app:layout_constraintStart_toEndOf="@+id/expenseValue"
-        app:layout_constraintTop_toTopOf="@+id/expenseValue" />
+        app:layout_constraintTop_toTopOf="@+id/expenseValue"
+        tools:text="paid by Marie" />
 
     <Button
         android:id="@+id/deleteExpenseButton"
         style="@style/delete_button"
         android:layout_width="wrap_content"
         android:onClick="deleteExpense"
-        android:text="DELETE EXPENSE"
+        android:text="@string/delete_expense"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toEndOf="@+id/button2"
@@ -105,7 +105,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:fontFamily="@font/assistant"
-        android:text="Product details"
+        android:text="@string/product_details"
         android:textColor="#FFFFFF"
         android:textSize="18sp"
         app:layout_constraintStart_toStartOf="@+id/guideline"
@@ -125,7 +125,7 @@
         android:layout_width="wrap_content"
         android:layout_marginEnd="8dp"
         android:onClick="editExpense"
-        android:text="EDIT EXPENSE"
+        android:text="@string/edit_expense"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/deleteExpenseButton"
         app:layout_constraintHorizontal_bias="0.5"

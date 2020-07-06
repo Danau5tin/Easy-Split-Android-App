@@ -63,7 +63,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="32dp"
-        android:text="Share group"
+        android:text="@string/share_group"
         android:textSize="24sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -117,7 +117,7 @@
         style="@style/standardWhiteText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Copy sharing link"
+        android:text="@string/copy_sharing_link"
         app:layout_constraintEnd_toEndOf="@+id/copyLinkButton"
         app:layout_constraintStart_toStartOf="@+id/copyLinkButton"
         app:layout_constraintTop_toTopOf="@+id/textView6" />
@@ -127,7 +127,7 @@
         style="@style/standardWhiteText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Whatsapp"
+        android:text="@string/whatsapp"
         app:layout_constraintEnd_toEndOf="@+id/whatsappShareButton"
         app:layout_constraintStart_toStartOf="@+id/whatsappShareButton"
         app:layout_constraintTop_toBottomOf="@+id/whatsappShareButton" />
@@ -137,7 +137,7 @@
         style="@style/standardWhiteText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="E-mail"
+        android:text="@string/e_mail"
         app:layout_constraintEnd_toEndOf="@+id/shareEmailButton"
         app:layout_constraintStart_toStartOf="@+id/shareEmailButton"
         app:layout_constraintTop_toTopOf="@+id/textView6" />

@@ -287,8 +287,7 @@ class SplitReceiptScanFragment : Fragment(), NewScannedReceiptRecyclerAdapter.on
         currencyCode = sharedPreferences.getString(SHARED_PREF_ACCOUNT_CURRENCY_CODE, "US").toString()
         binding.currencyButtonScan.text = currencyCode
         if (adapterInitialised) {
-            //TODO: Update the adapter with the correct currency code
-//            binding.fragManualRecy.post(Runnable { adapter.notifyDataSetChanged() })
+            binding.scannedRecy.post(Runnable { adapter.notifyDataSetChanged() })
         }
     }
 

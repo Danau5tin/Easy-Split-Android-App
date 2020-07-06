@@ -104,11 +104,12 @@ class FirebaseDbHelper(private var firebaseGroupId: String) {
                         for (receipt in scannedChild.children) {
                             val scannedRecExpId = receipt.key
                             if (scannedRecExpId == expenseId) {
+                                val productlist: ArrayList<FirebaseProductData> = ArrayList()
                                 for (product in receipt.children){
-                                    //TODO: To allow for a more efficient insertion, create a list and pass it to the sqlHelper to iterate through instead. This then requires only opening one writeable database.
                                     val productData = product.getValue(FirebaseProductData::class.java)!!
-                                    sqlHelper.insertReceiptItems(productData.productName, productData.productValue, productData.productOwner, expenseSqlRow)
+                                    productlist.add(productData)
                                 }
+                                sqlHelper.insertReceiptItems(productlist, expenseSqlRow)
                                 break
                             }
                         }
@@ -120,7 +121,7 @@ class FirebaseDbHelper(private var firebaseGroupId: String) {
 
     fun createNewGroup(groupName: String, groupSettlement: String, participantLastEditString: String,
                        lastImageEdit: String, baseCurrency: String, groupParticipants: ArrayList<ParticipantBalanceData>){
-        setGroupInfo(groupName, participantLastEditString, lastImageEdit, baseCurrency) //TODO: Give the last edit time here
+        setGroupInfo(groupName, participantLastEditString, lastImageEdit, baseCurrency)
         setGroupFinance(groupSettlement)
         this.setGroupParticipants(groupParticipants)
     }

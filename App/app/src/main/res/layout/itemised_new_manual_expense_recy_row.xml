@@ -35,22 +35,22 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
-        android:text="Dan"
         android:clickable="true"
         android:textSize="18sp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Dan" />
 
     <TextView
         android:id="@+id/symbolText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="£"
         android:textColor="#000000"
         android:textSize="16sp"
         android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="@+id/participantCheckbox"
         app:layout_constraintEnd_toStartOf="@+id/participantContribution"
-        app:layout_constraintTop_toTopOf="@+id/participantCheckbox" />
+        app:layout_constraintTop_toTopOf="@+id/participantCheckbox"
+        tools:text="£" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

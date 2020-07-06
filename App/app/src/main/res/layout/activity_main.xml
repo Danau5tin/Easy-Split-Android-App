@@ -150,7 +150,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginTop="16dp"
-        android:text="Expenses"
+        android:text="@string/expenses"
         android:textSize="18sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/settlementStringTextView" />
@@ -162,7 +162,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="24dp"
         android:layout_marginTop="16dp"
-        android:text="Total expenses:"
+        android:text="@string/total_expenses"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/guideline2" />
 
@@ -184,7 +184,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
-        android:text="# of Expenses:"
+        android:text="@string/number_of_expenses"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@+id/guideline2" />
 
@@ -218,7 +218,7 @@
         style="@style/standardWhiteText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Scan receipt"
+        android:text="@string/scan_receipt"
         android:visibility="invisible"
         app:layout_constraintEnd_toEndOf="@+id/floatingActionButtonScan"
         app:layout_constraintStart_toStartOf="@+id/floatingActionButtonScan"
@@ -244,7 +244,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
-        android:text="New Expense"
+        android:text="@string/new_expense"
         android:visibility="invisible"
         app:layout_constraintEnd_toEndOf="@+id/floatingActionButtonManual"
         app:layout_constraintStart_toStartOf="@+id/floatingActionButtonManual"
@@ -256,7 +256,7 @@
         android:layout_height="wrap_content"
         android:background="@drawable/outline_primary_color"
         android:onClick="balancesButtonPressed"
-        android:text="See balances"
+        android:text="@string/options_menu_balances"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="@+id/settlementStringTextView"
         app:layout_constraintEnd_toEndOf="@+id/imageView3"

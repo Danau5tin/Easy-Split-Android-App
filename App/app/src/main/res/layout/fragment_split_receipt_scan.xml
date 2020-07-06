@@ -39,11 +39,11 @@
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         android:background="@drawable/maries_outline"
-        android:text="USD"
         android:textColor="#FFFFFF"
         app:layout_constraintBottom_toBottomOf="@+id/textInputLayout5"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/textInputLayout5" />
+        app:layout_constraintTop_toTopOf="@+id/textInputLayout5"
+        tools:text="USD" />
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/textInputLayout5"
@@ -61,7 +61,7 @@
             android:layout_height="wrap_content"
             android:background="@drawable/outline_primary_color"
             android:focusable="auto"
-            android:hint="Amount"
+            android:hint="@string/amount"
             android:padding="5dp"
             android:textColor="@android:color/black" />
     </com.google.android.material.textfield.TextInputLayout>
@@ -84,7 +84,7 @@
             android:layout_height="wrap_content"
             android:background="@drawable/outline_primary_color"
             android:gravity="center"
-            android:hint="Number of items"
+            android:hint="@string/number_of_items"
             android:padding="5dp"
             android:textColor="#000000" />
     </com.google.android.material.textfield.TextInputLayout>
@@ -95,7 +95,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="11dp"
-        android:text="Take a photo of your receipt"
+        android:text="@string/take_a_photo_of_receipt"
         app:layout_constraintEnd_toEndOf="@+id/addReceiptImageButton"
         app:layout_constraintStart_toStartOf="@+id/addReceiptImageButton"
         app:layout_constraintTop_toBottomOf="@+id/addReceiptImageButton" />

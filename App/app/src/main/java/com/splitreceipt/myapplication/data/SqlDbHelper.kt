@@ -5,7 +5,6 @@ import android.content.Context
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
-import android.provider.Telephony
 import android.util.Log
 import com.splitreceipt.myapplication.ExpenseViewActivity
 import com.splitreceipt.myapplication.SplitExpenseManuallyFragment
@@ -263,6 +262,20 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
             put(ITEMS_COL_FK_EXPENSE_ID, sqlFK)
         }
         write.insert(ITEMS_TABLE_NAME, null, values)
+    }
+
+    fun insertReceiptItems(itemList: ArrayList<FirebaseProductData>, expenseRowSql: Int, list: Boolean=true) {
+        val write = writableDatabase
+        val sqlFK = expenseRowSql.toString()
+        for (product in itemList) {
+            val values = ContentValues().apply {
+                put(ITEMS_COL_NAME, product.productName)
+                put(ITEMS_COL_VALUE, product.productValue)
+                put(ITEMS_COL_OWNERSHIP, product.productOwner)
+                put(ITEMS_COL_FK_EXPENSE_ID, sqlFK)
+            }
+            write.insert(ITEMS_TABLE_NAME, null, values)
+        }
     }
 
     fun updateItemsSql(writeableDB: SQLiteDatabase?, itemizedProductList: ArrayList<ScannedItemizedProductData>) {

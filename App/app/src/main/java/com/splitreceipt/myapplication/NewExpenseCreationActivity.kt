@@ -229,6 +229,9 @@ class NewExpenseCreationActivity : AppCompatActivity() {
                                 sqlDbHelper.updateExpense(editSqlRowId, date, title, lastEdit)
                                 firebaseDbHelper!!.createUpdateNewExpense(firebaseEditExpenseID, date,
                                     title, total, paidBy, contributionsString, false, lastEdit, currencyCode, exchangeRate)
+                                isEdit = false
+                                finish()
+                                return true
                             }
                             else {
                                 Log.i("Edit", "User has edited some financials")
@@ -403,20 +406,15 @@ class NewExpenseCreationActivity : AppCompatActivity() {
         val month: Int = cldr.get(Calendar.MONTH)
         val year: Int = cldr.get(Calendar.YEAR)
         // date picker dialog
-        val picker = DatePickerDialog(
-            this,
+        val picker = DatePickerDialog(this,
             DatePickerDialog.OnDateSetListener { _, year, monthOfYear, dayOfMonth ->
                 val dayString = cleanDay(dayOfMonth)
                 val monthString = cleanMonth(monthOfYear)
                 val yearString: String = year.toString()
-
                 val string = "$dayString/$monthString/$yearString"
-                binding.dateButton.text = string
-            },
-            year, month, day)
+                binding.dateButton.text = string }, year, month, day)
         picker.show()
     }
-
 
     private fun getDate(): String{
         val dateSelection = binding.dateButton.text.toString()

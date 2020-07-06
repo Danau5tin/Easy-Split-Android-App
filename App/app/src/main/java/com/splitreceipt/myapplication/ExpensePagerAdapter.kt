@@ -6,7 +6,7 @@ import androidx.viewpager2.adapter.FragmentStateAdapter
 
 class ExpensePagerAdapter(activity: AppCompatActivity) : FragmentStateAdapter(activity) {
 
-    val pageNumber = 2
+    private val pageNumber = 2
 
     override fun createFragment(position: Int): Fragment {
         return when (position) {

@@ -24,7 +24,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
-        android:text="Share via e-mail"
+        android:text="@string/share_e_mail"
         app:layout_constraintBottom_toBottomOf="@+id/shareEmailButton2"
         app:layout_constraintStart_toEndOf="@+id/shareEmailButton2"
         app:layout_constraintTop_toTopOf="@+id/shareEmailButton2" />
@@ -34,7 +34,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
-        android:text="Copy sharing link"
+        android:text="@string/copy_sharing_link"
         app:layout_constraintBottom_toBottomOf="@+id/copyLinkButton2"
         app:layout_constraintStart_toEndOf="@+id/copyLinkButton2"
         app:layout_constraintTop_toTopOf="@+id/copyLinkButton2" />
@@ -70,7 +70,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
-        android:text="Share via Whatsapp"
+        android:text="@string/share_whatsapp"
         app:layout_constraintBottom_toBottomOf="@+id/whatsappShareButton2"
         app:layout_constraintStart_toEndOf="@+id/whatsappShareButton2"
         app:layout_constraintTop_toTopOf="@+id/whatsappShareButton2"

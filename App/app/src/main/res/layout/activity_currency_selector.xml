@@ -30,7 +30,7 @@
         android:layout_marginStart="8dp"
         android:drawableLeft="@drawable/vector_search_white"
         android:ems="10"
-        android:hint="Search..."
+        android:hint="@string/currency_selector_hint"
         android:inputType="textPersonName"
         android:textColor="#FFFFFF"
         app:layout_constraintEnd_toEndOf="parent"

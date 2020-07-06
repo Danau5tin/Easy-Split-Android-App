@@ -42,7 +42,7 @@
             android:id="@+id/nameEdit"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Group name"
+            android:hint="@string/group_name"
             android:textColor="#FFFFFF"
             tools:text="Group Name" />
     </com.google.android.material.textfield.TextInputLayout>
@@ -56,7 +56,7 @@
         android:layout_marginEnd="32dp"
         android:background="@android:color/holo_red_light"
         android:onClick="deleteGroupButton"
-        android:text="Delete Group"
+        android:text="@string/delete_group"
         android:textColor="#FFFFFF"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
@@ -72,7 +72,7 @@
         android:background="@drawable/image_button_outline_white_solid"
         android:onClick="changeGroupImageButton"
         android:padding="10dp"
-        android:text="Change group image"
+        android:text="@string/change_group_image"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/groupNameText" />
@@ -85,7 +85,7 @@
         android:background="@drawable/image_button_outline_white_solid"
         android:onClick="addNewParticipantSettingsButton"
         android:padding="10dp"
-        android:text="Add new participants"
+        android:text="@string/options_menu_participant"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
