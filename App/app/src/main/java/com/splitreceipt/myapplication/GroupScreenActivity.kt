@@ -2,6 +2,7 @@ package com.splitreceipt.myapplication
 
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -12,9 +13,11 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.firebase.database.FirebaseDatabase
 import com.splitreceipt.myapplication.data.FirebaseDbHelper
 import com.splitreceipt.myapplication.data.GroupData
+import com.splitreceipt.myapplication.data.SharedPrefManager
 import com.splitreceipt.myapplication.data.SqlDbHelper
 import com.splitreceipt.myapplication.databinding.ActivityGroupScreenBinding
 import kotlinx.android.synthetic.main.alert_dialog_join_group.view.*
+import kotlinx.android.synthetic.main.alert_dialog_testing.view.*
 
 class GroupScreenActivity : AppCompatActivity() {
     /*
@@ -23,10 +26,10 @@ class GroupScreenActivity : AppCompatActivity() {
 
     lateinit var binding: ActivityGroupScreenBinding
     lateinit var groupList: ArrayList<GroupData>
+    lateinit var sharedPreferences: SharedPreferences
+    var firebaseDbHelper: FirebaseDbHelper? = null
 
     companion object {
-        var firebaseDbHelper: FirebaseDbHelper? = null
-
         var sqlIntentString: String = "sqlID"
         var firebaseIntentString: String = "fireBaseId"
         var userIntentString: String = "user"
@@ -46,6 +49,22 @@ class GroupScreenActivity : AppCompatActivity() {
         val adapter = GroupScreenAdapter(groupList)
         binding.groupRecy.layoutManager = LinearLayoutManager(this)
         binding.groupRecy.adapter = adapter
+
+        sharedPreferences = getSharedPreferences(SharedPrefManager.SHARED_PREF_NAME, Context.MODE_PRIVATE)
+        if (!sharedPreferences.getBoolean(SharedPrefManager.SHARED_PREF_TEST_DIALOG, false)) {
+            // If this is the users first time opening the app after installing, show Dialog
+            showTestingDialog()
+        }
+
+    }
+
+    private fun showTestingDialog() {
+        sharedPreferences.edit().putBoolean(SharedPrefManager.SHARED_PREF_TEST_DIALOG, true).apply()
+        val diagView = LayoutInflater.from(this).inflate(R.layout.alert_dialog_testing, null)
+        val builder = AlertDialog.Builder(this).setView(diagView).show()
+        diagView.willDoButton.setOnClickListener {
+            builder.dismiss()
+        }
     }
 
     fun addNewGroupButton(view: View) {

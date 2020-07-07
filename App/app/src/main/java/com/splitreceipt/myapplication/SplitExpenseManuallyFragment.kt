@@ -18,8 +18,8 @@ import com.splitreceipt.myapplication.NewExpenseCreationActivity.Companion.curre
 import com.splitreceipt.myapplication.NewExpenseCreationActivity.Companion.zeroCurrency
 import com.splitreceipt.myapplication.data.SqlDbHelper
 import com.splitreceipt.myapplication.data.ParticipantData
-import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_ACCOUNT_CURRENCY_CODE
-import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_ACCOUNT_CURRENCY_SYMBOL
+import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_GROUP_CURRENCY_CODE
+import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_GROUP_CURRENCY_SYMBOL
 import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_NAME
 import com.splitreceipt.myapplication.databinding.FragmentSplitReceiptManuallyBinding
 
@@ -116,8 +116,8 @@ class SplitExpenseManuallyFragment : Fragment(), NewManualExpenseRecyclerAdapter
     }
 
     private fun updateUICurrency(adapterInitialised: Boolean = false) {
-        currencySymbol = sharedPreferences.getString(SHARED_PREF_ACCOUNT_CURRENCY_SYMBOL, "$").toString()
-        currencyCode = sharedPreferences.getString(SHARED_PREF_ACCOUNT_CURRENCY_CODE, "USD").toString()
+        currencySymbol = sharedPreferences.getString(SHARED_PREF_GROUP_CURRENCY_SYMBOL, "$").toString()
+        currencyCode = sharedPreferences.getString(SHARED_PREF_GROUP_CURRENCY_CODE, "USD").toString()
         binding.currencyButtonManual.text = currencyCode
         if (adapterInitialised) {
             binding.fragManualRecy.post(Runnable { adapter.notifyDataSetChanged() })

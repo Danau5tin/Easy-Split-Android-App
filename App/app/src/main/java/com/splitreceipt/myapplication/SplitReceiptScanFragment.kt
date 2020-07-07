@@ -32,12 +32,11 @@ import com.splitreceipt.myapplication.NewExpenseCreationActivity.Companion.curre
 import com.splitreceipt.myapplication.NewExpenseCreationActivity.Companion.currencySymbol
 import com.splitreceipt.myapplication.NewExpenseCreationActivity.Companion.editSqlRowId
 import com.splitreceipt.myapplication.data.ScannedItemizedProductData
-import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_ACCOUNT_CURRENCY_CODE
-import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_ACCOUNT_CURRENCY_SYMBOL
+import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_GROUP_CURRENCY_CODE
+import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_GROUP_CURRENCY_SYMBOL
 import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_NAME
 import com.splitreceipt.myapplication.data.SqlDbHelper
 import com.splitreceipt.myapplication.databinding.FragmentSplitReceiptScanBinding
-import com.theartofdev.edmodo.cropper.CropImage
 import kotlinx.android.synthetic.main.alert_dialog_scanned_product_edit.view.*
 import java.io.File
 import java.text.SimpleDateFormat
@@ -283,8 +282,8 @@ class SplitReceiptScanFragment : Fragment(), NewScannedReceiptRecyclerAdapter.on
     }
 
     private fun updateUICurrency(adapterInitialised: Boolean = false) {
-        currencySymbol = sharedPreferences.getString(SHARED_PREF_ACCOUNT_CURRENCY_SYMBOL, "$").toString()
-        currencyCode = sharedPreferences.getString(SHARED_PREF_ACCOUNT_CURRENCY_CODE, "US").toString()
+        currencySymbol = sharedPreferences.getString(SHARED_PREF_GROUP_CURRENCY_SYMBOL, "$").toString()
+        currencyCode = sharedPreferences.getString(SHARED_PREF_GROUP_CURRENCY_CODE, "US").toString()
         binding.currencyButtonScan.text = currencyCode
         if (adapterInitialised) {
             binding.scannedRecy.post(Runnable { adapter.notifyDataSetChanged() })

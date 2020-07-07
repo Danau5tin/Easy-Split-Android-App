@@ -23,8 +23,8 @@ import com.google.firebase.storage.StorageReference
 import com.splitreceipt.myapplication.data.FirebaseDbHelper
 import com.splitreceipt.myapplication.data.ParticipantBalanceData
 import com.splitreceipt.myapplication.data.SqlDbHelper
-import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_ACCOUNT_CURRENCY_CODE
-import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_ACCOUNT_CURRENCY_SYMBOL
+import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_GROUP_CURRENCY_CODE
+import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_GROUP_CURRENCY_SYMBOL
 import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_NAME
 import com.splitreceipt.myapplication.databinding.ActivityNewGroupCreationBinding
 import java.util.*
@@ -274,8 +274,8 @@ class NewGroupCreation : AppCompatActivity(), NewParticipantRecyAdapter.OnPartRo
         else if (requestCode == baseCurrencySelection) {
             if (resultCode == Activity.RESULT_OK) {
                 val sharedPreferences = getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE)
-                val currencyCode = sharedPreferences.getString(SHARED_PREF_ACCOUNT_CURRENCY_CODE, "USD")
-                currencySymbol = sharedPreferences.getString(SHARED_PREF_ACCOUNT_CURRENCY_SYMBOL, "$")!!
+                val currencyCode = sharedPreferences.getString(SHARED_PREF_GROUP_CURRENCY_CODE, "USD")
+                currencySymbol = sharedPreferences.getString(SHARED_PREF_GROUP_CURRENCY_SYMBOL, "$")!!
                 binding.newGroupCurrencyButton.text = currencyCode
             }
         }

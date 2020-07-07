@@ -13,24 +13,37 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".ScanCropImageActivity"/>
-        <activity android:name=".SettleGroupActivity" />
-        <activity android:name=".NewParticipantInviteActivity" />
-        <activity android:name=".WelcomeJoinActivity" />
-        <activity android:name=".GroupSettingsActivity" />
-        <activity android:name=".ExpenseViewActivity" />
-        <activity android:name=".BalanceOverviewActivity" />
-        <activity android:name=".CurrencySelectorActivity" />
-        <activity android:name=".NewGroupCreation" />
-        <activity android:name=".GroupScreenActivity">
+        <activity android:name=".ScanCropImageActivity"
+            android:screenOrientation="portrait"/>
+        <activity android:name=".SettleGroupActivity"
+            android:screenOrientation="portrait"/>
+        <activity android:name=".NewParticipantInviteActivity"
+            android:screenOrientation="portrait"/>
+        <activity android:name=".WelcomeJoinActivity"
+            android:screenOrientation="portrait"/>
+        <activity android:name=".GroupSettingsActivity"
+            android:screenOrientation="portrait"/>
+        <activity android:name=".ExpenseViewActivity"
+            android:screenOrientation="portrait"/>
+        <activity android:name=".BalanceOverviewActivity"
+            android:screenOrientation="portrait"/>
+        <activity android:name=".CurrencySelectorActivity"
+            android:screenOrientation="portrait"/>
+        <activity android:name=".NewGroupCreation"
+            android:screenOrientation="portrait"/>
+        <activity android:name=".GroupScreenActivity"
+            android:screenOrientation="portrait">
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".ExpenseOverviewActivity" />
-        <activity android:name=".NewExpenseCreationActivity" />
+        <activity android:name=".ExpenseOverviewActivity"
+            android:screenOrientation="portrait"/>
+        <activity android:name=".NewExpenseCreationActivity"
+            android:screenOrientation="portrait"/>
 
         <provider
             android:name="androidx.core.content.FileProvider"

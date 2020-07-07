@@ -532,16 +532,16 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
-            R.id.groupRate -> {
-                val appPackageName = this.packageName
-                try {
-                    startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$appPackageName")))
-                }
-                catch (anfe: ActivityNotFoundException) {
-                    startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=$appPackageName")))
-                }
-                return true
-            }
+//            R.id.groupRate -> {
+//                val appPackageName = this.packageName
+//                try {
+//                    startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$appPackageName")))
+//                }
+//                catch (anfe: ActivityNotFoundException) {
+//                    startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=$appPackageName")))
+//                }
+//                return true
+//            }
             R.id.groupSettleUp -> {
                 settleButtonPressed()
                 return true

@@ -10,7 +10,6 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.ArrayAdapter
-import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -19,8 +18,8 @@ import com.splitreceipt.myapplication.ExpenseOverviewActivity.Companion.firebase
 import com.splitreceipt.myapplication.ExpenseOverviewActivity.Companion.roundToTwoDecimalPlace
 import com.splitreceipt.myapplication.SplitReceiptScanFragment.Companion.ownershipEqualString
 import com.splitreceipt.myapplication.data.*
-import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_ACCOUNT_CURRENCY_CODE
-import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_ACCOUNT_CURRENCY_SYMBOL
+import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_GROUP_CURRENCY_CODE
+import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_GROUP_CURRENCY_SYMBOL
 import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_NAME
 import com.splitreceipt.myapplication.databinding.ActivityNewExpenseCreationBinding
 import kotlinx.android.synthetic.main.fragment_split_receipt_scan.*
@@ -153,8 +152,8 @@ class NewExpenseCreationActivity : AppCompatActivity() {
             currencySymbol = intent.getStringExtra(editIntentCurrencyUiSymbol)!!
         } else {
             val sharedPref = getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE)
-            currencyCode = sharedPref.getString(SHARED_PREF_ACCOUNT_CURRENCY_CODE, "USD")!!
-            currencySymbol = sharedPref.getString(SHARED_PREF_ACCOUNT_CURRENCY_SYMBOL, "$")!!
+            currencyCode = sharedPref.getString(SHARED_PREF_GROUP_CURRENCY_CODE, "USD")!!
+            currencySymbol = sharedPref.getString(SHARED_PREF_GROUP_CURRENCY_SYMBOL, "$")!!
         }
     }
 

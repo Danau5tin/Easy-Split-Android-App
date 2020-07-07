@@ -8,6 +8,20 @@
     android:background="@color/colorPrimary"
     tools:context=".SplitReceiptScanFragment">
 
+    <TextView
+        android:id="@+id/textView23"
+        style="@style/standardWhiteText"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="24dp"
+        android:layout_marginEnd="16dp"
+        android:background="@drawable/outline_scan_warning"
+        android:text="@string/warning"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/scannedRecy" />
+
     <ImageButton
         android:id="@+id/addReceiptImageButton"
         android:layout_width="62dp"
@@ -99,4 +113,5 @@
         app:layout_constraintEnd_toEndOf="@+id/addReceiptImageButton"
         app:layout_constraintStart_toStartOf="@+id/addReceiptImageButton"
         app:layout_constraintTop_toBottomOf="@+id/addReceiptImageButton" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

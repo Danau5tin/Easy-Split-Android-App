@@ -23,6 +23,7 @@ class WelcomeJoinActivity : AppCompatActivity() {
     private lateinit var fBaseCurrencyCode: String
     private lateinit var fBaseCurrencySymbol: String
     private var radioRequired: Boolean = true
+    private lateinit var firebaseDbHelper: FirebaseDbHelper
 
     companion object {
         var joinFireBaseParticipants: String = "firebasePartic"
@@ -52,8 +53,9 @@ class WelcomeJoinActivity : AppCompatActivity() {
         fBaseCurrencyCode = intent.getStringExtra(joinBaseCurrency)!!
         fBaseCurrencySymbol = CurrencyHelper.returnUiSymbol(fBaseCurrencyCode)
 
+        firebaseDbHelper = FirebaseDbHelper(firebaseId)
+
         val participants: ArrayList<String> = ArrayList()
-        val firebaseDbHelper: FirebaseDbHelper = GroupScreenActivity.firebaseDbHelper!!
         firebaseDbHelper.downloadToSql(this, participants, binding.joinRadioGroup)
         firebaseDbHelper.downloadGroupProfileImage(this, binding.circleImageViewWelcome)
 
@@ -99,7 +101,7 @@ class WelcomeJoinActivity : AppCompatActivity() {
         val timestamp = System.currentTimeMillis().toString()
         val newParticipant = ParticipantBalanceData(sqlUser, fBaseKey=fBaseKey)
         sqlDbHelper.setGroupParticipants(newParticipant, sqlRow, timestamp)
-        GroupScreenActivity.firebaseDbHelper!!.setGroupParticipants(newParticipant, timestamp)
+        firebaseDbHelper.setGroupParticipants(newParticipant, timestamp)
     }
 
     private fun okayToProceed() : Boolean {

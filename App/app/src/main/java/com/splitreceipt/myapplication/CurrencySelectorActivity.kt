@@ -9,8 +9,8 @@ import android.text.TextWatcher
 import android.util.Log
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.splitreceipt.myapplication.data.CurrencyUiData
-import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_ACCOUNT_CURRENCY_CODE
-import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_ACCOUNT_CURRENCY_SYMBOL
+import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_GROUP_CURRENCY_CODE
+import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_GROUP_CURRENCY_SYMBOL
 import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_NAME
 import com.splitreceipt.myapplication.data.SqlDbHelper
 import com.splitreceipt.myapplication.databinding.ActivityCurrencySelectorBinding
@@ -100,8 +100,8 @@ class CurrencySelectorActivity : AppCompatActivity(), CurrencySelectorAdapter.on
 
         val sharedPreferences = getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE)
         val edit = sharedPreferences.edit()
-        edit.putString(SHARED_PREF_ACCOUNT_CURRENCY_CODE, currencyCode)
-        edit.putString(SHARED_PREF_ACCOUNT_CURRENCY_SYMBOL, countrySymbol)
+        edit.putString(SHARED_PREF_GROUP_CURRENCY_CODE, currencyCode)
+        edit.putString(SHARED_PREF_GROUP_CURRENCY_SYMBOL, countrySymbol)
         edit.apply()
 
         setResult(Activity.RESULT_OK)
