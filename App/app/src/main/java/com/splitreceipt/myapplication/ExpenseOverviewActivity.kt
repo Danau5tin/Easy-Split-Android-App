@@ -2,7 +2,6 @@ package com.splitreceipt.myapplication
 
 import android.annotation.SuppressLint
 import android.app.Activity
-import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -190,9 +189,9 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
                     val firebaseID = expense.key
                     var exists = false
                     val expen = snapshot.child(firebaseID!!)
-                    val newExpense = expen.getValue(FirebaseExpenseData::class.java)!!
+                    val newExpense = expen.getValue(ExpenseData::class.java)!!
                     val lastEdit = newExpense.expLastEdit
-                    val date = newExpense.expDate
+                    val date = newExpense.date
                     val title = newExpense.expTitle
                     val total = newExpense.expTotal
                     val paidBy = newExpense.expPaidBy
@@ -218,7 +217,7 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
                         // Receipt is NOT in the users SQL db
                         Log.i("Fbase-E", "Receipt $firebaseID is NOT in Sql db")
                         changesMade = true
-                        val currency = newExpense.expCurrency
+                        val currency = newExpense.expCurrencyCode
                         val exchangeRate = newExpense.expExchRate
                         //Save expense into SQL
                         val expenseCurrencySymbol = CurrencyHelper.returnUiSymbol(currency)

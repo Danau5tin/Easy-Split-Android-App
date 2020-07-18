@@ -92,13 +92,13 @@ class FirebaseDbHelper(private var firebaseGroupId: String) {
                     participantList, context, joinRadioGroup!!)
 
                 for (expense in expensesChild.children) {
-                    val expenseData = expense.getValue(FirebaseExpenseData::class.java)!!
+                    val expenseData = expense.getValue(ExpenseData::class.java)!!
                     val expenseId = expense.key!!
-                    val expenseCurrencyUiSymbol = currencyHelper.returnUiSymbol(expenseData.expCurrency)
-                    val expenseSqlRow = sqlHelper.insertNewExpense(sqlRowString, expenseId, expenseData.expDate,
+                    val expenseCurrencyUiSymbol = currencyHelper.returnUiSymbol(expenseData.expCurrencyCode)
+                    val expenseSqlRow = sqlHelper.insertNewExpense(sqlRowString, expenseId, expenseData.date,
                         expenseData.expTitle, expenseData.expTotal, expenseData.expPaidBy,
                         expenseData.expContribs, expenseData.expScanned, expenseData.expLastEdit,
-                        expenseData.expCurrency, expenseCurrencyUiSymbol, expenseData.expExchRate)
+                        expenseData.expCurrencyCode, expenseCurrencyUiSymbol, expenseData.expExchRate)
 
                     if (expenseData.expScanned) {
                         for (receipt in scannedChild.children) {
@@ -189,13 +189,9 @@ class FirebaseDbHelper(private var firebaseGroupId: String) {
         currentPath.setValue(accountData)
     }
 
-    fun createUpdateNewExpense(expenseId: String, date: String, title: String, total: Float,
-                               paidBy: String, contributions: String, scanned: Boolean,
-                               lastEdit: String, expenseCurrency: String, exchangeRate: Float) {
+    fun insertOrUpdateExpense(expenseData: ExpenseData) {
         //Creates a new expense if not exists and if exists updates.
-        val expenseData = FirebaseExpenseData(date, title, total, paidBy, contributions, scanned,
-            lastEdit, expenseCurrency, exchangeRate)
-        val expensePath = "$firebaseGroupId$expenses/$expenseId"
+        val expensePath = "$firebaseGroupId$expenses/${expenseData.firebaseIdentifier}"
         currentPath = database.getReference(expensePath)
         currentPath.setValue(expenseData)
     }

@@ -28,7 +28,7 @@ object DbManager {
         const val EXPENSE_COL_CONTRIBUTIONS = "contributions"
         const val EXPENSE_COL_SCANNED = "scanned"
         const val EXPENSE_COL_LAST_EDIT = "last_edit"
-        const val EXPENSE_COL_CURRENCY = "expense_currency"
+        const val EXPENSE_COL_CURRENCY_CODE = "expense_currency"
         const val EXPENSE_COL_UI_SYMBOL = "ui_currency_symbol"
         const val EXPENSE_COL_EXCHANGE_RATE = "exchange_rate"
         const val EXPENSE_COL_FK_GROUP_ID = "group_id"

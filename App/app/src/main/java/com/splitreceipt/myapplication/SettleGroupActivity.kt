@@ -48,7 +48,7 @@ class SettleGroupActivity : AppCompatActivity() {
                     val firebaseExpenseId = System.currentTimeMillis().toString()
                     val date = NewExpenseCreationActivity.retrieveTodaysDate(this)
                     //TODO: Allow settlements to be made in any currency, defaulting to the base currency.
-                    ExpenseOverviewActivity.firebaseDbHelper!!.createUpdateNewExpense(
+                    ExpenseOverviewActivity.firebaseDbHelper!!.insertOrUpdateExpense(
                         firebaseExpenseId, date, title, amount, paidBy, contribString, false, firebaseExpenseId, ExpenseOverviewActivity.groupBaseCurrency!!,1.0F)
                     SqlDbHelper(this).insertNewExpense(ExpenseOverviewActivity.getSqlGroupId!!,
                         firebaseExpenseId, date, title, amount, paidBy, contribString, false,

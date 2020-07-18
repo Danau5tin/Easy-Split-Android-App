@@ -17,4 +17,10 @@ class ParticipantBalanceData () {
         userKey = fBaseKey
         userSqlRow = sqlRowId
     }
+
+    fun contribsToBaseCurrency(exchangeRate: Float) {
+            if (userBalance > 0.0F) {
+                userBalance /= exchangeRate
+            }
+    }
 }
