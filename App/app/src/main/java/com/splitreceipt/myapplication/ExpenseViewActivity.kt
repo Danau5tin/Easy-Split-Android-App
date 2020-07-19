@@ -141,7 +141,7 @@ class ExpenseViewActivity : AppCompatActivity() {
         intent.putExtra(NewExpenseCreationActivity.editIntentContributionsString, contributionString)
         intent.putExtra(NewExpenseCreationActivity.editIntentCurrencyUiSymbol, currencyUiSymbol)
         intent.putExtra(NewExpenseCreationActivity.intentSqlExpenseIdString, sqlRowId)
-        intent.putExtra(NewExpenseCreationActivity.intentSqlGroupIdString, ExpenseOverviewActivity.getSqlGroupId)
+        intent.putExtra(NewExpenseCreationActivity.intentSqlGroupIdString, ExpenseOverviewActivity.currentSqlGroupId)
         intent.putExtra(NewExpenseCreationActivity.editIntentFirebaseExpenseIdString, firebaseExpenseID)
         intent.putExtra(NewExpenseCreationActivity.editIntentScannedBoolean, getScannedIntent)
         intent.putExtra(NewExpenseCreationActivity.editIntentCurrency, expenseCurrency)
@@ -171,7 +171,7 @@ class ExpenseViewActivity : AppCompatActivity() {
                 val balSetHelper =
                     BalanceSettlementHelper(
                         this,
-                        ExpenseOverviewActivity.getSqlGroupId.toString()
+                        ExpenseOverviewActivity.currentSqlGroupId.toString()
                     )
 
                 if (contributionsChanged) {

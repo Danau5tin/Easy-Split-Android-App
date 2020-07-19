@@ -33,7 +33,7 @@ class SettleGroupActivity : AppCompatActivity() {
         var participantList: ArrayList<String> = ArrayList()
         participantList = SqlDbHelper(
             this
-        ).retrieveParticipants(participantList, ExpenseOverviewActivity.getSqlGroupId!!)
+        ).retrieveParticipants(participantList, ExpenseOverviewActivity.currentSqlGroupId!!)
         val spinnerAdapter = ArrayAdapter(this, R.layout.support_simple_spinner_dropdown_item, participantList)
         binding.fromSelectionSpinner.adapter = spinnerAdapter
         binding.toSelectionSpinner.adapter = spinnerAdapter
@@ -54,7 +54,7 @@ class SettleGroupActivity : AppCompatActivity() {
                         firebaseExpenseId, date, title, amount, paidBy, contribString, false, firebaseExpenseId, ExpenseOverviewActivity.groupBaseCurrency!!,1.0F)
                     SqlDbHelper(
                         this
-                    ).insertNewExpense(ExpenseOverviewActivity.getSqlGroupId!!,
+                    ).insertNewExpense(ExpenseOverviewActivity.currentSqlGroupId!!,
                         firebaseExpenseId, date, title, amount, paidBy, contribString, false,
                         firebaseExpenseId, ExpenseOverviewActivity.groupBaseCurrency!!, ExpenseOverviewActivity.currencySymbol,1.0F)
                     intent.putExtra(NewExpenseCreationActivity.CONTRIBUTION_INTENT_DATA, contribString)

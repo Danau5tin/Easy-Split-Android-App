@@ -15,7 +15,7 @@ import com.splitreceipt.myapplication.data.*
 import de.hdodenhof.circleimageview.CircleImageView
 import java.io.ByteArrayOutputStream
 
-class FirebaseDbHelper(private var firebaseGroupId: String) {
+class FirebaseDbHelper(var firebaseGroupId: String) {
 
     var database = FirebaseDatabase.getInstance()
     private lateinit var currentPath : DatabaseReference
@@ -90,7 +90,7 @@ class FirebaseDbHelper(private var firebaseGroupId: String) {
                 val sqlRowString = sqlRow.toString()
                 WelcomeJoinActivity.sqlRow = sqlRowString
 
-                FirebaseUpdateHelper.checkParticipants(sqlRowString, sqlHelper,
+                FirebaseUpdateHelper.syncParticipantsWithFirebase(sqlRowString, sqlHelper,
                     FirebaseDbHelper(
                         firebaseGroupId
                     ), infoData.accParticipantLastEdit,
@@ -105,7 +105,7 @@ class FirebaseDbHelper(private var firebaseGroupId: String) {
                         expenseData.expContribs, expenseData.expScanned, expenseData.expLastEdit,
                         expenseData.expCurrencyCode, expenseCurrencyUiSymbol, expenseData.expExchRate)
 
-                    if (expenseData.expScanned) {
+                    if (expenseData.scanned) {
                         for (receipt in scannedChild.children) {
                             val scannedRecExpId = receipt.key
                             if (scannedRecExpId == expenseId) {
@@ -271,7 +271,7 @@ class FirebaseDbHelper(private var firebaseGroupId: String) {
         }
     }
 
-    fun downloadGroupProfileImage(context: Context, circleImageView: CircleImageView) {
+    fun downloadAndSetNewGroupProfileImage(context: Context, circleImageView: CircleImageView) {
         // Download the group profile image. Save it locally. Set the image to a view.
         val storageReference = FirebaseStorage.getInstance().getReference(firebaseGroupId)
         val userStorageRef = storageReference.child(firebaseGroupId)

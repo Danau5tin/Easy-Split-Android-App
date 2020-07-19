@@ -433,8 +433,8 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
         return settlementString
     }
 
-    fun loadPreviousReceipts(sqlId: String?, receiptList: ArrayList<ReceiptData>){
-        receiptList.clear()
+    fun loadPreviousExpenses(sqlId: String?, expenseList: ArrayList<ExpenseData>){
+        expenseList.clear()
         val reader = readableDatabase
         val columns = arrayOf(
             EXPENSE_COL_DATE, EXPENSE_COL_TITLE, EXPENSE_COL_TOTAL,
@@ -467,9 +467,8 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
             val currencyUiSymbol = cursor.getString(currencyUiSymbolColIndex)
             val currencyCode = cursor.getString(currencyCodeColIndex)
             val currencyExchangeRate = cursor.getFloat(currencyExchangeColIndex)
-            receiptList.add(
-                ReceiptData(
-                    receiptDate, receiptTitle, receiptTotal, receiptPaidBy,
+            expenseList.add(
+                ExpenseData(receiptDate, receiptTitle, receiptTotal, receiptPaidBy,
                     receiptSqlId, scanned, currencyUiSymbol, currencyCode, currencyExchangeRate
                 )
             )
@@ -593,11 +592,7 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
             val fireBaseId: String = cursor.getString(fireIDColIndex)
             val lastEdit: String = cursor.getString(lastEditColIndex)
             basicExpenseListSql.add(
-                BasicExpenseDataSql(
-                    sqlRowID,
-                    fireBaseId,
-                    lastEdit
-                )
+                BasicExpenseDataSql(sqlRowID, fireBaseId, lastEdit)
             )
         }
         cursor.close()

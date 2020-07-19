@@ -1,5 +1,8 @@
 package com.splitreceipt.myapplication.data
 
+import android.annotation.SuppressLint
+import com.splitreceipt.myapplication.ExpenseOverviewActivity
+
 class ParticipantData (var name: String, var contributionValue: String, var contributing: Boolean) {
 
     companion object {
@@ -18,6 +21,23 @@ class ParticipantData (var name: String, var contributionValue: String, var cont
                 participantList.add(ParticipantData(participantName, contributingValue, contributing))
             }
             return participantList
+        }
+
+        @SuppressLint("DefaultLocale")
+        fun changeNameToYou(participantName: String, capitalize: Boolean): String {
+            return if (participantName == ExpenseOverviewActivity.currentSqlUser) {
+                if (capitalize) {
+                    "You"
+                } else {
+                    "you"
+                }
+            } else {
+                if (capitalize) {
+                    participantName.capitalize()
+                } else {
+                    participantName
+                }
+            }
         }
     }
 

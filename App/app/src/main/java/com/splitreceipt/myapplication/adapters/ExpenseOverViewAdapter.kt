@@ -6,13 +6,13 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.splitreceipt.myapplication.ExpenseOverviewActivity
 import com.splitreceipt.myapplication.R
 import com.splitreceipt.myapplication.SplitExpenseManuallyFragment
-import com.splitreceipt.myapplication.data.ReceiptData
+import com.splitreceipt.myapplication.data.ParticipantData.Companion.changeNameToYou
+import com.splitreceipt.myapplication.data.ExpenseData
 import kotlin.collections.ArrayList
 
-class ExpenseOverViewAdapter(var receiptList: ArrayList<ReceiptData>, var onRecRowClick: OnReceRowClick) : RecyclerView.Adapter<ExpenseOverViewAdapter.ReceiptOverviewViewHolder>(){
+class ExpenseOverViewAdapter(var expenseList: ArrayList<ExpenseData>, var onRecRowClick: OnReceRowClick) : RecyclerView.Adapter<ExpenseOverViewAdapter.ReceiptOverviewViewHolder>(){
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ReceiptOverviewViewHolder {
         val inflater: LayoutInflater = LayoutInflater.from(parent.context)
@@ -25,34 +25,27 @@ class ExpenseOverViewAdapter(var receiptList: ArrayList<ReceiptData>, var onRecR
     }
 
     override fun getItemCount(): Int {
-        return receiptList.size
+        return expenseList.size
     }
 
     override fun onBindViewHolder(holder: ReceiptOverviewViewHolder, position: Int) {
-        holder.receiptTitleTextView.text = receiptList[position].title
+        holder.receiptTitleTextView.text = expenseList[position].title
 
-        val totalToString = receiptList[position].total.toString()
-        val totalFixedString =
-            SplitExpenseManuallyFragment.addStringZerosForDecimalPlace(
-                totalToString
-            )
-        val currencyUiSymbol = receiptList[position].currencyUiSymbol
+        val totalToString = expenseList[position].total.toString()
+        val totalFixedString = SplitExpenseManuallyFragment.addStringZerosForDecimalPlace(totalToString)
+        val currencyUiSymbol = expenseList[position].currencyUiSymbol
         val totalString = "$currencyUiSymbol$totalFixedString"
         holder.receiptTotalTextView.text = totalString
 
-        val paidBy =
-            ExpenseOverviewActivity.changeNameToYou(
-                receiptList[position].paidBy,
-                true
-            )
+        val paidBy = changeNameToYou(expenseList[position].paidBy, true)
         val paidByString = "$paidBy paid $totalString"
         holder.receiptPaidByTextView.text = paidByString
 
         holder.total = totalFixedString
         holder.paidBy = paidBy
-        holder.sqlId = receiptList[position].sqlRowId
+        holder.sqlId = expenseList[position].sqlRowId
         holder.uiSymbol = currencyUiSymbol
-        holder.scanned = receiptList[position].scanned
+        holder.scanned = expenseList[position].scanned
     }
 
     class ReceiptOverviewViewHolder(var context: Context, itemView: View, var onRecRowClick: OnReceRowClick) : RecyclerView.ViewHolder(itemView), View.OnClickListener {

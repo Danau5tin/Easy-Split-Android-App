@@ -56,13 +56,13 @@ class GroupSettingsActivity : AppCompatActivity() {
                 ASyncSaveImage(
                     true,
                     context,
-                    ExpenseOverviewActivity.getFirebaseId!!
+                    ExpenseOverviewActivity.currentGroupFirebaseId!!
                 )
             aSyncSaveImage.execute(newBitmap)
             val lastEdit = System.currentTimeMillis().toString()
             ExpenseOverviewActivity.firebaseDbHelper!!.setGroupImageLastEdit(lastEdit)
             SqlDbHelper(context)
-                .setLastImageEdit(lastEdit, ExpenseOverviewActivity.getSqlGroupId)
+                .setLastImageEdit(lastEdit, ExpenseOverviewActivity.currentSqlGroupId)
         }
     }
 
@@ -84,7 +84,7 @@ class GroupSettingsActivity : AppCompatActivity() {
 
         sqlRowId = intent.getStringExtra(groupSqlIdIntent)!!
         imageUri = null
-        val bitmap = ExpenseOverviewActivity.loadImageFromStorage(this, true, ExpenseOverviewActivity.getFirebaseId!!)
+        val bitmap = ExpenseOverviewActivity.loadImageFromStorage(this, true, ExpenseOverviewActivity.currentGroupFirebaseId!!)
         binding.groupImage.setImageBitmap(bitmap)
     }
 
@@ -101,7 +101,7 @@ class GroupSettingsActivity : AppCompatActivity() {
                         )
                     val write = dbHelper.writableDatabase
                     val whereClause = "$GROUP_COL_ID = ?"
-                    val whereArgs = arrayOf(ExpenseOverviewActivity.getSqlGroupId)
+                    val whereArgs = arrayOf(ExpenseOverviewActivity.currentSqlGroupId)
                     write.delete(GROUP_TABLE_NAME, whereClause, whereArgs)
                     dbHelper.close()
 

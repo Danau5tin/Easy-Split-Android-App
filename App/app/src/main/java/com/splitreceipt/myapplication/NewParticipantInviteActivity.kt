@@ -10,7 +10,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.splitreceipt.myapplication.ExpenseOverviewActivity.Companion.firebaseDbHelper
-import com.splitreceipt.myapplication.ExpenseOverviewActivity.Companion.getSqlGroupId
+import com.splitreceipt.myapplication.ExpenseOverviewActivity.Companion.currentSqlGroupId
 import com.splitreceipt.myapplication.adapters.InviteParticipantRecyAdapter
 import com.splitreceipt.myapplication.data.ParticipantBalanceData
 import com.splitreceipt.myapplication.helper_classes.SqlDbHelper
@@ -32,12 +32,12 @@ class NewParticipantInviteActivity : AppCompatActivity(),  InviteParticipantRecy
         shareHelper =
             ShareGroupHelper(
                 this,
-                ExpenseOverviewActivity.getFirebaseId!!
+                ExpenseOverviewActivity.currentGroupFirebaseId!!
             )
         participantList = ArrayList()
         participantList = SqlDbHelper(
             this
-        ).retrieveParticipants(participantList, getSqlGroupId!!)
+        ).retrieveParticipants(participantList, currentSqlGroupId!!)
 
         adapter = InviteParticipantRecyAdapter(participantList, this)
         binding.recyclerViewNewParti.adapter = adapter
@@ -98,7 +98,7 @@ class NewParticipantInviteActivity : AppCompatActivity(),  InviteParticipantRecy
             val fBaseKey = NewGroupCreationActivity.generateFbaseUserKey(newParticipantName)
             val timestamp = System.currentTimeMillis().toString()
             val newParticipant = ParticipantBalanceData(newParticipantName, fBaseKey = fBaseKey)
-            sqlDbHelper.setGroupParticipants(newParticipant, getSqlGroupId!!, timestamp)
+            sqlDbHelper.setGroupParticipants(newParticipant, currentSqlGroupId!!, timestamp)
             ExpenseOverviewActivity.firebaseDbHelper!!.setGroupParticipants(newParticipant, timestamp)
             participantList.add(newParticipant)
         } else {
@@ -124,7 +124,7 @@ class NewParticipantInviteActivity : AppCompatActivity(),  InviteParticipantRecy
                 val timestamp = System.currentTimeMillis().toString()
                 firebaseDbHelper!!.updateParticipantName(clickedParticipant, newName, timestamp)
                 SqlDbHelper(this)
-                    .updateParticipantsName(clickedParticipant, newName, timestamp, getSqlGroupId!!)
+                    .updateParticipantsName(clickedParticipant, newName, timestamp, currentSqlGroupId!!)
                 clickedParticipant.userName = newName
                 //TODO: Is it not worth re-writing the above update functions for the db's so that they just take the newParticipant as an arg with the new name already overwritten in the object?
                 adapter.notifyItemChanged(pos)
