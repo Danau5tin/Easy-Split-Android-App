@@ -1,4 +1,4 @@
-package com.splitreceipt.myapplication
+package com.splitreceipt.myapplication.helper_classes
 
 import android.content.Context
 import android.database.Cursor

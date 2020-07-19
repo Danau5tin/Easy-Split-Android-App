@@ -13,15 +13,16 @@ import android.provider.MediaStore
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
-import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_ID
-import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_TABLE_NAME
-import com.splitreceipt.myapplication.data.SqlDbHelper
+import com.splitreceipt.myapplication.a_sync_classes.ASyncSaveImage
+import com.splitreceipt.myapplication.managers.SqlDbColumnsManager.GroupTable.GROUP_COL_ID
+import com.splitreceipt.myapplication.managers.SqlDbColumnsManager.GroupTable.GROUP_TABLE_NAME
+import com.splitreceipt.myapplication.helper_classes.SqlDbHelper
 import com.splitreceipt.myapplication.databinding.ActivityGroupSettingsBinding
+import com.splitreceipt.myapplication.helper_classes.BitmapRotationFixHelper
 
 
 class GroupSettingsActivity : AppCompatActivity() {
@@ -42,7 +43,8 @@ class GroupSettingsActivity : AppCompatActivity() {
             // Able to set a new image. Fix rotation issues if present. Upload to Firebase. Save locally.
             view.setImageURI(uri)
             val bitmap = MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
-            val bitmapRotationFixHelper = BitmapRotationFixHelper()
+            val bitmapRotationFixHelper =
+                BitmapRotationFixHelper()
             val newBitmap: Bitmap
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 newBitmap = bitmapRotationFixHelper.rotateBitmap(context, uri, bitmap)!!
@@ -50,11 +52,17 @@ class GroupSettingsActivity : AppCompatActivity() {
                 newBitmap = bitmap
             }
             ExpenseOverviewActivity.firebaseDbHelper!!.uploadGroupProfileImage(newBitmap)
-            val aSyncSaveImage = ASyncSaveImage(true, context, ExpenseOverviewActivity.getFirebaseId!!)
+            val aSyncSaveImage =
+                ASyncSaveImage(
+                    true,
+                    context,
+                    ExpenseOverviewActivity.getFirebaseId!!
+                )
             aSyncSaveImage.execute(newBitmap)
             val lastEdit = System.currentTimeMillis().toString()
             ExpenseOverviewActivity.firebaseDbHelper!!.setGroupImageLastEdit(lastEdit)
-            SqlDbHelper(context).setLastImageEdit(lastEdit, ExpenseOverviewActivity.getSqlGroupId)
+            SqlDbHelper(context)
+                .setLastImageEdit(lastEdit, ExpenseOverviewActivity.getSqlGroupId)
         }
     }
 
@@ -87,7 +95,10 @@ class GroupSettingsActivity : AppCompatActivity() {
             setMessage("This group will be deleted for ALL users involved, not just yourself.")
             setPositiveButton("Yes delete", object: DialogInterface.OnClickListener{
                 override fun onClick(dialog: DialogInterface?, which: Int) {
-                    val dbHelper = SqlDbHelper(context)
+                    val dbHelper =
+                        SqlDbHelper(
+                            context
+                        )
                     val write = dbHelper.writableDatabase
                     val whereClause = "$GROUP_COL_ID = ?"
                     val whereArgs = arrayOf(ExpenseOverviewActivity.getSqlGroupId)
@@ -118,7 +129,9 @@ class GroupSettingsActivity : AppCompatActivity() {
                 if (okayToProceed) {
                     val groupName = binding.nameEdit.text.toString()
                     ExpenseOverviewActivity.firebaseDbHelper!!.updateGroupName(groupName)
-                    SqlDbHelper(this).updateGroupName(sqlRowId, groupName)
+                    SqlDbHelper(
+                        this
+                    ).updateGroupName(sqlRowId, groupName)
                     intent.putExtra(groupNameReturnIntent, groupName)
                     intent.putExtra(groupImageChangedUriIntent, imageUri)
                     setResult(Activity.RESULT_OK, intent)

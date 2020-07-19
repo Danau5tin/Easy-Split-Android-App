@@ -29,7 +29,7 @@
             android:screenOrientation="portrait"/>
         <activity android:name=".CurrencySelectorActivity"
             android:screenOrientation="portrait"/>
-        <activity android:name=".NewGroupCreation"
+        <activity android:name=".NewGroupCreationActivity"
             android:screenOrientation="portrait"/>
         <activity android:name=".GroupScreenActivity"
             android:screenOrientation="portrait">

@@ -1,9 +1,9 @@
-package com.splitreceipt.myapplication
+package com.splitreceipt.myapplication.a_sync_classes
 
 import android.os.AsyncTask
 import android.util.Log
 import com.splitreceipt.myapplication.data.CurrencyData
-import com.splitreceipt.myapplication.data.SqlDbHelper
+import com.splitreceipt.myapplication.helper_classes.SqlDbHelper
 import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.InputStreamReader

@@ -1,4 +1,4 @@
-package com.splitreceipt.myapplication.data
+package com.splitreceipt.myapplication.helper_classes
 
 import android.content.Context
 import android.content.Intent
@@ -9,10 +9,9 @@ import android.widget.RadioGroup
 import android.widget.Toast
 import com.google.firebase.database.*
 import com.google.firebase.storage.FirebaseStorage
-import com.splitreceipt.myapplication.ASyncSaveImage
-import com.splitreceipt.myapplication.CurrencyHelper
-import com.splitreceipt.myapplication.FirebaseUpdateHelper
+import com.splitreceipt.myapplication.a_sync_classes.ASyncSaveImage
 import com.splitreceipt.myapplication.WelcomeJoinActivity
+import com.splitreceipt.myapplication.data.*
 import de.hdodenhof.circleimageview.CircleImageView
 import java.io.ByteArrayOutputStream
 
@@ -77,8 +76,12 @@ class FirebaseDbHelper(private var firebaseGroupId: String) {
                 val participantsChild = snapshot.child(participants.substring(1))
                 val infoData = infoChild.getValue(FirebaseAccountInfoData::class.java)!!
                 val financeData = financeChild.getValue(FirebaseAccountFinancialData::class.java)!!
-                val sqlHelper = SqlDbHelper(context)
-                val currencyHelper = CurrencyHelper
+                val sqlHelper =
+                    SqlDbHelper(
+                        context
+                    )
+                val currencyHelper =
+                    CurrencyHelper
                 val baseCurrencyUiSymbol = currencyHelper.returnUiSymbol(infoData.accCurrency)
                 val sqlRow = sqlHelper.insertNewGroup(firebaseGroupId, infoData.accName,
                     infoData.accParticipantLastEdit, financeData.accSettle, "u",
@@ -88,11 +91,13 @@ class FirebaseDbHelper(private var firebaseGroupId: String) {
                 WelcomeJoinActivity.sqlRow = sqlRowString
 
                 FirebaseUpdateHelper.checkParticipants(sqlRowString, sqlHelper,
-                    FirebaseDbHelper(firebaseGroupId), infoData.accParticipantLastEdit,
+                    FirebaseDbHelper(
+                        firebaseGroupId
+                    ), infoData.accParticipantLastEdit,
                     participantList, context, joinRadioGroup!!)
 
                 for (expense in expensesChild.children) {
-                    val expenseData = expense.getValue(ExpenseData::class.java)!!
+                    val expenseData = expense.getValue(Expense::class.java)!!
                     val expenseId = expense.key!!
                     val expenseCurrencyUiSymbol = currencyHelper.returnUiSymbol(expenseData.expCurrencyCode)
                     val expenseSqlRow = sqlHelper.insertNewExpense(sqlRowString, expenseId, expenseData.date,
@@ -165,7 +170,10 @@ class FirebaseDbHelper(private var firebaseGroupId: String) {
 
     fun setGroupFinance(groupSettlement: String) {
         val groupFinancePath = "$firebaseGroupId$groupFin"
-        val accountData = FirebaseAccountFinancialData(groupSettlement)
+        val accountData =
+            FirebaseAccountFinancialData(
+                groupSettlement
+            )
         currentPath = database.getReference(groupFinancePath)
         currentPath.setValue(accountData)
     }
@@ -184,16 +192,22 @@ class FirebaseDbHelper(private var firebaseGroupId: String) {
 
     private fun setGroupInfo(groupName: String, participantString: String, lastImageEdit: String, baseCurrency: String) {
         val groupInfoPath = "$firebaseGroupId$groupInfo"
-        val accountData = FirebaseAccountInfoData(groupName, participantString, lastImageEdit, baseCurrency)
+        val accountData =
+            FirebaseAccountInfoData(
+                groupName,
+                participantString,
+                lastImageEdit,
+                baseCurrency
+            )
         currentPath = database.getReference(groupInfoPath)
         currentPath.setValue(accountData)
     }
 
-    fun insertOrUpdateExpense(expenseData: ExpenseData) {
+    fun insertOrUpdateExpense(expense: Expense) {
         //Creates a new expense if not exists and if exists updates.
-        val expensePath = "$firebaseGroupId$expenses/${expenseData.firebaseIdentifier}"
+        val expensePath = "$firebaseGroupId$expenses/${expense.firebaseIdentifier}"
         currentPath = database.getReference(expensePath)
-        currentPath.setValue(expenseData)
+        currentPath.setValue(expense)
     }
 
     fun getAccountInfoListeningRef() : DatabaseReference{
@@ -225,7 +239,12 @@ class FirebaseDbHelper(private var firebaseGroupId: String) {
         var count = 1
         for (product in itemizedProductData){
             val productPath = "$receiptPath/$count"
-            val firebaseProductData = FirebaseProductData(product.itemName, product.itemValue, product.ownership)
+            val firebaseProductData =
+                FirebaseProductData(
+                    product.itemName,
+                    product.itemValue,
+                    product.ownership
+                )
             currentPath = database.getReference(productPath)
             currentPath.setValue(firebaseProductData)
             count ++
@@ -258,7 +277,12 @@ class FirebaseDbHelper(private var firebaseGroupId: String) {
         val userStorageRef = storageReference.child(firebaseGroupId)
         val downloadTask = userStorageRef.getBytes(1000000000)
         downloadTask.addOnSuccessListener{
-            val async = ASyncSaveImage(true, context, firebaseGroupId)
+            val async =
+                ASyncSaveImage(
+                    true,
+                    context,
+                    firebaseGroupId
+                )
             val bitmap = BitmapFactory.decodeByteArray(it, 0, it.size)
             async.execute(bitmap)
             circleImageView.setImageBitmap(bitmap)

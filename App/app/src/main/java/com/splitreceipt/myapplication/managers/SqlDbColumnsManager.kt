@@ -1,8 +1,8 @@
-package com.splitreceipt.myapplication.data
+package com.splitreceipt.myapplication.managers
 
 import android.provider.BaseColumns
 
-object DbManager {
+object SqlDbColumnsManager {
 
     object GroupTable : BaseColumns {
         const val GROUP_TABLE_NAME = "user_groups"

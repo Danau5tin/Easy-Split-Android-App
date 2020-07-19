@@ -11,19 +11,21 @@ import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.splitreceipt.myapplication.CurrencyHelper.CurrencyDetails
-import com.splitreceipt.myapplication.CurrencyHelper.EXCHANGE_RATE_OF_1
-import com.splitreceipt.myapplication.CurrencyHelper.retrieveExchangeRate
+import com.splitreceipt.myapplication.helper_classes.CurrencyHelper.CurrencyDetails
+import com.splitreceipt.myapplication.helper_classes.CurrencyHelper.EXCHANGE_RATE_OF_1
+import com.splitreceipt.myapplication.helper_classes.CurrencyHelper.retrieveExchangeRate
 import com.splitreceipt.myapplication.ExpenseOverviewActivity.Companion.firebaseDbHelper
 import com.splitreceipt.myapplication.ExpenseOverviewActivity.Companion.roundToTwoDecimalPlace
 import com.splitreceipt.myapplication.SplitReceiptScanFragment.Companion.itemizedArrayList
 import com.splitreceipt.myapplication.SplitReceiptScanFragment.Companion.ownershipEqualString
+import com.splitreceipt.myapplication.adapters.ExpensePagerAdapter
 import com.splitreceipt.myapplication.data.*
-import com.splitreceipt.myapplication.data.DateSelectionCleaner.returnDateString
-import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_GROUP_CURRENCY_CODE
-import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_GROUP_CURRENCY_SYMBOL
-import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_NAME
+import com.splitreceipt.myapplication.helper_classes.DateSelectionCleaner.returnDateString
+import com.splitreceipt.myapplication.managers.SharedPrefManager.SHARED_PREF_GROUP_CURRENCY_CODE
+import com.splitreceipt.myapplication.managers.SharedPrefManager.SHARED_PREF_GROUP_CURRENCY_SYMBOL
+import com.splitreceipt.myapplication.managers.SharedPrefManager.SHARED_PREF_NAME
 import com.splitreceipt.myapplication.databinding.ActivityNewExpenseCreationBinding
+import com.splitreceipt.myapplication.helper_classes.SqlDbHelper
 import kotlinx.android.synthetic.main.fragment_split_receipt_manually.*
 import kotlinx.android.synthetic.main.fragment_split_receipt_scan.*
 import java.time.LocalDate
@@ -84,7 +86,9 @@ class NewExpenseCreationActivity : AppCompatActivity() {
         sqlGroupId = intent.getStringExtra(intentSqlGroupIdString)
         participantList = ArrayList()
         participantDataEditList = ArrayList()
-        participantList = SqlDbHelper(this).retrieveParticipants(participantList, sqlGroupId!!)
+        participantList = SqlDbHelper(
+            this
+        ).retrieveParticipants(participantList, sqlGroupId!!)
         binding.receiptViewPager.isUserInputEnabled = false
 
         val spinnerAdapter = setUpPaidBySpinner()
@@ -172,8 +176,11 @@ class NewExpenseCreationActivity : AppCompatActivity() {
             R.id.menuSave -> {
                 val currentUserPage = binding.receiptViewPager.currentItem
                 if (okayToProceed(currentUserPage)) {
-                    val userExpense: ExpenseData
-                    val sqlDbHelper = SqlDbHelper(this)
+                    val userExpense: Expense
+                    val sqlDbHelper =
+                        SqlDbHelper(
+                            this
+                        )
 
                     if (currentUserPage == MANUAL_PAGE_INDEX) {
                         userExpense = returnNewManualExpense(sqlDbHelper)
@@ -260,7 +267,7 @@ class NewExpenseCreationActivity : AppCompatActivity() {
         return true
     }
 
-    private fun returnNewManualExpense(sqlDbHelper: SqlDbHelper): ExpenseData {
+    private fun returnNewManualExpense(sqlDbHelper: SqlDbHelper): Expense {
         val newExpense = returnBasicExpense(false)
         val participantList: ArrayList<ParticipantBalanceData> = participantsToParticipantBalance(SplitExpenseManuallyFragment.fragmentManualParticipantList)
         val exchangeRate = retrieveExchangeRate(currencyCode, editExchangeRate, sqlDbHelper)
@@ -273,19 +280,19 @@ class NewExpenseCreationActivity : AppCompatActivity() {
         return newExpense
     }
 
-    private fun returnBasicExpense(scanned: Boolean) : ExpenseData{
+    private fun returnBasicExpense(scanned: Boolean) : Expense{
         val date = getExpenseDate()
         val title = binding.receiptTitleEditText.text.toString()
         val paidBy = binding.paidBySpinner.selectedItem.toString()
         val lastEdit: String = System.currentTimeMillis().toString()
-        return ExpenseData(date, title, paidBy, scanned, lastEdit)
+        return Expense(date, title, paidBy, scanned, lastEdit)
     }
 
     private fun userIsAddingNewExpense() : Boolean {
         return !isEdit
     }
 
-    private fun returnNewScannedExpense(sqlDbHelper: SqlDbHelper): ExpenseData {
+    private fun returnNewScannedExpense(sqlDbHelper: SqlDbHelper): Expense {
         val newExpense = returnBasicExpense(true)
         val participantList: ArrayList<ParticipantBalanceData> = productsToParticipantBalances(itemizedArrayList)
 
@@ -301,7 +308,7 @@ class NewExpenseCreationActivity : AppCompatActivity() {
 
     private fun allTextRecogErrorsCleared() = SplitReceiptScanFragment.errorsCleared
 
-    private fun putExpenseEditDataInIntent(intent: Intent, userExpense: ExpenseData) {
+    private fun putExpenseEditDataInIntent(intent: Intent, userExpense: Expense) {
         intent.putExtra(ExpenseViewActivity.expenseReturnEditDate, userExpense.date)
         intent.putExtra(ExpenseViewActivity.expenseReturnEditTotal, userExpense.total.toString())
         intent.putExtra(ExpenseViewActivity.expenseReturnEditTitle, userExpense.title)

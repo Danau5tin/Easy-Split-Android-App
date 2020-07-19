@@ -1,4 +1,4 @@
-package com.splitreceipt.myapplication.data
+package com.splitreceipt.myapplication.managers
 
 object SharedPrefManager {
     const val SHARED_PREF_NAME = "SharedPref"

@@ -16,11 +16,12 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.splitreceipt.myapplication.NewExpenseCreationActivity.Companion.currencyCode
 import com.splitreceipt.myapplication.NewExpenseCreationActivity.Companion.currencySymbol
 import com.splitreceipt.myapplication.NewExpenseCreationActivity.Companion.zeroCurrency
-import com.splitreceipt.myapplication.data.SqlDbHelper
+import com.splitreceipt.myapplication.adapters.NewManualExpenseRecyclerAdapter
+import com.splitreceipt.myapplication.helper_classes.SqlDbHelper
 import com.splitreceipt.myapplication.data.ParticipantData
-import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_GROUP_CURRENCY_CODE
-import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_GROUP_CURRENCY_SYMBOL
-import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_NAME
+import com.splitreceipt.myapplication.managers.SharedPrefManager.SHARED_PREF_GROUP_CURRENCY_CODE
+import com.splitreceipt.myapplication.managers.SharedPrefManager.SHARED_PREF_GROUP_CURRENCY_SYMBOL
+import com.splitreceipt.myapplication.managers.SharedPrefManager.SHARED_PREF_NAME
 import com.splitreceipt.myapplication.databinding.FragmentSplitReceiptManuallyBinding
 
 class SplitExpenseManuallyFragment : Fragment(), NewManualExpenseRecyclerAdapter.OnRecyRowCheked {
@@ -160,7 +161,8 @@ class SplitExpenseManuallyFragment : Fragment(), NewManualExpenseRecyclerAdapter
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
-        sqlDbHelper = SqlDbHelper(context)
+        sqlDbHelper =
+            SqlDbHelper(context)
         contxt = context
     }
 

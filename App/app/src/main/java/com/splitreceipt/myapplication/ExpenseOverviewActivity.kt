@@ -23,8 +23,12 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
+import com.splitreceipt.myapplication.a_sync_classes.ASyncCurrencyDownload
+import com.splitreceipt.myapplication.a_sync_classes.ASyncSaveImage
+import com.splitreceipt.myapplication.adapters.ExpenseOverViewAdapter
 import com.splitreceipt.myapplication.data.*
 import com.splitreceipt.myapplication.databinding.ActivityMainBinding
+import com.splitreceipt.myapplication.helper_classes.*
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileNotFoundException
@@ -127,10 +131,16 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
         groupBaseCurrency = intent.getStringExtra(GroupScreenActivity.groupBaseCurrencyIntent)!!
         currencySymbol = intent.getStringExtra(GroupScreenActivity.groupBaseCurrencyUiSymbolIntent)!!
 
-        firebaseDbHelper = FirebaseDbHelper(getFirebaseId!!)
+        firebaseDbHelper =
+            FirebaseDbHelper(
+                getFirebaseId!!
+            )
 
-        val sqlHelper = SqlDbHelper(this)
-        ASyncCurrencyDownload(sqlHelper).execute(groupBaseCurrency) // Checks if we need to update the latest currency conversions.
+        val sqlHelper =
+            SqlDbHelper(this)
+        ASyncCurrencyDownload(
+            sqlHelper
+        ).execute(groupBaseCurrency) // Checks if we need to update the latest currency conversions.
 
         setSupportActionBar(findViewById(R.id.toolbar))
         supportActionBar?.title = ""
@@ -140,9 +150,12 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
             setHomeAsUpIndicator(R.drawable.vector_back_arrow_white)
         }
 
-        if (intent.getBooleanExtra(NewGroupCreation.newGroupCreatedIntent, false)){
+        if (intent.getBooleanExtra(NewGroupCreationActivity.newGroupCreatedIntent, false)){
             Log.i("ExpenseOverview", "Group entered was just created by user")
-            ShareGroupHelper(this, getFirebaseId!!)
+            ShareGroupHelper(
+                this,
+                getFirebaseId!!
+            )
         }
 
         if (intent.getStringExtra(UriIntent) != null) {
@@ -181,15 +194,22 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
                  Check if any of the expenses in Firebase are not in the users SQL db.
                  If they are not then we will recalculate the expenses.
                  */
-                val sqlDbHelper = SqlDbHelper(baseContext)
+                val sqlDbHelper =
+                    SqlDbHelper(
+                        baseContext
+                    )
                 val sqlExpenses = sqlDbHelper.retrieveBasicExpenseSqlData(getSqlGroupId!!)
                 var settlementString: String? = null
-                val balanceSettlementHelper = BalanceSettlementHelper(applicationContext, getSqlGroupId!!)
+                val balanceSettlementHelper =
+                    BalanceSettlementHelper(
+                        applicationContext,
+                        getSqlGroupId!!
+                    )
                 for (expense in snapshot.children){
                     val firebaseID = expense.key
                     var exists = false
                     val expen = snapshot.child(firebaseID!!)
-                    val newExpense = expen.getValue(ExpenseData::class.java)!!
+                    val newExpense = expen.getValue(Expense::class.java)!!
                     val lastEdit = newExpense.expLastEdit
                     val date = newExpense.date
                     val title = newExpense.expTitle
@@ -345,7 +365,9 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
                     newSettlementString = data.getStringExtra(ExpenseViewActivity.expenseReturnNewSettlements)
                     if (newSettlementString == null){
                         // This means the user did not change any contributions. Therefore retrieve the old string
-                        newSettlementString = SqlDbHelper(this).loadSqlSettlementString(getSqlGroupId)
+                        newSettlementString = SqlDbHelper(
+                            this
+                        ).loadSqlSettlementString(getSqlGroupId)
                     }
                 }
                 deconstructAndSetSettlementString(newSettlementString)
@@ -451,7 +473,11 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
     }
 
     private fun newContributionUpdates(newContributions: String): String {
-        val balanceSettlementHelper = BalanceSettlementHelper(this, getSqlGroupId.toString())
+        val balanceSettlementHelper =
+            BalanceSettlementHelper(
+                this,
+                getSqlGroupId.toString()
+            )
         val settlementString = balanceSettlementHelper.balanceAndSettlementsFromSql(newContributions)
         firebaseDbHelper!!.setGroupFinance(settlementString)
         return settlementString
@@ -461,7 +487,8 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
         // Clears the list and refreshes receipts from SQL db back into it.
         expenseList.clear()
         Log.i("Expense Overview", "Recycler - reloaded")
-        SqlDbHelper(this).loadPreviousReceipts(getSqlGroupId, expenseList)
+        SqlDbHelper(this)
+            .loadPreviousReceipts(getSqlGroupId, expenseList)
         adapter.notifyDataSetChanged()
     }
 

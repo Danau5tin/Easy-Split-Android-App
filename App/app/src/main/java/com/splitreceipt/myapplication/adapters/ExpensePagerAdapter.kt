@@ -1,8 +1,10 @@
-package com.splitreceipt.myapplication
+package com.splitreceipt.myapplication.adapters
 
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.viewpager2.adapter.FragmentStateAdapter
+import com.splitreceipt.myapplication.SplitExpenseManuallyFragment
+import com.splitreceipt.myapplication.SplitReceiptScanFragment
 
 class ExpensePagerAdapter(activity: AppCompatActivity) : FragmentStateAdapter(activity) {
 

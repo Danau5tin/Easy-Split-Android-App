@@ -1,4 +1,4 @@
-package com.splitreceipt.myapplication
+package com.splitreceipt.myapplication.helper_classes
 
 import android.app.AlertDialog
 import android.content.ClipData
@@ -8,6 +8,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.view.LayoutInflater
 import android.widget.Toast
+import com.splitreceipt.myapplication.R
 import kotlinx.android.synthetic.main.alert_dialog_share_group.*
 
 class ShareGroupHelper(var context: Context, var firebaseGroupId: String) {
@@ -20,7 +21,11 @@ class ShareGroupHelper(var context: Context, var firebaseGroupId: String) {
         val diagView = LayoutInflater.from(context).inflate(R.layout.alert_dialog_share_group, null)
         val builder = AlertDialog.Builder(context).setTitle("Share")
             .setView(diagView).show()
-        val shareGroupHelper = ShareGroupHelper(context, firebaseGroupId)
+        val shareGroupHelper =
+            ShareGroupHelper(
+                context,
+                firebaseGroupId
+            )
         builder.copyLinkButton2.setOnClickListener {
             shareGroupHelper.clipboardShareCopy()
         }

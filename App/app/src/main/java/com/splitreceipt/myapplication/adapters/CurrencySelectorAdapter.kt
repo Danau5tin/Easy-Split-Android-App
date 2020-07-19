@@ -1,18 +1,21 @@
-package com.splitreceipt.myapplication
+package com.splitreceipt.myapplication.adapters
 
-import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.splitreceipt.myapplication.R
 
-class CurrencySelectorAdapter(var currencyList: MutableList<String>, var onCurClick: onCureClick) : RecyclerView.Adapter<CurrencySelectorAdapter.CurrencyViewHolder>(){
+class CurrencySelectorAdapter(var currencyList: MutableList<String>, var onCurClick: OnCureClick) : RecyclerView.Adapter<CurrencySelectorAdapter.CurrencyViewHolder>(){
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CurrencyViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         val view = inflater.inflate(R.layout.currency_selector_row, parent, false)
-        return CurrencyViewHolder(view, onCurClick)
+        return CurrencyViewHolder(
+            view,
+            onCurClick
+        )
     }
 
     override fun getItemCount(): Int {
@@ -29,7 +32,7 @@ class CurrencySelectorAdapter(var currencyList: MutableList<String>, var onCurCl
         notifyDataSetChanged()
     }
 
-    class CurrencyViewHolder(itemView: View, var onCurClick: onCureClick) : RecyclerView.ViewHolder(itemView), View.OnClickListener{
+    class CurrencyViewHolder(itemView: View, var onCurClick: OnCureClick) : RecyclerView.ViewHolder(itemView), View.OnClickListener{
         val textView: TextView = itemView.findViewById(R.id.currencySelectorText)
         var code: String = ""
 
@@ -43,7 +46,7 @@ class CurrencySelectorAdapter(var currencyList: MutableList<String>, var onCurCl
 
     }
 
-    interface onCureClick{
+    interface OnCureClick{
         fun onRowClick(code: String)
     }
 }

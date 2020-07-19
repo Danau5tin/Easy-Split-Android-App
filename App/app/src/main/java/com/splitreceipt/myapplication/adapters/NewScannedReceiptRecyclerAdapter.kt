@@ -1,4 +1,4 @@
-package com.splitreceipt.myapplication
+package com.splitreceipt.myapplication.adapters
 
 import android.content.Context
 import android.view.LayoutInflater
@@ -10,6 +10,7 @@ import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.RecyclerView
 import com.splitreceipt.myapplication.NewExpenseCreationActivity.Companion.currencySymbol
+import com.splitreceipt.myapplication.R
 import com.splitreceipt.myapplication.data.ScannedItemizedProductData
 
 
@@ -20,9 +21,14 @@ class NewScannedReceiptRecyclerAdapter(var participantList: MutableList<String>,
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ItemizedViewholder {
         val inflater: LayoutInflater = LayoutInflater.from(parent.context)
-        val view: View = inflater.inflate(R.layout.itemised_new_scanned_receipt_recy_row,
+        val view: View = inflater.inflate(
+            R.layout.itemised_new_scanned_receipt_recy_row,
                                             parent, false)
-        return ItemizedViewholder(parent.context, view, passedOnScannedClick)
+        return ItemizedViewholder(
+            parent.context,
+            view,
+            passedOnScannedClick
+        )
     }
 
     override fun getItemCount(): Int {

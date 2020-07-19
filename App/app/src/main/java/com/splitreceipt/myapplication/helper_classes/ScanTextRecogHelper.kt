@@ -1,4 +1,4 @@
-package com.splitreceipt.myapplication
+package com.splitreceipt.myapplication.helper_classes
 
 import android.content.Context
 import android.graphics.Bitmap
@@ -8,10 +8,12 @@ import com.google.firebase.ml.vision.FirebaseVision
 import com.google.firebase.ml.vision.common.FirebaseVisionImage
 import com.splitreceipt.myapplication.SplitReceiptScanFragment.Companion.errorsCleared
 import com.splitreceipt.myapplication.SplitReceiptScanFragment.Companion.ownershipEqualString
+import com.splitreceipt.myapplication.adapters.NewScannedReceiptRecyclerAdapter
 import com.splitreceipt.myapplication.data.ScannedItemizedProductData
 
 class ScanTextRecogHelper(var contxt: Context, var itemProductList: ArrayList<ScannedItemizedProductData>,
-                          var adapter: NewScannedReceiptRecyclerAdapter) {
+                          var adapter: NewScannedReceiptRecyclerAdapter
+) {
 
     val negWords = arrayOf(
         ":",

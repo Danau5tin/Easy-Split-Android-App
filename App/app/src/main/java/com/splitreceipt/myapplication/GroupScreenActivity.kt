@@ -11,10 +11,11 @@ import android.view.View
 import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.firebase.database.FirebaseDatabase
-import com.splitreceipt.myapplication.data.FirebaseDbHelper
+import com.splitreceipt.myapplication.adapters.GroupScreenAdapter
+import com.splitreceipt.myapplication.helper_classes.FirebaseDbHelper
 import com.splitreceipt.myapplication.data.GroupData
-import com.splitreceipt.myapplication.data.SharedPrefManager
-import com.splitreceipt.myapplication.data.SqlDbHelper
+import com.splitreceipt.myapplication.managers.SharedPrefManager
+import com.splitreceipt.myapplication.helper_classes.SqlDbHelper
 import com.splitreceipt.myapplication.databinding.ActivityGroupScreenBinding
 import kotlinx.android.synthetic.main.alert_dialog_join_group.view.*
 import kotlinx.android.synthetic.main.alert_dialog_testing.view.*
@@ -44,7 +45,9 @@ class GroupScreenActivity : AppCompatActivity() {
         binding = ActivityGroupScreenBinding.inflate(layoutInflater)
         setContentView(binding.root)
         groupList = ArrayList()
-        groupList = SqlDbHelper(this).readAllGroups()
+        groupList = SqlDbHelper(
+            this
+        ).readAllGroups()
 
         val adapter = GroupScreenAdapter(groupList)
         binding.groupRecy.layoutManager = LinearLayoutManager(this)
@@ -68,7 +71,7 @@ class GroupScreenActivity : AppCompatActivity() {
     }
 
     fun addNewGroupButton(view: View) {
-        val intent = Intent(this, NewGroupCreation::class.java)
+        val intent = Intent(this, NewGroupCreationActivity::class.java)
         startActivity(intent)
     }
 
@@ -82,7 +85,10 @@ class GroupScreenActivity : AppCompatActivity() {
         diagView.joinButton.setOnClickListener {
             Log.i("Join", "clicked")
             val identifier = diagView.groupIdentifierText.text.toString()
-            firebaseDbHelper = FirebaseDbHelper(identifier)
+            firebaseDbHelper =
+                FirebaseDbHelper(
+                    identifier
+                )
             firebaseDbHelper!!.checkJoin(this)
             builder.dismiss()
             }

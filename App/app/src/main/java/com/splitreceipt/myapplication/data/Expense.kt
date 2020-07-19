@@ -2,11 +2,10 @@ package com.splitreceipt.myapplication.data
 
 import android.widget.EditText
 import com.google.firebase.database.Exclude
-import com.splitreceipt.myapplication.CurrencyHelper
-import com.splitreceipt.myapplication.CurrencyHelper.CurrencyDetails
+import com.splitreceipt.myapplication.helper_classes.CurrencyHelper.CurrencyDetails
 import com.splitreceipt.myapplication.ExpenseOverviewActivity.Companion.roundToTwoDecimalPlace
 
-class ExpenseData () {
+class Expense () {
 
     @Exclude @set:Exclude @get:Exclude
     var sqlRowId: String = ""

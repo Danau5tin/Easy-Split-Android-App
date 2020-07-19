@@ -1,4 +1,4 @@
-package com.splitreceipt.myapplication.data
+package com.splitreceipt.myapplication.helper_classes
 
 import android.content.ContentValues
 import android.content.Context
@@ -8,48 +8,49 @@ import android.database.sqlite.SQLiteOpenHelper
 import android.util.Log
 import com.splitreceipt.myapplication.ExpenseViewActivity
 import com.splitreceipt.myapplication.SplitExpenseManuallyFragment
-import com.splitreceipt.myapplication.data.DbManager.CurrencyTable.CURRENCY_COL_BASE
-import com.splitreceipt.myapplication.data.DbManager.CurrencyTable.CURRENCY_COL_CODE
-import com.splitreceipt.myapplication.data.DbManager.CurrencyTable.CURRENCY_COL_ID
-import com.splitreceipt.myapplication.data.DbManager.CurrencyTable.CURRENCY_COL_LAST_UPDATE
-import com.splitreceipt.myapplication.data.DbManager.CurrencyTable.CURRENCY_COL_RATE
-import com.splitreceipt.myapplication.data.DbManager.CurrencyTable.CURRENCY_TABLE_NAME
-import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_NAME
-import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_ID
-import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_PARTICIPANTS_LAST_EDIT
-import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_FIREBASE_ID
-import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_SETTLEMENTS
-import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_USER
-import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_TABLE_NAME
-import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_COL_FK_EXPENSE_ID
-import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_COL_ID
-import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_COL_NAME
-import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_COL_VALUE
-import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_COL_OWNERSHIP
-import com.splitreceipt.myapplication.data.DbManager.ReceiptItemsTable.ITEMS_TABLE_NAME
-import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_COL_CONTRIBUTIONS
-import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_COL_CURRENCY_CODE
-import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_COL_DATE
-import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_COL_EXCHANGE_RATE
-import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_COL_FK_GROUP_ID
-import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_COL_ID
-import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_COL_PAID_BY
-import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_COL_SCANNED
-import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_COL_TITLE
-import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_COL_TOTAL
-import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_COL_FIREBASE_ID
-import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_COL_LAST_EDIT
-import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_COL_UI_SYMBOL
-import com.splitreceipt.myapplication.data.DbManager.ExpenseTable.EXPENSE_TABLE_NAME
-import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_BASE_CURRENCY
-import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_BASE_CURRENCY_UI_SYMBOL
-import com.splitreceipt.myapplication.data.DbManager.GroupTable.GROUP_COL_LAST_IMAGE_EDIT
-import com.splitreceipt.myapplication.data.DbManager.ParticipantTable.PARTICIPANTS_COL_FK_GROUP_ID
-import com.splitreceipt.myapplication.data.DbManager.ParticipantTable.PARTICIPANT_COL_F_BASE_KEY
-import com.splitreceipt.myapplication.data.DbManager.ParticipantTable.PARTICIPANT_COL_ID
-import com.splitreceipt.myapplication.data.DbManager.ParticipantTable.PARTICIPANT_COL_U_BALANCE
-import com.splitreceipt.myapplication.data.DbManager.ParticipantTable.PARTICIPANT_COL_U_NAME
-import com.splitreceipt.myapplication.data.DbManager.ParticipantTable.PARTICIPANT_TABLE_NAME
+import com.splitreceipt.myapplication.data.*
+import com.splitreceipt.myapplication.managers.SqlDbColumnsManager.CurrencyTable.CURRENCY_COL_BASE
+import com.splitreceipt.myapplication.managers.SqlDbColumnsManager.CurrencyTable.CURRENCY_COL_CODE
+import com.splitreceipt.myapplication.managers.SqlDbColumnsManager.CurrencyTable.CURRENCY_COL_ID
+import com.splitreceipt.myapplication.managers.SqlDbColumnsManager.CurrencyTable.CURRENCY_COL_LAST_UPDATE
+import com.splitreceipt.myapplication.managers.SqlDbColumnsManager.CurrencyTable.CURRENCY_COL_RATE
+import com.splitreceipt.myapplication.managers.SqlDbColumnsManager.CurrencyTable.CURRENCY_TABLE_NAME
+import com.splitreceipt.myapplication.managers.SqlDbColumnsManager.GroupTable.GROUP_COL_NAME
+import com.splitreceipt.myapplication.managers.SqlDbColumnsManager.GroupTable.GROUP_COL_ID
+import com.splitreceipt.myapplication.managers.SqlDbColumnsManager.GroupTable.GROUP_COL_PARTICIPANTS_LAST_EDIT
+import com.splitreceipt.myapplication.managers.SqlDbColumnsManager.GroupTable.GROUP_COL_FIREBASE_ID
+import com.splitreceipt.myapplication.managers.SqlDbColumnsManager.GroupTable.GROUP_COL_SETTLEMENTS
+import com.splitreceipt.myapplication.managers.SqlDbColumnsManager.GroupTable.GROUP_COL_USER
+import com.splitreceipt.myapplication.managers.SqlDbColumnsManager.GroupTable.GROUP_TABLE_NAME
+import com.splitreceipt.myapplication.managers.SqlDbColumnsManager.ReceiptItemsTable.ITEMS_COL_FK_EXPENSE_ID
+import com.splitreceipt.myapplication.managers.SqlDbColumnsManager.ReceiptItemsTable.ITEMS_COL_ID
+import com.splitreceipt.myapplication.managers.SqlDbColumnsManager.ReceiptItemsTable.ITEMS_COL_NAME
+import com.splitreceipt.myapplication.managers.SqlDbColumnsManager.ReceiptItemsTable.ITEMS_COL_VALUE
+import com.splitreceipt.myapplication.managers.SqlDbColumnsManager.ReceiptItemsTable.ITEMS_COL_OWNERSHIP
+import com.splitreceipt.myapplication.managers.SqlDbColumnsManager.ReceiptItemsTable.ITEMS_TABLE_NAME
+import com.splitreceipt.myapplication.managers.SqlDbColumnsManager.ExpenseTable.EXPENSE_COL_CONTRIBUTIONS
+import com.splitreceipt.myapplication.managers.SqlDbColumnsManager.ExpenseTable.EXPENSE_COL_CURRENCY_CODE
+import com.splitreceipt.myapplication.managers.SqlDbColumnsManager.ExpenseTable.EXPENSE_COL_DATE
+import com.splitreceipt.myapplication.managers.SqlDbColumnsManager.ExpenseTable.EXPENSE_COL_EXCHANGE_RATE
+import com.splitreceipt.myapplication.managers.SqlDbColumnsManager.ExpenseTable.EXPENSE_COL_FK_GROUP_ID
+import com.splitreceipt.myapplication.managers.SqlDbColumnsManager.ExpenseTable.EXPENSE_COL_ID
+import com.splitreceipt.myapplication.managers.SqlDbColumnsManager.ExpenseTable.EXPENSE_COL_PAID_BY
+import com.splitreceipt.myapplication.managers.SqlDbColumnsManager.ExpenseTable.EXPENSE_COL_SCANNED
+import com.splitreceipt.myapplication.managers.SqlDbColumnsManager.ExpenseTable.EXPENSE_COL_TITLE
+import com.splitreceipt.myapplication.managers.SqlDbColumnsManager.ExpenseTable.EXPENSE_COL_TOTAL
+import com.splitreceipt.myapplication.managers.SqlDbColumnsManager.ExpenseTable.EXPENSE_COL_FIREBASE_ID
+import com.splitreceipt.myapplication.managers.SqlDbColumnsManager.ExpenseTable.EXPENSE_COL_LAST_EDIT
+import com.splitreceipt.myapplication.managers.SqlDbColumnsManager.ExpenseTable.EXPENSE_COL_UI_SYMBOL
+import com.splitreceipt.myapplication.managers.SqlDbColumnsManager.ExpenseTable.EXPENSE_TABLE_NAME
+import com.splitreceipt.myapplication.managers.SqlDbColumnsManager.GroupTable.GROUP_COL_BASE_CURRENCY
+import com.splitreceipt.myapplication.managers.SqlDbColumnsManager.GroupTable.GROUP_COL_BASE_CURRENCY_UI_SYMBOL
+import com.splitreceipt.myapplication.managers.SqlDbColumnsManager.GroupTable.GROUP_COL_LAST_IMAGE_EDIT
+import com.splitreceipt.myapplication.managers.SqlDbColumnsManager.ParticipantTable.PARTICIPANTS_COL_FK_GROUP_ID
+import com.splitreceipt.myapplication.managers.SqlDbColumnsManager.ParticipantTable.PARTICIPANT_COL_F_BASE_KEY
+import com.splitreceipt.myapplication.managers.SqlDbColumnsManager.ParticipantTable.PARTICIPANT_COL_ID
+import com.splitreceipt.myapplication.managers.SqlDbColumnsManager.ParticipantTable.PARTICIPANT_COL_U_BALANCE
+import com.splitreceipt.myapplication.managers.SqlDbColumnsManager.ParticipantTable.PARTICIPANT_COL_U_NAME
+import com.splitreceipt.myapplication.managers.SqlDbColumnsManager.ParticipantTable.PARTICIPANT_TABLE_NAME
 
 class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
     DATABASE_NAME, null,
@@ -172,22 +173,22 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
         close()
     }
 
-    fun insertNewExpense(expenseData: ExpenseData) : Int{
+    fun insertNewExpense(expense: Expense) : Int{
         val write = writableDatabase
-        val scannedInt: Int = if (expenseData.scanned) { 1 } else { 0 }
+        val scannedInt: Int = if (expense.scanned) { 1 } else { 0 }
         val values = ContentValues().apply {
-            put(EXPENSE_COL_FIREBASE_ID, expenseData.firebaseIdentifier)
-            put(EXPENSE_COL_DATE, expenseData.date)
-            put(EXPENSE_COL_TITLE, expenseData.title)
-            put(EXPENSE_COL_TOTAL, expenseData.total)
-            put(EXPENSE_COL_PAID_BY, expenseData.paidBy)
-            put(EXPENSE_COL_CONTRIBUTIONS, expenseData.contribs)
+            put(EXPENSE_COL_FIREBASE_ID, expense.firebaseIdentifier)
+            put(EXPENSE_COL_DATE, expense.date)
+            put(EXPENSE_COL_TITLE, expense.title)
+            put(EXPENSE_COL_TOTAL, expense.total)
+            put(EXPENSE_COL_PAID_BY, expense.paidBy)
+            put(EXPENSE_COL_CONTRIBUTIONS, expense.contribs)
             put(EXPENSE_COL_SCANNED, scannedInt)
-            put(EXPENSE_COL_FK_GROUP_ID, expenseData.sqlRowId)
-            put(EXPENSE_COL_LAST_EDIT, expenseData.lastEdit)
-            put(EXPENSE_COL_CURRENCY_CODE, expenseData.currencyCode)
-            put(EXPENSE_COL_UI_SYMBOL, expenseData.currencySymbol)
-            put(EXPENSE_COL_EXCHANGE_RATE, expenseData.exchRate)
+            put(EXPENSE_COL_FK_GROUP_ID, expense.sqlRowId)
+            put(EXPENSE_COL_LAST_EDIT, expense.lastEdit)
+            put(EXPENSE_COL_CURRENCY_CODE, expense.currencyCode)
+            put(EXPENSE_COL_UI_SYMBOL, expense.currencySymbol)
+            put(EXPENSE_COL_EXCHANGE_RATE, expense.exchRate)
         }
         val sqlId = write.insert(EXPENSE_TABLE_NAME, null, values)
         return sqlId.toInt()
@@ -295,19 +296,19 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
         close()
     }
 
-    fun updateExpense(expenseData: ExpenseData): String {
+    fun updateExpense(expense: Expense): String {
         // Update expense in Sql db
         val write = writableDatabase
         val values = ContentValues().apply {
-            put(EXPENSE_COL_DATE, expenseData.date)
-            put(EXPENSE_COL_TITLE, expenseData.title)
-            put(EXPENSE_COL_TOTAL, expenseData.total)
-            put(EXPENSE_COL_PAID_BY, expenseData.paidBy)
-            put(EXPENSE_COL_CONTRIBUTIONS, expenseData.contribs)
-            put(EXPENSE_COL_LAST_EDIT, expenseData.lastEdit)
+            put(EXPENSE_COL_DATE, expense.date)
+            put(EXPENSE_COL_TITLE, expense.title)
+            put(EXPENSE_COL_TOTAL, expense.total)
+            put(EXPENSE_COL_PAID_BY, expense.paidBy)
+            put(EXPENSE_COL_CONTRIBUTIONS, expense.contribs)
+            put(EXPENSE_COL_LAST_EDIT, expense.lastEdit)
         }
         val whereClause = "$EXPENSE_COL_ID = ?"
-        val whereArgs = arrayOf(expenseData.sqlRowId)
+        val whereArgs = arrayOf(expense.sqlRowId)
         return write.update(EXPENSE_TABLE_NAME, values, whereClause, whereArgs).toString()
     }
 
@@ -354,7 +355,14 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
             val uName = cursor.getString(uNameIndex)
             val uBal = cursor.getFloat(uBalanceIndex)
             val fKey = cursor.getString(fBaseKeyIndex)
-            participantListObjects.add(ParticipantBalanceData(uName, uBal, fKey, sqlRow))
+            participantListObjects.add(
+                ParticipantBalanceData(
+                    uName,
+                    uBal,
+                    fKey,
+                    sqlRow
+                )
+            )
             Log.i("SQL Participants", "Retrieved participant name: $uName")
         }
         cursor.close()
@@ -398,7 +406,12 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
         val lastEdit = cursor.getString(lastImageIndex)
         val baseCurr = cursor.getString(baseCurrCol)
         cursor.close()
-        return FirebaseAccountInfoData(groupName, participants, lastEdit, baseCurr)
+        return FirebaseAccountInfoData(
+            groupName,
+            participants,
+            lastEdit,
+            baseCurr
+        )
     }
 
     fun loadSqlSettlementString(sqlAccountId: String?): String {
@@ -454,8 +467,12 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
             val currencyUiSymbol = cursor.getString(currencyUiSymbolColIndex)
             val currencyCode = cursor.getString(currencyCodeColIndex)
             val currencyExchangeRate = cursor.getFloat(currencyExchangeColIndex)
-            receiptList.add(ReceiptData(receiptDate, receiptTitle, receiptTotal, receiptPaidBy,
-                receiptSqlId, scanned, currencyUiSymbol, currencyCode, currencyExchangeRate))
+            receiptList.add(
+                ReceiptData(
+                    receiptDate, receiptTitle, receiptTotal, receiptPaidBy,
+                    receiptSqlId, scanned, currencyUiSymbol, currencyCode, currencyExchangeRate
+                )
+            )
         }
         cursor.close()
     }
@@ -478,7 +495,16 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
             val groupSqlUser = cursor.getString(groupSqlUserIndex)
             val groupBaseCurrency = cursor.getString(groupCurrencyIndex)
             val groupBaseSymbol = cursor.getString(groupCurrencySymbolIndex)
-            groupList.add(GroupData(groupName, groupSqlID, groupFirebaseID, groupSqlUser, groupBaseCurrency, groupBaseSymbol))
+            groupList.add(
+                GroupData(
+                    groupName,
+                    groupSqlID,
+                    groupFirebaseID,
+                    groupSqlUser,
+                    groupBaseCurrency,
+                    groupBaseSymbol
+                )
+            )
         }
         cursor.close()
         close()
@@ -503,8 +529,12 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
             val productValue = SplitExpenseManuallyFragment.addStringZerosForDecimalPlace(cursor.getString(valueColIndex))
             val productOwner = cursor.getString(ownershipColIndex)
             val productSqlRow = cursor.getInt(sqlRowColIndex).toString()
-            itemisedProductList.add(ScannedItemizedProductData(productName, productValue,
-                false, productOwner, productSqlRow))
+            itemisedProductList.add(
+                ScannedItemizedProductData(
+                    productName, productValue,
+                    false, productOwner, productSqlRow
+                )
+            )
         }
         cursor.close()
         return itemisedProductList
@@ -562,7 +592,13 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
             val sqlRowID: String = cursor.getString(sqlRowIdIndex)
             val fireBaseId: String = cursor.getString(fireIDColIndex)
             val lastEdit: String = cursor.getString(lastEditColIndex)
-            basicExpenseListSql.add(BasicExpenseDataSql(sqlRowID, fireBaseId, lastEdit))
+            basicExpenseListSql.add(
+                BasicExpenseDataSql(
+                    sqlRowID,
+                    fireBaseId,
+                    lastEdit
+                )
+            )
         }
         cursor.close()
         close()
@@ -653,7 +689,14 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
             val fBaseKey = cursor.getString(fBaseKeyIndex)
             val userName = cursor.getString(userNameIndex)
             val userBalance = cursor.getFloat(userBalanceIndex)
-            participantList.add(ParticipantBalanceData(userName, userBalance, fBaseKey, sqlRow))
+            participantList.add(
+                ParticipantBalanceData(
+                    userName,
+                    userBalance,
+                    fBaseKey,
+                    sqlRow
+                )
+            )
         }
         cursor.close()
         close()

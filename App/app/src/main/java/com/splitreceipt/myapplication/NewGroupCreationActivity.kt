@@ -20,18 +20,22 @@ import androidx.core.app.ActivityCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
-import com.splitreceipt.myapplication.data.FirebaseDbHelper
+import com.splitreceipt.myapplication.a_sync_classes.ASyncSaveImage
+import com.splitreceipt.myapplication.adapters.NewParticipantRecyAdapter
+import com.splitreceipt.myapplication.helper_classes.FirebaseDbHelper
 import com.splitreceipt.myapplication.data.ParticipantBalanceData
-import com.splitreceipt.myapplication.data.SqlDbHelper
-import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_GROUP_CURRENCY_CODE
-import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_GROUP_CURRENCY_SYMBOL
-import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_NAME
+import com.splitreceipt.myapplication.helper_classes.SqlDbHelper
+import com.splitreceipt.myapplication.managers.SharedPrefManager.SHARED_PREF_GROUP_CURRENCY_CODE
+import com.splitreceipt.myapplication.managers.SharedPrefManager.SHARED_PREF_GROUP_CURRENCY_SYMBOL
+import com.splitreceipt.myapplication.managers.SharedPrefManager.SHARED_PREF_NAME
 import com.splitreceipt.myapplication.databinding.ActivityNewGroupCreationBinding
+import com.splitreceipt.myapplication.helper_classes.BitmapRotationFixHelper
+import com.splitreceipt.myapplication.helper_classes.CurrencyHelper
 import java.util.*
 import kotlin.collections.ArrayList
 
 
-class NewGroupCreation : AppCompatActivity(), NewParticipantRecyAdapter.OnPartRowClick {
+class NewGroupCreationActivity : AppCompatActivity(), NewParticipantRecyAdapter.OnPartRowClick {
 
     /*
     This activity allows the user to create a new group
@@ -75,7 +79,10 @@ class NewGroupCreation : AppCompatActivity(), NewParticipantRecyAdapter.OnPartRo
         binding.newParticipantRecy.adapter = recyAdapter
 
         groupFirebaseId = createFirebaseGroupId()!!
-        firebaseDbHelper = FirebaseDbHelper(groupFirebaseId)
+        firebaseDbHelper =
+            FirebaseDbHelper(
+                groupFirebaseId
+            )
 
         setSupportActionBar(findViewById(R.id.toolbar))
         supportActionBar?.title = ""
@@ -149,7 +156,10 @@ class NewGroupCreation : AppCompatActivity(), NewParticipantRecyAdapter.OnPartRo
                     val baseCurrencyUiSymbol = CurrencyHelper.returnUiSymbol(currencyCode)
 
                     // Save to SQL and upload to firebase
-                    val sqlDbHelper = SqlDbHelper(this)
+                    val sqlDbHelper =
+                        SqlDbHelper(
+                            this
+                        )
                     val sqlRow = sqlDbHelper.insertNewGroup(groupFirebaseId, title,
                         lastEditTime, settlementString, sqlUser, lastEditTime, currencyCode, baseCurrencyUiSymbol)
                     firebaseDbHelper!!.createNewGroup(title, settlementString, lastEditTime, lastEditTime, currencyCode, newParticipants)
@@ -159,7 +169,12 @@ class NewGroupCreation : AppCompatActivity(), NewParticipantRecyAdapter.OnPartRo
                         Toast.makeText(this, "Error #INSQ01. Contact Us", Toast.LENGTH_LONG).show()
                     }
                     else {
-                        val async = ASyncSaveImage(true, this, groupFirebaseId)
+                        val async =
+                            ASyncSaveImage(
+                                true,
+                                this,
+                                groupFirebaseId
+                            )
                         val intent = Intent(this, ExpenseOverviewActivity::class.java)
                         if (newBitmap == null){
                             //User has not uploaded a group profile image. Use default logo.
@@ -260,7 +275,8 @@ class NewGroupCreation : AppCompatActivity(), NewParticipantRecyAdapter.OnPartRo
                 val uri: Uri? = data!!.data
                 binding.newGroupImage.setImageURI(uri)
                 val bitmap: Bitmap = MediaStore.Images.Media.getBitmap(contentResolver, uri)
-                val bitmapHelper = BitmapRotationFixHelper()
+                val bitmapHelper =
+                    BitmapRotationFixHelper()
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     newBitmap = bitmapHelper.rotateBitmap(this, uri, bitmap)
                 } else {

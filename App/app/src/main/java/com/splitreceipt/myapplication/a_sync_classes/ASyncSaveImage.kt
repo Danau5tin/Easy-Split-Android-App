@@ -1,10 +1,10 @@
-package com.splitreceipt.myapplication
+package com.splitreceipt.myapplication.a_sync_classes
 
 import android.content.Context
 import android.content.ContextWrapper
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.os.AsyncTask
+import com.splitreceipt.myapplication.NewGroupCreationActivity
 import java.io.*
 
 class ASyncSaveImage(private var profileImage: Boolean, private var context: Context,
@@ -41,7 +41,7 @@ class ASyncSaveImage(private var profileImage: Boolean, private var context: Con
                 e.printStackTrace()
             }
         }
-        NewGroupCreation.profileImageSavedLocally = true
+        NewGroupCreationActivity.profileImageSavedLocally = true
         return directory.absolutePath
     }
 

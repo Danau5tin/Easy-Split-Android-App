@@ -31,12 +31,14 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.splitreceipt.myapplication.NewExpenseCreationActivity.Companion.currencyCode
 import com.splitreceipt.myapplication.NewExpenseCreationActivity.Companion.currencySymbol
 import com.splitreceipt.myapplication.NewExpenseCreationActivity.Companion.editSqlRowId
+import com.splitreceipt.myapplication.adapters.NewScannedReceiptRecyclerAdapter
 import com.splitreceipt.myapplication.data.ScannedItemizedProductData
-import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_GROUP_CURRENCY_CODE
-import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_GROUP_CURRENCY_SYMBOL
-import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_NAME
-import com.splitreceipt.myapplication.data.SqlDbHelper
+import com.splitreceipt.myapplication.managers.SharedPrefManager.SHARED_PREF_GROUP_CURRENCY_CODE
+import com.splitreceipt.myapplication.managers.SharedPrefManager.SHARED_PREF_GROUP_CURRENCY_SYMBOL
+import com.splitreceipt.myapplication.managers.SharedPrefManager.SHARED_PREF_NAME
+import com.splitreceipt.myapplication.helper_classes.SqlDbHelper
 import com.splitreceipt.myapplication.databinding.FragmentSplitReceiptScanBinding
+import com.splitreceipt.myapplication.helper_classes.ScanTextRecogHelper
 import kotlinx.android.synthetic.main.alert_dialog_scanned_product_edit.view.*
 import java.io.File
 import java.text.SimpleDateFormat
@@ -142,11 +144,17 @@ class SplitReceiptScanFragment : Fragment(), NewScannedReceiptRecyclerAdapter.on
 
         if (NewExpenseCreationActivity.isScanned) {
             binding.currencyAmountScan.setText(NewExpenseCreationActivity.editTotal)
-            val dbHelper = SqlDbHelper(contxt)
+            val dbHelper =
+                SqlDbHelper(contxt)
             itemizedArrayList = dbHelper.getReceiptProductDetails(editSqlRowId, itemizedArrayList)
         }
 
-        scanTextHelper = ScanTextRecogHelper(contxt, itemizedArrayList, adapter)
+        scanTextHelper =
+            ScanTextRecogHelper(
+                contxt,
+                itemizedArrayList,
+                adapter
+            )
         return binding.root
     }
 

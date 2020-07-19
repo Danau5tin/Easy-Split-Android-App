@@ -1,16 +1,9 @@
-package com.splitreceipt.myapplication
+package com.splitreceipt.myapplication.helper_classes
 
-import android.content.ContentValues
 import android.content.Context
-import android.database.sqlite.SQLiteDatabase
 import android.util.Log
+import com.splitreceipt.myapplication.ExpenseOverviewActivity
 import com.splitreceipt.myapplication.ExpenseOverviewActivity.Companion.firebaseDbHelper
-import com.splitreceipt.myapplication.data.SqlDbHelper
-import com.splitreceipt.myapplication.data.DbManager
-import com.splitreceipt.myapplication.data.DbManager.ParticipantTable.PARTICIPANT_COL_ID
-import com.splitreceipt.myapplication.data.DbManager.ParticipantTable.PARTICIPANT_COL_U_BALANCE
-import com.splitreceipt.myapplication.data.DbManager.ParticipantTable.PARTICIPANT_TABLE_NAME
-import com.splitreceipt.myapplication.data.FirebaseDbHelper
 import com.splitreceipt.myapplication.data.ParticipantBalanceData
 import kotlin.math.abs
 
@@ -28,7 +21,8 @@ class BalanceSettlementHelper(var context: Context, private var groupSqlRow: Str
         Step 5: Update SQL with new balances and settlement strings
         Step 6: return the newSettlementString for receipt overview Balance
          */
-        val sqlDbHelper = SqlDbHelper(context)
+        val sqlDbHelper =
+            SqlDbHelper(context)
         val newSettlementString: String
         val prevBalanceObjects = sqlDbHelper.loadPreviousBalanceToObjects(groupSqlRow)
         newBalanceObjects = updateBalancesWithContributions(prevBalanceObjects, newContributions)
@@ -39,7 +33,8 @@ class BalanceSettlementHelper(var context: Context, private var groupSqlRow: Str
             newSettlementString = settlementAlgorithm(newBalanceObjects!!)
         }
         else {
-            newSettlementString = ExpenseOverviewActivity.balanced_string
+            newSettlementString =
+                ExpenseOverviewActivity.balanced_string
         }
         Log.i("Algorithm", "Settlement string created after the algorithm has balanced everyones balances: $newSettlementString")
         settlementString = sqlDbHelper.updateSqlSettlementString(newSettlementString, groupSqlRow)

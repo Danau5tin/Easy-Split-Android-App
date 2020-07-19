@@ -9,9 +9,13 @@ import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.splitreceipt.myapplication.adapters.ExpenseViewParticipantAdapter
+import com.splitreceipt.myapplication.adapters.ExpenseViewProductAdapter
 import com.splitreceipt.myapplication.data.*
 import com.splitreceipt.myapplication.databinding.ActivityExpenseViewBinding
-import java.util.*
+import com.splitreceipt.myapplication.helper_classes.BalanceSettlementHelper
+import com.splitreceipt.myapplication.helper_classes.CurrencyHelper
+import com.splitreceipt.myapplication.helper_classes.SqlDbHelper
 import kotlin.collections.ArrayList
 
 class ExpenseViewActivity : AppCompatActivity() {
@@ -118,7 +122,8 @@ class ExpenseViewActivity : AppCompatActivity() {
         }
     }
     private fun retrieveAllSqlDetails(scanned: Boolean){
-        val dbHelper = SqlDbHelper(this)
+        val dbHelper =
+            SqlDbHelper(this)
         dbHelper.getExpenseDetails(sqlRowId)
         if(scanned){
             itemizedProductData = ArrayList()
@@ -163,7 +168,11 @@ class ExpenseViewActivity : AppCompatActivity() {
                 val prevContributionString: String = contributionString // For readability
                 val contributionsChanged: Boolean = prevContributionString != newContribString
                 var calculatedContributions: String = newContribString
-                val balSetHelper = BalanceSettlementHelper(this, ExpenseOverviewActivity.getSqlGroupId.toString())
+                val balSetHelper =
+                    BalanceSettlementHelper(
+                        this,
+                        ExpenseOverviewActivity.getSqlGroupId.toString()
+                    )
 
                 if (contributionsChanged) {
                     val paidByUnchanged: Boolean = newPaidBy == getPaidByIntent
@@ -235,7 +244,10 @@ class ExpenseViewActivity : AppCompatActivity() {
             setMessage("This expense will be deleted forever. For everyone. ")
             setPositiveButton("Yes delete", object: DialogInterface.OnClickListener{
                 override fun onClick(dialog: DialogInterface?, which: Int) {
-                    val dbHelper = SqlDbHelper(context)
+                    val dbHelper =
+                        SqlDbHelper(
+                            context
+                        )
                     val prevContributionString: String = dbHelper.locatePriorContributions(sqlRowId)
                     dbHelper.deleteExpense(sqlRowId)
                     ExpenseOverviewActivity.firebaseDbHelper!!.deleteExpense(firebaseExpenseID, getScannedIntent)

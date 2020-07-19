@@ -1,8 +1,8 @@
-package com.splitreceipt.myapplication
+package com.splitreceipt.myapplication.helper_classes
 
 import android.util.Log
+import com.splitreceipt.myapplication.ExpenseOverviewActivity
 import com.splitreceipt.myapplication.data.CurrencyUiData
-import com.splitreceipt.myapplication.data.SqlDbHelper
 
 object CurrencyHelper {
 

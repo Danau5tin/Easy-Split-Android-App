@@ -1,4 +1,4 @@
-package com.splitreceipt.myapplication
+package com.splitreceipt.myapplication.adapters
 
 import android.content.Context
 import android.content.Intent
@@ -7,6 +7,9 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.splitreceipt.myapplication.ExpenseOverviewActivity
+import com.splitreceipt.myapplication.GroupScreenActivity
+import com.splitreceipt.myapplication.R
 import com.splitreceipt.myapplication.data.GroupData
 
 class GroupScreenAdapter(private val groupNameList: ArrayList<GroupData>) : RecyclerView.Adapter<GroupScreenAdapter.GroupViewHolder>() {
@@ -14,7 +17,10 @@ class GroupScreenAdapter(private val groupNameList: ArrayList<GroupData>) : Recy
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): GroupViewHolder {
         val inflater: LayoutInflater = LayoutInflater.from(parent.context)
         val view = inflater.inflate(R.layout.group_screen_recy_row, parent, false)
-        return GroupViewHolder(parent.context, view)
+        return GroupViewHolder(
+            parent.context,
+            view
+        )
     }
 
     override fun getItemCount(): Int {

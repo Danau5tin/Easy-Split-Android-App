@@ -1,4 +1,4 @@
-package com.splitreceipt.myapplication
+package com.splitreceipt.myapplication.helper_classes
 
 import android.content.Context
 import android.util.Log
@@ -8,10 +8,9 @@ import android.widget.Toast
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.ValueEventListener
+import com.splitreceipt.myapplication.WelcomeJoinActivity
 import com.splitreceipt.myapplication.data.FirebaseAccountInfoData
-import com.splitreceipt.myapplication.data.FirebaseDbHelper
 import com.splitreceipt.myapplication.data.ParticipantBalanceData
-import com.splitreceipt.myapplication.data.SqlDbHelper
 import de.hdodenhof.circleimageview.CircleImageView
 
 object FirebaseUpdateHelper {
@@ -50,8 +49,10 @@ object FirebaseUpdateHelper {
                 }
                 if (participantsChanged) {
                     // Save the new users into SQL
-                    checkParticipants(sqlGroupId, sqlHelper,
-                        firebaseDbHelper, firebaseGroupData.accParticipantLastEdit, participantList)
+                    checkParticipants(
+                        sqlGroupId, sqlHelper,
+                        firebaseDbHelper, firebaseGroupData.accParticipantLastEdit, participantList
+                    )
                 }
             }
         })
@@ -99,7 +100,11 @@ object FirebaseUpdateHelper {
                     participantList?.add(downloadedUser.userName)
                 }
                 if (participantList != null) {
-                    WelcomeJoinActivity.populateRadioButtons(context!!, participantList, radioGroup!!)
+                    WelcomeJoinActivity.populateRadioButtons(
+                        context!!,
+                        participantList,
+                        radioGroup!!
+                    )
                 }
             }
         })

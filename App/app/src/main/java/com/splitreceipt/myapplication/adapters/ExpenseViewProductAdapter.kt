@@ -1,17 +1,20 @@
-package com.splitreceipt.myapplication
+package com.splitreceipt.myapplication.adapters
 
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.splitreceipt.myapplication.R
 import com.splitreceipt.myapplication.data.ScannedItemizedProductData
 
 class ExpenseViewProductAdapter(var itemizedProductData: ArrayList<ScannedItemizedProductData>) : RecyclerView.Adapter<ExpenseViewProductAdapter.ExpenseProductViewHolder>() {
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ExpenseViewProductAdapter.ExpenseProductViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ExpenseProductViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         val view = inflater.inflate(R.layout.scanned_product_expense_recy_row, parent, false)
-        return ExpenseProductViewHolder(view)
+        return ExpenseProductViewHolder(
+            view
+        )
     }
 
     override fun getItemCount(): Int {

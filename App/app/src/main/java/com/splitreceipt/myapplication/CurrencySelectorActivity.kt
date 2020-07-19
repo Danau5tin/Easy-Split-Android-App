@@ -8,15 +8,18 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.splitreceipt.myapplication.a_sync_classes.ASyncCurrencyDownload
+import com.splitreceipt.myapplication.adapters.CurrencySelectorAdapter
 import com.splitreceipt.myapplication.data.CurrencyUiData
-import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_GROUP_CURRENCY_CODE
-import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_GROUP_CURRENCY_SYMBOL
-import com.splitreceipt.myapplication.data.SharedPrefManager.SHARED_PREF_NAME
-import com.splitreceipt.myapplication.data.SqlDbHelper
+import com.splitreceipt.myapplication.managers.SharedPrefManager.SHARED_PREF_GROUP_CURRENCY_CODE
+import com.splitreceipt.myapplication.managers.SharedPrefManager.SHARED_PREF_GROUP_CURRENCY_SYMBOL
+import com.splitreceipt.myapplication.managers.SharedPrefManager.SHARED_PREF_NAME
+import com.splitreceipt.myapplication.helper_classes.SqlDbHelper
 import com.splitreceipt.myapplication.databinding.ActivityCurrencySelectorBinding
+import com.splitreceipt.myapplication.helper_classes.CurrencyHelper
 import java.util.*
 
-class CurrencySelectorActivity : AppCompatActivity(), CurrencySelectorAdapter.onCureClick {
+class CurrencySelectorActivity : AppCompatActivity(), CurrencySelectorAdapter.OnCureClick {
 
     private lateinit var binding: ActivityCurrencySelectorBinding
     private var isBase: Boolean = false
@@ -92,7 +95,12 @@ class CurrencySelectorActivity : AppCompatActivity(), CurrencySelectorAdapter.on
 
         if (isBase) {
             Log.i("Currency", "Base currency will be downloaded")
-            val aSyncCur = ASyncCurrencyDownload(SqlDbHelper(this))
+            val aSyncCur =
+                ASyncCurrencyDownload(
+                    SqlDbHelper(
+                        this
+                    )
+                )
             aSyncCur.execute(currencyCode)
         } else {
             Log.i("Currency", "Base currency will NOT be downloaded")

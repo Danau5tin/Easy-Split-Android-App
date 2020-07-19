@@ -7,7 +7,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.widget.ArrayAdapter
 import android.widget.Toast
-import com.splitreceipt.myapplication.data.SqlDbHelper
+import com.splitreceipt.myapplication.helper_classes.SqlDbHelper
 import com.splitreceipt.myapplication.databinding.ActivitySettleGroupBinding
 
 class SettleGroupActivity : AppCompatActivity() {
@@ -31,7 +31,9 @@ class SettleGroupActivity : AppCompatActivity() {
         }
 
         var participantList: ArrayList<String> = ArrayList()
-        participantList = SqlDbHelper(this).retrieveParticipants(participantList, ExpenseOverviewActivity.getSqlGroupId!!)
+        participantList = SqlDbHelper(
+            this
+        ).retrieveParticipants(participantList, ExpenseOverviewActivity.getSqlGroupId!!)
         val spinnerAdapter = ArrayAdapter(this, R.layout.support_simple_spinner_dropdown_item, participantList)
         binding.fromSelectionSpinner.adapter = spinnerAdapter
         binding.toSelectionSpinner.adapter = spinnerAdapter
@@ -50,7 +52,9 @@ class SettleGroupActivity : AppCompatActivity() {
                     //TODO: Allow settlements to be made in any currency, defaulting to the base currency.
                     ExpenseOverviewActivity.firebaseDbHelper!!.insertOrUpdateExpense(
                         firebaseExpenseId, date, title, amount, paidBy, contribString, false, firebaseExpenseId, ExpenseOverviewActivity.groupBaseCurrency!!,1.0F)
-                    SqlDbHelper(this).insertNewExpense(ExpenseOverviewActivity.getSqlGroupId!!,
+                    SqlDbHelper(
+                        this
+                    ).insertNewExpense(ExpenseOverviewActivity.getSqlGroupId!!,
                         firebaseExpenseId, date, title, amount, paidBy, contribString, false,
                         firebaseExpenseId, ExpenseOverviewActivity.groupBaseCurrency!!, ExpenseOverviewActivity.currencySymbol,1.0F)
                     intent.putExtra(NewExpenseCreationActivity.CONTRIBUTION_INTENT_DATA, contribString)

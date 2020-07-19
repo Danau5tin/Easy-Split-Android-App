@@ -1,14 +1,14 @@
 package com.splitreceipt.myapplication
 
 import android.app.Activity
-import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.appcompat.app.ActionBar
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.splitreceipt.myapplication.adapters.BalanceOverviewAdapter
 import com.splitreceipt.myapplication.databinding.ActivityBalanceOverviewBinding
 
-class BalanceOverviewActivity : AppCompatActivity(), BalanceOverviewAdapter.balanceRowClick {
+class BalanceOverviewActivity : AppCompatActivity(), BalanceOverviewAdapter.BalanceRowClick {
 
     private lateinit var binding: ActivityBalanceOverviewBinding
     private lateinit var adapter: BalanceOverviewAdapter
