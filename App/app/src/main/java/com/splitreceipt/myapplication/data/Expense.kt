@@ -2,13 +2,16 @@ package com.splitreceipt.myapplication.data
 
 import android.widget.EditText
 import com.google.firebase.database.Exclude
+import com.splitreceipt.myapplication.ExpenseOverviewActivity.Companion.currentSqlGroupId
 import com.splitreceipt.myapplication.helper_classes.CurrencyHelper.CurrencyDetails
 import com.splitreceipt.myapplication.ExpenseOverviewActivity.Companion.roundToTwoDecimalPlace
 
 class Expense () {
 
     @Exclude @set:Exclude @get:Exclude
-    var sqlRowId: String = ""
+    var sqlGroupRowId: String = ""
+    @Exclude @set:Exclude @get:Exclude
+    var sqlExpenseRowId: String = ""
     @Exclude @set:Exclude @get:Exclude
     var firebaseIdentifier: String = ""
     @Exclude @set:Exclude @get:Exclude
@@ -24,26 +27,7 @@ class Expense () {
     var currencyCode: String = ""
     var exchRate: Float = 0.0F
 
-    constructor(date: String, title: String, paidBy: String, contributions: String,
-                scanned: Boolean, lastEdit: String, exchangeRate: Float, expenseCurrencyCode: String,
-                expenseCurrencySymbol: String="", sqlRow: String="", firebaseId: String="", total: Float=0.0F) : this(){
-
-        this.date = date
-        this.title = title
-        this.total = total
-        this.paidBy = paidBy
-        this.contribs = contributions
-        this.scanned = scanned
-        this.lastEdit = lastEdit
-        this.exchRate = exchangeRate
-        this.currencyCode = expenseCurrencyCode
-
-        this.currencySymbol = expenseCurrencySymbol
-        this.sqlRowId = sqlRow
-        this.firebaseIdentifier = firebaseId
-    }
-
-    constructor(date: String, title: String, paidBy: String, scanned: Boolean, lastEdit: String, sqlRow: String="", firebaseId: String="", total: Float=0.0F) : this(){
+    constructor(date: String, title: String, paidBy: String, scanned: Boolean, lastEdit: String, sqlExpenseRow: String="", firebaseId: String="", total: Float=0.0F) : this(){
 
         this.date = date
         this.total = total
@@ -52,15 +36,25 @@ class Expense () {
         this.scanned = scanned
         this.lastEdit = lastEdit
 
-        this.sqlRowId = sqlRow
+        this.sqlExpenseRowId = sqlExpenseRow
         this.firebaseIdentifier = firebaseId
     }
 
 
     fun setUpNewExpense(totalEditText: EditText, participantList: ArrayList<ParticipantBalanceData>, currencyDetails: CurrencyDetails) {
+        this.sqlGroupRowId = currentSqlGroupId!!
         createUniqueFirebaseId()
         setExpenseTotalByView(totalEditText)
         setContribString(participantList)
+        setCurrencyDetails(currencyDetails)
+    }
+
+    fun setUpNewExpense(totalEditText: EditText, paidTo: String, currencyDetails: CurrencyDetails) {
+        this.sqlGroupRowId = currentSqlGroupId!!
+        createUniqueFirebaseId()
+        setExpenseTotalByView(totalEditText)
+
+        setContribString(paidTo)
         setCurrencyDetails(currencyDetails)
     }
 
@@ -74,7 +68,7 @@ class Expense () {
     }
 
 
-    private fun setContribString(participantList: ArrayList<ParticipantBalanceData>): String {
+    private fun setContribString(participantList: ArrayList<ParticipantBalanceData>) {
         val sb = StringBuilder()
         for (participant in participantList) {
             val name = participant.userName
@@ -87,8 +81,14 @@ class Expense () {
             sb.append(paidByString)
         }
         sb.deleteCharAt(sb.lastIndex)
-        return sb.toString()
+        this.contribs = sb.toString()
     }
+
+    private fun setContribString(paidTo: String) {
+        val contributions = "$paidTo,${this.total},$paidBy"
+        this.contribs = contributions
+    }
+
 
     private fun setCurrencyDetails(currencyDetails: CurrencyDetails) {
         this.currencyCode = currencyDetails.currencyCode

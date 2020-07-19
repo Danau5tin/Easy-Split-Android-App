@@ -6,7 +6,7 @@ import com.splitreceipt.myapplication.data.CurrencyUiData
 
 object CurrencyHelper {
 
-    private var baseCurrencyCode = ExpenseOverviewActivity.groupBaseCurrency!!
+    private var baseCurrencyCode = ExpenseOverviewActivity.currentGroupBaseCurrency!!
     const val EXCHANGE_RATE_OF_1: Float = 1.0F
 
     fun retrieveExchangeRate(expenseCurrencyCode: String, priorExchangeRate: Float?, sqlDbHelper: SqlDbHelper) : Float{

@@ -25,11 +25,10 @@ import com.splitreceipt.myapplication.managers.SharedPrefManager.SHARED_PREF_GRO
 import com.splitreceipt.myapplication.managers.SharedPrefManager.SHARED_PREF_GROUP_CURRENCY_SYMBOL
 import com.splitreceipt.myapplication.managers.SharedPrefManager.SHARED_PREF_NAME
 import com.splitreceipt.myapplication.databinding.ActivityNewExpenseCreationBinding
+import com.splitreceipt.myapplication.helper_classes.DateSelectionCleaner.retrieveTodaysDate
 import com.splitreceipt.myapplication.helper_classes.SqlDbHelper
 import kotlinx.android.synthetic.main.fragment_split_receipt_manually.*
 import kotlinx.android.synthetic.main.fragment_split_receipt_scan.*
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -71,11 +70,6 @@ class NewExpenseCreationActivity : AppCompatActivity() {
         var isScanned: Boolean = false
         var editTotal: String = ""
         var editExchangeRate: Float? = null
-
-        fun retrieveTodaysDate(context: Context): String {
-            val date = LocalDate.now()
-            return date.format(DateTimeFormatter.ofPattern(context.getString(R.string.date_format_dd_MM_yyyy))).toString()
-        }
 
     }
 
@@ -149,14 +143,14 @@ class NewExpenseCreationActivity : AppCompatActivity() {
         val pagerAdapter = ExpensePagerAdapter(this)
         binding.receiptViewPager.adapter = pagerAdapter
 
-        if (userClickedManualPage()) {
-            binding.receiptViewPager.currentItem = MANUAL_PAGE_INDEX
-        } else {
+        if (userClickedScannedPage()) {
             binding.receiptViewPager.currentItem = SCANNED_PAGE_INDEX
+        } else {
+            binding.receiptViewPager.currentItem = MANUAL_PAGE_INDEX
         }
     }
 
-    private fun userClickedManualPage(): Boolean {
+    private fun userClickedScannedPage(): Boolean {
         return intent.getBooleanExtra(intentManualOrScan, false)
     }
 
@@ -194,7 +188,7 @@ class NewExpenseCreationActivity : AppCompatActivity() {
                             finish()
                             return true
                         } else {
-                            userExpense.sqlRowId = editSqlRowId
+                            userExpense.sqlExpenseRowId = editSqlRowId
                             userExpense.firebaseIdentifier = firebaseEditExpenseID
                             sqlDbHelper.updateExpense(userExpense)
                             sqlDbHelper.close() //TODO: Closing correctly?
@@ -222,7 +216,7 @@ class NewExpenseCreationActivity : AppCompatActivity() {
                                 finish()
                                 return true
                             } else {
-                                userExpense.sqlRowId = editSqlRowId
+                                userExpense.sqlExpenseRowId = editSqlRowId
                                 userExpense.firebaseIdentifier = firebaseEditExpenseID
                                 sqlDbHelper.updateExpense(userExpense)
                                 sqlDbHelper.updateItemsSql(itemizedArrayList)

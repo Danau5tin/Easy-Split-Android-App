@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.splitreceipt.myapplication.adapters.ExpenseViewParticipantAdapter
 import com.splitreceipt.myapplication.adapters.ExpenseViewProductAdapter
 import com.splitreceipt.myapplication.data.*
+import com.splitreceipt.myapplication.data.ParticipantData.Companion.changeNameToYou
 import com.splitreceipt.myapplication.databinding.ActivityExpenseViewBinding
 import com.splitreceipt.myapplication.helper_classes.BalanceSettlementHelper
 import com.splitreceipt.myapplication.helper_classes.CurrencyHelper
@@ -65,7 +66,7 @@ class ExpenseViewActivity : AppCompatActivity() {
 
         getTitleIntent = intent.getStringExtra(expenseTitleIntentString)!!
         getTotalIntent = intent.getStringExtra(expenseTotalIntentString)!!
-        getPaidByIntent = ExpenseOverviewActivity.changeNameToYou(intent.getStringExtra(expensePaidByIntentString)!!, false)
+        getPaidByIntent = changeNameToYou(intent.getStringExtra(expensePaidByIntentString)!!, false)
 
         sqlRowId = intent.getStringExtra(expenseSqlIntentString)!!
         currencyUiSymbol = intent.getStringExtra(expenseCurrencyUiSymbolIntentString)!!
@@ -110,7 +111,7 @@ class ExpenseViewActivity : AppCompatActivity() {
         val contributionsSplit = contributionString.split("/")
         for (contribution in contributionsSplit) {
             val individualContrib = contribution.split(",")
-            val contributor = ExpenseOverviewActivity.changeNameToYou(individualContrib[0], true)
+            val contributor = changeNameToYou(individualContrib[0], true)
             val baseContribution = individualContrib[1].toFloat()
             // If the expense was in a different currency to the base currency then re-convert it.
             val originalContribution = CurrencyHelper.reversePreviousExchange(expenseExchangeRate, baseContribution)

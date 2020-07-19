@@ -48,10 +48,11 @@
     <View
         android:id="@+id/view2"
         android:layout_width="0dp"
-        android:layout_height="70dp"
+        android:layout_height="60dp"
         android:background="@color/navBar"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent" />
 
     <androidx.recyclerview.widget.RecyclerView
@@ -161,18 +162,18 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="24dp"
-        android:layout_marginTop="16dp"
         android:text="@string/total_expenses"
+        app:layout_constraintBottom_toTopOf="@+id/totalAmountExpensesText"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/guideline2" />
+        app:layout_constraintTop_toTopOf="@+id/view2" />
 
     <TextView
         android:id="@+id/totalAmountExpensesText"
         style="@style/standardWhiteText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
         android:textStyle="normal"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="@+id/textView18"
         app:layout_constraintTop_toBottomOf="@+id/textView18"
         tools:text="£110.56" />
@@ -182,19 +183,19 @@
         style="@style/standardWhiteText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
+        android:layout_marginEnd="28dp"
         android:text="@string/number_of_expenses"
+        app:layout_constraintBottom_toTopOf="@+id/totalNumberExpensesText"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/guideline2" />
+        app:layout_constraintTop_toTopOf="@+id/view2" />
 
     <TextView
         android:id="@+id/totalNumberExpensesText"
         style="@style/standardWhiteText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="2dp"
         android:textStyle="normal"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="@+id/textView21"
         app:layout_constraintTop_toBottomOf="@+id/textView21"
         tools:text="25" />

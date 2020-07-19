@@ -1,6 +1,16 @@
 package com.splitreceipt.myapplication.helper_classes
 
+import android.content.Context
+import com.splitreceipt.myapplication.R
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+
 object DateSelectionCleaner {
+
+    fun retrieveTodaysDate(context: Context): String {
+        val date = LocalDate.now()
+        return date.format(DateTimeFormatter.ofPattern(context.getString(R.string.date_format_dd_MM_yyyy))).toString()
+    }
 
     fun returnDateString(year: Int, monthOfYear: Int, dayOfMonth: Int): String{
         val dayString =

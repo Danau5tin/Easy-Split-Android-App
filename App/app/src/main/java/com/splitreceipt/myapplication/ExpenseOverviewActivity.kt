@@ -51,7 +51,7 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
         var currentSqlGroupId: String? = "-1"
         var currentGroupFirebaseId: String? = "-1"
         var currentGroupName: String? = "?"
-        var groupBaseCurrency: String? = ""
+        var currentGroupBaseCurrency: String? = ""
         lateinit var currencySymbol: String
         var settlementArray: ArrayList<String> = ArrayList()
         const val balanced_string: String = "balanced"
@@ -79,18 +79,22 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
         binding.groupNameTitleText.text = currentGroupName
         firebaseDbHelper = FirebaseDbHelper(currentGroupFirebaseId!!)
         val sqlHelper = SqlDbHelper(this)
-        ASyncCurrencyDownload(sqlHelper).execute(groupBaseCurrency)
-        refreshHelper = ExpenseOverViewRefreshHelper(this, expenseList, adapter,
-            binding.settlementStringTextView, binding.seeBalancesButton,
-            binding.totalNumberExpensesText, binding.totalAmountExpensesText)
+        ASyncCurrencyDownload(sqlHelper).execute(currentGroupBaseCurrency)
+
 
         setUpActionBar()
         setGroupImageListener()
 
         if (groupJustCreatedByUser()){
             ShareGroupHelper(this, currentGroupFirebaseId!!)
-            val uriImage: Uri = Uri.parse(intent.getStringExtra(UriIntent))
-            binding.groupProfileImage.setImageURI(uriImage)
+            val uriImage: Uri? = Uri.parse(intent.getStringExtra(UriIntent))
+            if (uriImage == null) {
+                //TODO: refactor this 5 lines of code as their is duplication
+                val b = loadImageFromStorage(this, true, currentGroupFirebaseId!!)
+                binding.groupProfileImage.setImageBitmap(b)
+            } else {
+                binding.groupProfileImage.setImageURI(uriImage)
+            }
         } else {
             val b = loadImageFromStorage(this, true, currentGroupFirebaseId!!)
             binding.groupProfileImage.setImageBitmap(b)
@@ -99,7 +103,11 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
         binding.mainActivityRecycler.layoutManager = LinearLayoutManager(this)
         binding.mainActivityRecycler.adapter = adapter
 
-        FirebaseUpdateHelper(this, sqlHelper, currentSqlGroupId!!, firebaseDbHelper!!,
+        refreshHelper = ExpenseOverViewRefreshHelper(this, expenseList, adapter,
+            binding.settlementStringTextView, binding.seeBalancesButton,
+            binding.totalNumberExpensesText, binding.totalAmountExpensesText)
+
+        FirebaseSyncHelper(this, sqlHelper, currentSqlGroupId!!, firebaseDbHelper!!,
             binding.groupNameTitleText, binding.groupProfileImage)
             .syncGroupWithFirebaseDB()
     }
@@ -139,7 +147,7 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
         currentSqlUser = intent.getStringExtra(GroupScreenActivity.userIntentString)
         currentGroupName = intent.getStringExtra(GroupScreenActivity.groupNameIntentString)
         currentGroupFirebaseId = intent.getStringExtra(GroupScreenActivity.firebaseIntentString)
-        groupBaseCurrency = intent.getStringExtra(GroupScreenActivity.groupBaseCurrencyIntent)!!
+        currentGroupBaseCurrency = intent.getStringExtra(GroupScreenActivity.groupBaseCurrencyIntent)!!
         currencySymbol =
             intent.getStringExtra(GroupScreenActivity.groupBaseCurrencyUiSymbolIntent)!!
     }

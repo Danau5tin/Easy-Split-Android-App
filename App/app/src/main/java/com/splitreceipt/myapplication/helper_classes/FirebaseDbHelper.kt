@@ -57,32 +57,21 @@ class FirebaseDbHelper(var firebaseGroupId: String) {
                 } } })
     }
 
-    fun downloadToSql(context: Context, participantList: ArrayList<String>? = null, joinRadioGroup: RadioGroup?=null){
-        /*
-        Downloads and saves to SQL the joined group info, finances, expenses and currency conversions.
-         */
+    fun syncEntireGroupFromFirebase(context: Context, participantList: ArrayList<String>? = null, joinRadioGroup: RadioGroup?=null){
         currentPath = database.getReference(firebaseGroupId)
         currentPath.addListenerForSingleValueEvent(object : ValueEventListener{
             override fun onCancelled(p0: DatabaseError) {
                 Log.i("Join", "joinGroupDownload failed: ${p0.details}")
             }
-
             override fun onDataChange(snapshot: DataSnapshot) {
-                //Substring is to remove the "/" path indicator in the strings.
                 val infoChild = snapshot.child(groupInfo.substring(1))
                 val financeChild = snapshot.child(groupFin.substring(1))
                 val expensesChild = snapshot.child(expenses.substring(1))
                 val scannedChild = snapshot.child(scanned.substring(1))
-                val participantsChild = snapshot.child(participants.substring(1))
                 val infoData = infoChild.getValue(FirebaseAccountInfoData::class.java)!!
                 val financeData = financeChild.getValue(FirebaseAccountFinancialData::class.java)!!
-                val sqlHelper =
-                    SqlDbHelper(
-                        context
-                    )
-                val currencyHelper =
-                    CurrencyHelper
-                val baseCurrencyUiSymbol = currencyHelper.returnUiSymbol(infoData.accCurrency)
+                val sqlHelper = SqlDbHelper(context)
+                val baseCurrencyUiSymbol = CurrencyHelper.returnUiSymbol(infoData.accCurrency)
                 val sqlRow = sqlHelper.insertNewGroup(firebaseGroupId, infoData.accName,
                     infoData.accParticipantLastEdit, financeData.accSettle, "u",
                     infoData.accLastImage, infoData.accCurrency, baseCurrencyUiSymbol)
@@ -90,31 +79,27 @@ class FirebaseDbHelper(var firebaseGroupId: String) {
                 val sqlRowString = sqlRow.toString()
                 WelcomeJoinActivity.sqlRow = sqlRowString
 
-                FirebaseUpdateHelper.syncParticipantsWithFirebase(sqlRowString, sqlHelper,
-                    FirebaseDbHelper(
-                        firebaseGroupId
-                    ), infoData.accParticipantLastEdit,
-                    participantList, context, joinRadioGroup!!)
+                FirebaseSyncHelper().syncParticipantsWithFirebase(sqlRowString,
+                    FirebaseDbHelper(firebaseGroupId), infoData.accParticipantLastEdit,
+                    participantList, context, joinRadioGroup!!, sqlHelper)
 
                 for (expense in expensesChild.children) {
                     val expenseData = expense.getValue(Expense::class.java)!!
-                    val expenseId = expense.key!!
-                    val expenseCurrencyUiSymbol = currencyHelper.returnUiSymbol(expenseData.expCurrencyCode)
-                    val expenseSqlRow = sqlHelper.insertNewExpense(sqlRowString, expenseId, expenseData.date,
-                        expenseData.expTitle, expenseData.expTotal, expenseData.expPaidBy,
-                        expenseData.expContribs, expenseData.expScanned, expenseData.expLastEdit,
-                        expenseData.expCurrencyCode, expenseCurrencyUiSymbol, expenseData.expExchRate)
+                    expenseData.sqlGroupRowId = sqlRowString
+                    expenseData.firebaseIdentifier = expense.key!!
+                    expenseData.currencySymbol = CurrencyHelper.returnUiSymbol(expenseData.currencyCode)
+                    expenseData.sqlExpenseRowId = sqlHelper.insertNewExpense(expenseData).toString() //TODO: Change expense to carry an Int for the group ID
 
                     if (expenseData.scanned) {
                         for (receipt in scannedChild.children) {
                             val scannedRecExpId = receipt.key
-                            if (scannedRecExpId == expenseId) {
+                            if (scannedRecExpId == expenseData.sqlExpenseRowId) {
                                 val productlist: ArrayList<FirebaseProductData> = ArrayList()
                                 for (product in receipt.children){
                                     val productData = product.getValue(FirebaseProductData::class.java)!!
                                     productlist.add(productData)
                                 }
-                                sqlHelper.insertReceiptItems(productlist, expenseSqlRow)
+                                sqlHelper.insertReceiptItems(productlist, expenseData.sqlExpenseRowId.toInt())
                                 break
                             }
                         }
@@ -176,12 +161,6 @@ class FirebaseDbHelper(var firebaseGroupId: String) {
             )
         currentPath = database.getReference(groupFinancePath)
         currentPath.setValue(accountData)
-    }
-
-    private fun setGroupBalance(newBalanceString: String) {
-        val groupFinancePath = "$firebaseGroupId$groupFin"
-        currentPath = database.getReference(groupFinancePath).child("accBal")
-        currentPath.setValue(newBalanceString)
     }
 
     fun setGroupImageLastEdit(lastEdit: String) {

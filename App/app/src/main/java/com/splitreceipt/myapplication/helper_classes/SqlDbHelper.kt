@@ -184,7 +184,7 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
             put(EXPENSE_COL_PAID_BY, expense.paidBy)
             put(EXPENSE_COL_CONTRIBUTIONS, expense.contribs)
             put(EXPENSE_COL_SCANNED, scannedInt)
-            put(EXPENSE_COL_FK_GROUP_ID, expense.sqlRowId)
+            put(EXPENSE_COL_FK_GROUP_ID, expense.sqlGroupRowId)
             put(EXPENSE_COL_LAST_EDIT, expense.lastEdit)
             put(EXPENSE_COL_CURRENCY_CODE, expense.currencyCode)
             put(EXPENSE_COL_UI_SYMBOL, expense.currencySymbol)
@@ -308,21 +308,8 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
             put(EXPENSE_COL_LAST_EDIT, expense.lastEdit)
         }
         val whereClause = "$EXPENSE_COL_ID = ?"
-        val whereArgs = arrayOf(expense.sqlRowId)
+        val whereArgs = arrayOf(expense.sqlExpenseRowId)
         return write.update(EXPENSE_TABLE_NAME, values, whereClause, whereArgs).toString()
-    }
-
-    fun updateExpense(editSqlRowId: String, date: String, title: String, lastEdit: String) {
-        // User only updated the cosmetics of the expense
-        val write = writableDatabase
-        val values = ContentValues().apply {
-            put(EXPENSE_COL_DATE, date)
-            put(EXPENSE_COL_TITLE, title)
-            put(EXPENSE_COL_LAST_EDIT, lastEdit)
-        }
-        val where = "$EXPENSE_COL_ID = ?"
-        val whereArgs = arrayOf(editSqlRowId)
-        write.update(EXPENSE_TABLE_NAME, values, where, whereArgs)
     }
 
     fun updateGroupName(groupSqlId: String, groupName: String) {

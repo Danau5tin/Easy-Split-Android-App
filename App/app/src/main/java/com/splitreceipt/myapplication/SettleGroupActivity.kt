@@ -7,8 +7,13 @@ import android.view.Menu
 import android.view.MenuItem
 import android.widget.ArrayAdapter
 import android.widget.Toast
+import com.splitreceipt.myapplication.ExpenseOverviewActivity.Companion.currentGroupBaseCurrency
+import com.splitreceipt.myapplication.data.Expense
 import com.splitreceipt.myapplication.helper_classes.SqlDbHelper
 import com.splitreceipt.myapplication.databinding.ActivitySettleGroupBinding
+import com.splitreceipt.myapplication.helper_classes.CurrencyHelper
+import com.splitreceipt.myapplication.helper_classes.CurrencyHelper.EXCHANGE_RATE_OF_1
+import com.splitreceipt.myapplication.helper_classes.DateSelectionCleaner.retrieveTodaysDate
 
 class SettleGroupActivity : AppCompatActivity() {
 
@@ -31,9 +36,7 @@ class SettleGroupActivity : AppCompatActivity() {
         }
 
         var participantList: ArrayList<String> = ArrayList()
-        participantList = SqlDbHelper(
-            this
-        ).retrieveParticipants(participantList, ExpenseOverviewActivity.currentSqlGroupId!!)
+        participantList = SqlDbHelper(this).retrieveParticipants(participantList, ExpenseOverviewActivity.currentSqlGroupId!!)
         val spinnerAdapter = ArrayAdapter(this, R.layout.support_simple_spinner_dropdown_item, participantList)
         binding.fromSelectionSpinner.adapter = spinnerAdapter
         binding.toSelectionSpinner.adapter = spinnerAdapter
@@ -42,22 +45,15 @@ class SettleGroupActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.menuSave -> {
-                val okayToProceed = checkOkayToProceed()
-                if (okayToProceed) {
-                    val title = binding.settlementTitleText.text.toString()
-                    val amount = binding.settleAmountText.text.toString().toFloat()
-                    val contribString = "$paidTo,$amount,$paidBy"
-                    val firebaseExpenseId = System.currentTimeMillis().toString()
-                    val date = NewExpenseCreationActivity.retrieveTodaysDate(this)
-                    //TODO: Allow settlements to be made in any currency, defaulting to the base currency.
-                    ExpenseOverviewActivity.firebaseDbHelper!!.insertOrUpdateExpense(
-                        firebaseExpenseId, date, title, amount, paidBy, contribString, false, firebaseExpenseId, ExpenseOverviewActivity.groupBaseCurrency!!,1.0F)
-                    SqlDbHelper(
-                        this
-                    ).insertNewExpense(ExpenseOverviewActivity.currentSqlGroupId!!,
-                        firebaseExpenseId, date, title, amount, paidBy, contribString, false,
-                        firebaseExpenseId, ExpenseOverviewActivity.groupBaseCurrency!!, ExpenseOverviewActivity.currencySymbol,1.0F)
-                    intent.putExtra(NewExpenseCreationActivity.CONTRIBUTION_INTENT_DATA, contribString)
+                if (okayToProceed()) {
+                    val expense = returnBasicExpense()
+                    //TODO: Allow settlements to be made in any currency instead of defaulting to the base currency.
+                    val currencyDetails = CurrencyHelper.CurrencyDetails(currentGroupBaseCurrency!!, CurrencyHelper.returnUiSymbol(currentGroupBaseCurrency!!), EXCHANGE_RATE_OF_1)
+                    expense.setUpNewExpense(binding.settleAmountText, paidTo, currencyDetails)
+
+                    ExpenseOverviewActivity.firebaseDbHelper!!.insertOrUpdateExpense(expense)
+                    SqlDbHelper(this).insertNewExpense(expense)
+                    intent.putExtra(NewExpenseCreationActivity.CONTRIBUTION_INTENT_DATA, expense.contribs)
                     setResult(Activity.RESULT_OK, intent)
                     finish()
                     return true
@@ -70,7 +66,14 @@ class SettleGroupActivity : AppCompatActivity() {
         }
     }
 
-    private fun checkOkayToProceed(): Boolean {
+    private fun returnBasicExpense() : Expense {
+        val date = retrieveTodaysDate(this)
+        val title = binding.settlementTitleText.text.toString()
+        val lastEdit: String = System.currentTimeMillis().toString()
+        return Expense(date, title, paidBy, false, lastEdit)
+    }
+
+    private fun okayToProceed(): Boolean {
         paidBy = binding.fromSelectionSpinner.selectedItem.toString()
         paidTo = binding.toSelectionSpinner.selectedItem.toString()
         if (paidBy == paidTo) {

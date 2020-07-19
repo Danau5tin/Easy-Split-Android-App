@@ -23,6 +23,7 @@ import com.splitreceipt.myapplication.managers.SqlDbColumnsManager.GroupTable.GR
 import com.splitreceipt.myapplication.helper_classes.SqlDbHelper
 import com.splitreceipt.myapplication.databinding.ActivityGroupSettingsBinding
 import com.splitreceipt.myapplication.helper_classes.BitmapRotationFixHelper
+import com.splitreceipt.myapplication.helper_classes.LocalStorageHelper
 
 
 class GroupSettingsActivity : AppCompatActivity() {
@@ -84,7 +85,7 @@ class GroupSettingsActivity : AppCompatActivity() {
 
         sqlRowId = intent.getStringExtra(groupSqlIdIntent)!!
         imageUri = null
-        val bitmap = ExpenseOverviewActivity.loadImageFromStorage(this, true, ExpenseOverviewActivity.currentGroupFirebaseId!!)
+        val bitmap = LocalStorageHelper.loadImageFromStorage(this, true, ExpenseOverviewActivity.currentGroupFirebaseId!!)
         binding.groupImage.setImageBitmap(bitmap)
     }
 

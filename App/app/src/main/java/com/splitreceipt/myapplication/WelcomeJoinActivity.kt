@@ -60,7 +60,7 @@ class WelcomeJoinActivity : AppCompatActivity() {
             )
 
         val participants: ArrayList<String> = ArrayList()
-        firebaseDbHelper.downloadToSql(this, participants, binding.joinRadioGroup)
+        firebaseDbHelper.syncEntireGroupFromFirebase(this, participants, binding.joinRadioGroup)
         firebaseDbHelper.downloadAndSetNewGroupProfileImage(this, binding.circleImageViewWelcome)
 
         val welcome = "Welcome to: '$fBaseName'"
