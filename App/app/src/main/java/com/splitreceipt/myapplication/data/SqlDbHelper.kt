@@ -276,8 +276,9 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
         }
     }
 
-    fun updateItemsSql(writeableDB: SQLiteDatabase?, itemizedProductList: ArrayList<ScannedItemizedProductData>) {
+    fun updateItemsSql(itemizedProductList: ArrayList<ScannedItemizedProductData>) {
         // Updates the products after user has edited and saved scanned receipt
+        val writeableDB = writableDatabase
         for (product in itemizedProductList) {
             val productName = product.itemName
             val productValue = product.itemValue
@@ -289,7 +290,7 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
             }
             val whereClause = "$ITEMS_COL_ID = ?"
             val whereArgs = arrayOf(product.sqlRowId)
-            writeableDB!!.update(ITEMS_TABLE_NAME, values, whereClause, whereArgs)
+            writeableDB.update(ITEMS_TABLE_NAME, values, whereClause, whereArgs)
         }
         close()
     }

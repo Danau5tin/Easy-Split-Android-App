@@ -57,6 +57,7 @@ class ExpenseData () {
         this.firebaseIdentifier = firebaseId
     }
 
+
     fun setUpNewExpense(totalEditText: EditText, participantList: ArrayList<ParticipantBalanceData>, currencyDetails: CurrencyDetails) {
         createUniqueFirebaseId()
         setExpenseTotalByView(totalEditText)
