@@ -45,9 +45,7 @@ class GroupScreenActivity : AppCompatActivity() {
         binding = ActivityGroupScreenBinding.inflate(layoutInflater)
         setContentView(binding.root)
         groupList = ArrayList()
-        groupList = SqlDbHelper(
-            this
-        ).readAllGroups()
+        groupList = SqlDbHelper(this).readAllGroups()
 
         val adapter = GroupScreenAdapter(groupList)
         binding.groupRecy.layoutManager = LinearLayoutManager(this)

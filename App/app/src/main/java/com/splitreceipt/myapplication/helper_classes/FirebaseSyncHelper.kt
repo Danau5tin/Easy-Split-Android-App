@@ -130,8 +130,8 @@ class FirebaseSyncHelper() {
                 var infoChanged = false
                 var imageChanged = false
                 var participantsChanged = false
-                if (firebaseGroupData.accName != sqlGroupData.accName) {
-                    groupNameTitleText.text = firebaseGroupData.accName
+                if (firebaseGroupData.name != sqlGroupData.name) {
+                    groupNameTitleText.text = firebaseGroupData.name
                     infoChanged = true
                 }
                 if (groupInfoChanged(firebaseGroupData, sqlGroupData)){
@@ -151,7 +151,7 @@ class FirebaseSyncHelper() {
                 if (participantsChanged) {
                     syncParticipantsWithFirebase(
                         currentSqlGroupId, firebaseDbHelper, firebaseGroupData
-                            .accParticipantLastEdit, participantList)
+                            .participantLastEdit, participantList)
                 }
             }
         })
@@ -160,12 +160,12 @@ class FirebaseSyncHelper() {
     private fun groupProfileImageChanged(
         firebaseGroupData: FirebaseAccountInfoData,
         sqlGroupData: FirebaseAccountInfoData
-    ) = firebaseGroupData.accLastImage != sqlGroupData.accLastImage
+    ) = firebaseGroupData.lastImageEdit != sqlGroupData.lastImageEdit
 
     private fun groupInfoChanged(
         firebaseGroupData: FirebaseAccountInfoData,
         sqlGroupData: FirebaseAccountInfoData
-    ) = firebaseGroupData.accParticipantLastEdit != sqlGroupData.accParticipantLastEdit
+    ) = firebaseGroupData.participantLastEdit != sqlGroupData.participantLastEdit
 
 
     fun syncParticipantsWithFirebase(

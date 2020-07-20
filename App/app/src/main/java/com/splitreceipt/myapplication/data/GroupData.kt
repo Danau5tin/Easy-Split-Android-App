@@ -1,4 +1,6 @@
 package com.splitreceipt.myapplication.data
 
-data class GroupData(var name: String, var sqlId: String, var firebaseId: String, 
-                     var sqlUser: String, var baseCurrency: String, var baseCurrencySymbol: String)
+data class GroupData(var name: String, var firebaseId: String,
+                     var baseCurrencyCode: String, var baseCurrencySymbol: String,
+                     var lastParticipantEditTime: String, var lastGroupImageEditTime: String,
+                     var settlementString: String, var sqlUser: String="", var sqlGroupRowId: String="")

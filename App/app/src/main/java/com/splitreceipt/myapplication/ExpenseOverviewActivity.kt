@@ -56,7 +56,6 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
         var settlementArray: ArrayList<String> = ArrayList()
         const val balanced_string: String = "balanced"
         const val ImagePathIntent = "path_intent"
-        const val UriIntent = "uri_intent"
 
         fun roundToTwoDecimalPlace(number: Float, ceiling: Boolean=true): Float {
             val df = DecimalFormat("#.##")
@@ -81,24 +80,15 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
         val sqlHelper = SqlDbHelper(this)
         ASyncCurrencyDownload(sqlHelper).execute(currentGroupBaseCurrency)
 
-
         setUpActionBar()
         setGroupImageListener()
 
         if (groupJustCreatedByUser()){
             ShareGroupHelper(this, currentGroupFirebaseId!!)
-            val uriImage: Uri? = Uri.parse(intent.getStringExtra(UriIntent))
-            if (uriImage == null) {
-                //TODO: refactor this 5 lines of code as their is duplication
-                val b = loadImageFromStorage(this, true, currentGroupFirebaseId!!)
-                binding.groupProfileImage.setImageBitmap(b)
-            } else {
-                binding.groupProfileImage.setImageURI(uriImage)
-            }
-        } else {
-            val b = loadImageFromStorage(this, true, currentGroupFirebaseId!!)
-            binding.groupProfileImage.setImageBitmap(b)
         }
+        val b = loadImageFromStorage(this, true, currentGroupFirebaseId!!)
+        binding.groupProfileImage.setImageBitmap(b)
+
         adapter = ExpenseOverViewAdapter(expenseList, this)
         binding.mainActivityRecycler.layoutManager = LinearLayoutManager(this)
         binding.mainActivityRecycler.adapter = adapter

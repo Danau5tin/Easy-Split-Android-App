@@ -143,18 +143,16 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
         db.execSQL(DELETE_PARTICIPANT_ENTRIES)
     }
 
-    fun insertNewGroup(fireBaseId: String, title: String, participantLastEdit: String,
-                       settlements: String, sqlUser: String, lastImageEdit: String,
-                       baseCurrency: String, currencyUiSymbol: String) : Int{
+    fun insertNewGroup(newGroup: GroupData) : Int{
         val values: ContentValues = ContentValues().apply {
-            put(GROUP_COL_FIREBASE_ID, fireBaseId)
-            put(GROUP_COL_NAME, title)
-            put(GROUP_COL_PARTICIPANTS_LAST_EDIT, participantLastEdit)
-            put(GROUP_COL_SETTLEMENTS, settlements)
-            put(GROUP_COL_USER, sqlUser)
-            put(GROUP_COL_LAST_IMAGE_EDIT, lastImageEdit)
-            put(GROUP_COL_BASE_CURRENCY, baseCurrency)
-            put(GROUP_COL_BASE_CURRENCY_UI_SYMBOL, currencyUiSymbol)
+            put(GROUP_COL_FIREBASE_ID, newGroup.firebaseId)
+            put(GROUP_COL_NAME, newGroup.name)
+            put(GROUP_COL_PARTICIPANTS_LAST_EDIT, newGroup.lastParticipantEditTime)
+            put(GROUP_COL_SETTLEMENTS, newGroup.settlementString)
+            put(GROUP_COL_USER, newGroup.sqlUser)
+            put(GROUP_COL_LAST_IMAGE_EDIT, newGroup.lastGroupImageEditTime)
+            put(GROUP_COL_BASE_CURRENCY, newGroup.baseCurrencyCode)
+            put(GROUP_COL_BASE_CURRENCY_UI_SYMBOL, newGroup.baseCurrencySymbol)
         }
         val writer = writableDatabase
         val sqlRow = writer.insert(GROUP_TABLE_NAME, null, values)
@@ -466,7 +464,9 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
     fun readAllGroups() : ArrayList<GroupData>{
         val groupList: ArrayList<GroupData> = ArrayList()
         val reader = readableDatabase
-        val columns = arrayOf(GROUP_COL_ID, GROUP_COL_NAME, GROUP_COL_FIREBASE_ID, GROUP_COL_USER, GROUP_COL_BASE_CURRENCY, GROUP_COL_BASE_CURRENCY_UI_SYMBOL)
+        val columns = arrayOf(GROUP_COL_ID, GROUP_COL_NAME, GROUP_COL_FIREBASE_ID, GROUP_COL_USER,
+            GROUP_COL_BASE_CURRENCY, GROUP_COL_BASE_CURRENCY_UI_SYMBOL, GROUP_COL_PARTICIPANTS_LAST_EDIT,
+            GROUP_COL_LAST_IMAGE_EDIT, GROUP_COL_SETTLEMENTS)
         val cursor: Cursor = reader.query(GROUP_TABLE_NAME, columns, null, null, null, null, null)
         val groupNameColIndex = cursor.getColumnIndexOrThrow(GROUP_COL_NAME)
         val groupSqlIdIndex = cursor.getColumnIndexOrThrow(GROUP_COL_ID)
@@ -474,6 +474,9 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
         val groupSqlUserIndex = cursor.getColumnIndexOrThrow(GROUP_COL_USER)
         val groupCurrencyIndex = cursor.getColumnIndexOrThrow(GROUP_COL_BASE_CURRENCY)
         val groupCurrencySymbolIndex = cursor.getColumnIndexOrThrow(GROUP_COL_BASE_CURRENCY_UI_SYMBOL)
+        val groupImageLastEditIndex = cursor.getColumnIndexOrThrow(GROUP_COL_LAST_IMAGE_EDIT)
+        val groupParticipantsLastEditIndex = cursor.getColumnIndexOrThrow(GROUP_COL_PARTICIPANTS_LAST_EDIT)
+        val groupSettlementStringIndex = cursor.getColumnIndexOrThrow(GROUP_COL_SETTLEMENTS)
         while (cursor.moveToNext()) {
             val groupName = cursor.getString(groupNameColIndex)
             val groupSqlID = cursor.getString(groupSqlIdIndex)
@@ -481,15 +484,12 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
             val groupSqlUser = cursor.getString(groupSqlUserIndex)
             val groupBaseCurrency = cursor.getString(groupCurrencyIndex)
             val groupBaseSymbol = cursor.getString(groupCurrencySymbolIndex)
+            val groupImageLastEdit = cursor.getString(groupImageLastEditIndex)
+            val groupParticipantLastEdit = cursor.getString(groupParticipantsLastEditIndex)
+            val groupSettlementString = cursor.getString(groupSettlementStringIndex)
             groupList.add(
-                GroupData(
-                    groupName,
-                    groupSqlID,
-                    groupFirebaseID,
-                    groupSqlUser,
-                    groupBaseCurrency,
-                    groupBaseSymbol
-                )
+                GroupData(groupName, groupFirebaseID, groupBaseCurrency, groupBaseSymbol,
+                    groupParticipantLastEdit, groupImageLastEdit, groupSettlementString, groupSqlUser, groupSqlID)
             )
         }
         cursor.close()
@@ -711,9 +711,9 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
     fun updateGroupInfo(firebaseGroupData: FirebaseAccountInfoData, sqlGroupId: String) {
         val write = writableDatabase
         val values = ContentValues().apply {
-            put(GROUP_COL_NAME, firebaseGroupData.accName)
-            put(GROUP_COL_PARTICIPANTS_LAST_EDIT, firebaseGroupData.accParticipantLastEdit)
-            put(GROUP_COL_LAST_IMAGE_EDIT, firebaseGroupData.accLastImage)
+            put(GROUP_COL_NAME, firebaseGroupData.name)
+            put(GROUP_COL_PARTICIPANTS_LAST_EDIT, firebaseGroupData.participantLastEdit)
+            put(GROUP_COL_LAST_IMAGE_EDIT, firebaseGroupData.lastImageEdit)
         }
         val where = "$GROUP_COL_ID = ?"
         val whereArgs = arrayOf(sqlGroupId)

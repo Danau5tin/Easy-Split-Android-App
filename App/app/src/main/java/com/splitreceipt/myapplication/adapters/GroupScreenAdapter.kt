@@ -29,10 +29,10 @@ class GroupScreenAdapter(private val groupNameList: ArrayList<GroupData>) : Recy
 
     override fun onBindViewHolder(holder: GroupViewHolder, position: Int) {
         holder.titleText.text = groupNameList[position].name
-        holder.sqlId = groupNameList[position].sqlId
+        holder.sqlId = groupNameList[position].sqlGroupRowId
         holder.firebaseId = groupNameList[position].firebaseId
         holder.sqlUser = groupNameList[position].sqlUser
-        holder.baseCurrency = groupNameList[position].baseCurrency
+        holder.baseCurrency = groupNameList[position].baseCurrencyCode
         holder.baseSymbol = groupNameList[position].baseCurrencySymbol
     }
 

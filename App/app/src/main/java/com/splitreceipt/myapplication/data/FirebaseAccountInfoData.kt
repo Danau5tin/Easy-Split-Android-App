@@ -2,16 +2,16 @@ package com.splitreceipt.myapplication.data
 
 class FirebaseAccountInfoData() {
 
-    var accName: String = ""
-    var accParticipantLastEdit: String = ""
-    var accLastImage: String = ""
-    var accCurrency: String = ""
+    var name: String = ""
+    var participantLastEdit: String = ""
+    var lastImageEdit: String = ""
+    var baseCurrencyCode: String = ""
 
     constructor(name: String, participantLastEdit: String, lastImageEdit: String, baseCurrency: String): this(){
-        accName = name
-        accParticipantLastEdit = participantLastEdit
-        accLastImage = lastImageEdit
-        accCurrency = baseCurrency
+        this.name = name
+        this.participantLastEdit = participantLastEdit
+        this.lastImageEdit = lastImageEdit
+        this.baseCurrencyCode = baseCurrency
     }
 
 }

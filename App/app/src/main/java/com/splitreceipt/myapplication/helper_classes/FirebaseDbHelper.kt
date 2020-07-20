@@ -20,7 +20,6 @@ class FirebaseDbHelper(var firebaseGroupId: String) {
     var database = FirebaseDatabase.getInstance()
     private lateinit var currentPath : DatabaseReference
 
-    //Common paths
     private var groupInfo = "/info"
     private var groupFin = "/finance"
     private var expenses = "/expenses"
@@ -32,7 +31,7 @@ class FirebaseDbHelper(var firebaseGroupId: String) {
     }
 
     fun checkJoin(context: Context){
-        // Checks whether a firebase group ID is valid.
+        // Checks whether a firebase group ID is valid. //TODO: Is this necessary? Why not just try and download the whole group?
         val groupInfoPath = "$firebaseGroupId$groupInfo"
         currentPath = database.getReference(groupInfoPath)
         currentPath.addListenerForSingleValueEvent(object: ValueEventListener{
@@ -43,10 +42,10 @@ class FirebaseDbHelper(var firebaseGroupId: String) {
                     val groupData = snapshot.getValue(FirebaseAccountInfoData::class.java)
                     if (groupData != null) {
                         val intent = Intent(context, WelcomeJoinActivity::class.java)
-                        intent.putExtra(WelcomeJoinActivity.joinFireBaseParticipants, groupData.accParticipantLastEdit)
+                        intent.putExtra(WelcomeJoinActivity.joinFireBaseParticipants, groupData.participantLastEdit)
                         intent.putExtra(WelcomeJoinActivity.joinFireBaseId, firebaseGroupId)
-                        intent.putExtra(WelcomeJoinActivity.joinFireBaseName, groupData.accName)
-                        intent.putExtra(WelcomeJoinActivity.joinBaseCurrency, groupData.accCurrency)
+                        intent.putExtra(WelcomeJoinActivity.joinFireBaseName, groupData.name)
+                        intent.putExtra(WelcomeJoinActivity.joinBaseCurrency, groupData.baseCurrencyCode)
                         context.startActivity(intent)
                     }else {
                         Toast.makeText(context, "No group exists. Check group identifier", Toast.LENGTH_SHORT).show()
@@ -58,34 +57,30 @@ class FirebaseDbHelper(var firebaseGroupId: String) {
     }
 
     fun syncEntireGroupFromFirebase(context: Context, participantList: ArrayList<String>? = null, joinRadioGroup: RadioGroup?=null){
+        // TODO: Move this into the FirebaseSync Class
         currentPath = database.getReference(firebaseGroupId)
         currentPath.addListenerForSingleValueEvent(object : ValueEventListener{
             override fun onCancelled(p0: DatabaseError) {
                 Log.i("Join", "joinGroupDownload failed: ${p0.details}")
             }
             override fun onDataChange(snapshot: DataSnapshot) {
-                val infoChild = snapshot.child(groupInfo.substring(1))
-                val financeChild = snapshot.child(groupFin.substring(1))
-                val expensesChild = snapshot.child(expenses.substring(1))
-                val scannedChild = snapshot.child(scanned.substring(1))
-                val infoData = infoChild.getValue(FirebaseAccountInfoData::class.java)!!
-                val financeData = financeChild.getValue(FirebaseAccountFinancialData::class.java)!!
+                val newGroup = returnNewGroupFromSnapshot(snapshot)
                 val sqlHelper = SqlDbHelper(context)
-                val baseCurrencyUiSymbol = CurrencyHelper.returnUiSymbol(infoData.accCurrency)
-                val sqlRow = sqlHelper.insertNewGroup(firebaseGroupId, infoData.accName,
-                    infoData.accParticipantLastEdit, financeData.accSettle, "u",
-                    infoData.accLastImage, infoData.accCurrency, baseCurrencyUiSymbol)
 
-                val sqlRowString = sqlRow.toString()
-                WelcomeJoinActivity.sqlRow = sqlRowString
+                val sqlRow = sqlHelper.insertNewGroup(newGroup)
 
-                FirebaseSyncHelper().syncParticipantsWithFirebase(sqlRowString,
-                    FirebaseDbHelper(firebaseGroupId), infoData.accParticipantLastEdit,
+                newGroup.sqlGroupRowId = sqlRow.toString()
+                WelcomeJoinActivity.sqlRow = newGroup.sqlGroupRowId
+
+                FirebaseSyncHelper().syncParticipantsWithFirebase(newGroup.sqlGroupRowId,
+                    this@FirebaseDbHelper, newGroup.lastParticipantEditTime,
                     participantList, context, joinRadioGroup!!, sqlHelper)
 
+                val expensesChild = snapshot.child(expenses.substring(1))
+                val scannedChild = snapshot.child(scanned.substring(1))
                 for (expense in expensesChild.children) {
                     val expenseData = expense.getValue(Expense::class.java)!!
-                    expenseData.sqlGroupRowId = sqlRowString
+                    expenseData.sqlGroupRowId = newGroup.sqlGroupRowId
                     expenseData.firebaseIdentifier = expense.key!!
                     expenseData.currencySymbol = CurrencyHelper.returnUiSymbol(expenseData.currencyCode)
                     expenseData.sqlExpenseRowId = sqlHelper.insertNewExpense(expenseData).toString() //TODO: Change expense to carry an Int for the group ID
@@ -109,14 +104,22 @@ class FirebaseDbHelper(var firebaseGroupId: String) {
         })
     }
 
-    fun createNewGroup(groupName: String, groupSettlement: String, participantLastEditString: String,
-                       lastImageEdit: String, baseCurrency: String, groupParticipants: ArrayList<ParticipantBalanceData>){
-        setGroupInfo(groupName, participantLastEditString, lastImageEdit, baseCurrency)
-        setGroupFinance(groupSettlement)
-        this.setGroupParticipants(groupParticipants)
+    private fun returnNewGroupFromSnapshot(snapshot: DataSnapshot) : GroupData {
+        val infoChild = snapshot.child(groupInfo.substring(1))
+        val financeChild = snapshot.child(groupFin.substring(1))
+        val infoData = infoChild.getValue(FirebaseAccountInfoData::class.java)!!
+        val financeData = financeChild.getValue(FirebaseAccountFinancialData::class.java)!!
+        val baseCurrencyUiSymbol = CurrencyHelper.returnUiSymbol(infoData.baseCurrencyCode)
+        return GroupData(infoData.name, firebaseGroupId, infoData.baseCurrencyCode,
+            baseCurrencyUiSymbol, infoData.participantLastEdit, infoData.lastImageEdit, financeData.accSettle)
     }
 
-    private fun setGroupParticipants(newParticipants: ArrayList<ParticipantBalanceData>) {
+    fun createNewGroup(newGroup: GroupData){
+        setGroupInfo(newGroup.name, newGroup.lastParticipantEditTime, newGroup.lastGroupImageEditTime, newGroup.baseCurrencyCode)
+        setGroupFinance(newGroup.settlementString)
+    }
+
+    fun setGroupParticipants(newParticipants: ArrayList<ParticipantBalanceData>) {
         val participantPath = "$firebaseGroupId$participants"
         for (participant in newParticipants) {
             currentPath = database.getReference(participantPath).child(participant.userKey)

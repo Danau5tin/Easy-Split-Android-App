@@ -80,9 +80,7 @@ class NewExpenseCreationActivity : AppCompatActivity() {
         sqlGroupId = intent.getStringExtra(intentSqlGroupIdString)
         participantList = ArrayList()
         participantDataEditList = ArrayList()
-        participantList = SqlDbHelper(
-            this
-        ).retrieveParticipants(participantList, sqlGroupId!!)
+        participantList = SqlDbHelper(this).retrieveParticipants(participantList, sqlGroupId!!)
         binding.receiptViewPager.isUserInputEnabled = false
 
         val spinnerAdapter = setUpPaidBySpinner()
@@ -109,7 +107,7 @@ class NewExpenseCreationActivity : AppCompatActivity() {
         firebaseEditExpenseID = intent.getStringExtra(editIntentFirebaseExpenseIdString)!!
         editSqlRowId = intent.getStringExtra(intentSqlExpenseIdString)!!
         if (userIsEditingScannedExpense()) {
-            isScanned = true
+            isScanned = true //TODO: This is duplicated code. In setupViewPager we are already checking if we are scanned or not.
             binding.receiptViewPager.currentItem = SCANNED_PAGE_INDEX
         } else {
             val editContributions = intent.getStringExtra(editIntentContributionsString)!!
