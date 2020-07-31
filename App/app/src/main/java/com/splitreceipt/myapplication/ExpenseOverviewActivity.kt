@@ -54,7 +54,6 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
         var currentGroupBaseCurrency: String? = ""
         lateinit var currencySymbol: String
         var settlementArray: ArrayList<String> = ArrayList()
-        const val balanced_string: String = "balanced"
         const val ImagePathIntent = "path_intent"
 
         fun roundToTwoDecimalPlace(number: Float, ceiling: Boolean=true): Float {
@@ -250,7 +249,7 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
 
     private fun newContributionUpdates(newContributions: String): String {
         val balanceSettlementHelper = BalanceSettlementHelper(this, currentSqlGroupId.toString())
-        val settlementString = balanceSettlementHelper.balanceAndSettlementsFromSql(newContributions)
+        val settlementString = balanceSettlementHelper.updateBalancesReturnSettlement(newContributions)
         firebaseDbHelper!!.setGroupFinance(settlementString)
         return settlementString
     }

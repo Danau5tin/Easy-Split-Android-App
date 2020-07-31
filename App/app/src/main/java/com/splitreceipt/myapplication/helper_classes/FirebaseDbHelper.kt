@@ -148,7 +148,6 @@ class FirebaseDbHelper(var firebaseGroupId: String) {
     }
 
     fun updateParticipantBalances(newBalanceObjects: ArrayList<ParticipantBalanceData>) {
-        // This function will update the groups balances with the most recent balances.
         val participantPath = "$firebaseGroupId$participants"
         for (participant in newBalanceObjects) {
             currentPath = database.getReference(participantPath).child(participant.userKey)

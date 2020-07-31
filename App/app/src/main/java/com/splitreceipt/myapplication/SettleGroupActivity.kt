@@ -36,7 +36,7 @@ class SettleGroupActivity : AppCompatActivity() {
         }
 
         var participantList: ArrayList<String> = ArrayList()
-        participantList = SqlDbHelper(this).retrieveParticipants(participantList, ExpenseOverviewActivity.currentSqlGroupId!!)
+        participantList = SqlDbHelper(this).retrieveGroupParticipants(participantList, ExpenseOverviewActivity.currentSqlGroupId!!)
         val spinnerAdapter = ArrayAdapter(this, R.layout.support_simple_spinner_dropdown_item, participantList)
         binding.fromSelectionSpinner.adapter = spinnerAdapter
         binding.toSelectionSpinner.adapter = spinnerAdapter

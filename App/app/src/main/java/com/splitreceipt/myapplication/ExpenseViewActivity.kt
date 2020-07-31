@@ -187,9 +187,9 @@ class ExpenseViewActivity : AppCompatActivity() {
                         // Contributions have changed. Paid by has changed also.
                         val reverseContribs = reversePriorExpenseAfterDeletion(prevContributionString, edit = true)
                         // Update balances after reversing the previous contributions.
-                        balSetHelper.balanceAndSettlementsFromSql(reverseContribs)
+                        balSetHelper.updateBalancesReturnSettlement(reverseContribs)
                     }
-                    val settlementString = balSetHelper.balanceAndSettlementsFromSql(calculatedContributions)
+                    val settlementString = balSetHelper.updateBalancesReturnSettlement(calculatedContributions)
                     ExpenseOverviewActivity.firebaseDbHelper!!.setGroupFinance(settlementString)
                     intent.putExtra(expenseReturnNewSettlements, settlementString)
                     setResult(Activity.RESULT_OK, intent)

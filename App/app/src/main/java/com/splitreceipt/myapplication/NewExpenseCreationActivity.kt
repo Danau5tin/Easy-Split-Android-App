@@ -80,7 +80,7 @@ class NewExpenseCreationActivity : AppCompatActivity() {
         sqlGroupId = intent.getStringExtra(intentSqlGroupIdString)
         participantList = ArrayList()
         participantDataEditList = ArrayList()
-        participantList = SqlDbHelper(this).retrieveParticipants(participantList, sqlGroupId!!)
+        participantList = SqlDbHelper(this).retrieveGroupParticipants(participantList, sqlGroupId!!)
         binding.receiptViewPager.isUserInputEnabled = false
 
         val spinnerAdapter = setUpPaidBySpinner()

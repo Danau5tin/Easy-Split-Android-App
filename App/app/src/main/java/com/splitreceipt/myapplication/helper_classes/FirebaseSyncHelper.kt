@@ -84,7 +84,7 @@ class FirebaseSyncHelper() {
                         }
                     }
                     if (changedSinceLastSync) {
-                        settlementString = balanceSettlementHelper.balanceAndSettlementsFromSql(firebaseExpense.contribs)
+                        settlementString = balanceSettlementHelper.updateBalancesReturnSettlement(firebaseExpense.contribs)
                     }
                 }
 
@@ -182,7 +182,7 @@ class FirebaseSyncHelper() {
             override fun onCancelled(error: DatabaseError) {}
             override fun onDataChange(snapshot: DataSnapshot) {
                 val allSqlUsers: ArrayList<ParticipantBalanceData> = ArrayList()
-                sqlHelper.retrieveParticipants(allSqlUsers, sqlGroupId)
+                sqlHelper.retrieveGroupParticipants(allSqlUsers, sqlGroupId)
                 for (fbUser in snapshot.children) {
                     var userExists = false
                     val fBaseKey = fbUser.key.toString()

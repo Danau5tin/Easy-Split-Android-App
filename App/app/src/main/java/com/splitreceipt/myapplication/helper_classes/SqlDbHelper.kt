@@ -321,13 +321,11 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
         close()
     }
 
-    fun retrieveParticipants(participantListObjects: ArrayList<ParticipantBalanceData>, sqlGroupId: String, objects: Boolean=true) : ArrayList<ParticipantBalanceData> {
-        /*
-        Query the sql DB for the current group to find its participants
-         */
-        participantListObjects.clear()
+    fun retrieveGroupParticipants(sqlGroupId: String) : ArrayList<ParticipantBalanceData> {
+        val participantList: ArrayList<ParticipantBalanceData> = ArrayList()
         val reader = readableDatabase
-        val columns = arrayOf(PARTICIPANT_COL_ID, PARTICIPANT_COL_U_NAME, PARTICIPANT_COL_U_BALANCE, PARTICIPANT_COL_F_BASE_KEY)
+        val columns = arrayOf(PARTICIPANT_COL_ID, PARTICIPANT_COL_U_NAME, PARTICIPANT_COL_U_BALANCE,
+            PARTICIPANT_COL_F_BASE_KEY)
         val where = "$PARTICIPANTS_COL_FK_GROUP_ID = ?"
         val whereArgs = arrayOf(sqlGroupId)
         val cursor: Cursor = reader.query(PARTICIPANT_TABLE_NAME, columns, where, whereArgs, null, null, null)
@@ -340,22 +338,17 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
             val uName = cursor.getString(uNameIndex)
             val uBal = cursor.getFloat(uBalanceIndex)
             val fKey = cursor.getString(fBaseKeyIndex)
-            participantListObjects.add(
-                ParticipantBalanceData(
-                    uName,
-                    uBal,
-                    fKey,
-                    sqlRow
-                )
+            participantList.add(
+                ParticipantBalanceData(uName, uBal, fKey, sqlRow)
             )
             Log.i("SQL Participants", "Retrieved participant name: $uName")
         }
         cursor.close()
         close()
-        return participantListObjects
+        return participantList
     }
 
-    fun retrieveParticipants(participantList: ArrayList<String>, sqlGroupId: String) : ArrayList<String> {
+    fun retrieveGroupParticipants(participantList: ArrayList<String>, sqlGroupId: String) : ArrayList<String> {
         /*
         Query the sql DB for the current group to find its participants
          */
@@ -654,38 +647,7 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
         writeableDB.update(GROUP_TABLE_NAME, values, where, whereArgs)
     }
 
-    fun loadPreviousBalanceToObjects(groupSqlRowID: String) : ArrayList<ParticipantBalanceData> {
-        val participantList: ArrayList<ParticipantBalanceData> = ArrayList()
-        val reader = readableDatabase
-        val columns = arrayOf(PARTICIPANT_COL_F_BASE_KEY, PARTICIPANT_COL_ID,
-            PARTICIPANT_COL_U_NAME, PARTICIPANT_COL_U_BALANCE)
-        val where = "$PARTICIPANTS_COL_FK_GROUP_ID = ?"
-        val whereArgs = arrayOf(groupSqlRowID)
-        val cursor: Cursor = reader.query(PARTICIPANT_TABLE_NAME, columns, where, whereArgs, null, null, null)
-        val sqlRowIDIndex = cursor.getColumnIndexOrThrow(PARTICIPANT_COL_ID)
-        val fBaseKeyIndex = cursor.getColumnIndexOrThrow(PARTICIPANT_COL_F_BASE_KEY)
-        val userNameIndex = cursor.getColumnIndexOrThrow(PARTICIPANT_COL_U_NAME)
-        val userBalanceIndex = cursor.getColumnIndexOrThrow(PARTICIPANT_COL_U_BALANCE)
-        while (cursor.moveToNext()) {
-            val sqlRow = cursor.getString(sqlRowIDIndex)
-            val fBaseKey = cursor.getString(fBaseKeyIndex)
-            val userName = cursor.getString(userNameIndex)
-            val userBalance = cursor.getFloat(userBalanceIndex)
-            participantList.add(
-                ParticipantBalanceData(
-                    userName,
-                    userBalance,
-                    fBaseKey,
-                    sqlRow
-                )
-            )
-        }
-        cursor.close()
-        close()
-        return participantList
-    }
-
-    fun updateSqlSettlementString(settlementStr: String, sqlGroupId: String) : String{
+    fun updateSqlSettlementString(settlementStr: String, sqlGroupId: String){
         val writer = writableDatabase
         val values = ContentValues().apply {
             put(GROUP_COL_SETTLEMENTS, settlementStr)
@@ -693,7 +655,6 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
         val where = "${GROUP_COL_ID} = ?"
         val whereargs = arrayOf(sqlGroupId)
         writer.update(GROUP_TABLE_NAME, values, where, whereargs)
-        return settlementStr
     }
 
     fun updateSqlBalances(newBalancesObjects: ArrayList<ParticipantBalanceData>) {

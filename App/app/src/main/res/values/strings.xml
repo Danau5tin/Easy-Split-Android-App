@@ -47,7 +47,7 @@
 
 
     <!-- Expense overview -->
-    <string name="balanced">This account is balanced</string>
+    <string name="account_is_balanced">This account is balanced</string>
     <string name="expenses">Expenses</string>
     <string name="total_expenses">Total expenses:</string>
     <string name="number_of_expenses"># of Expenses:</string>
@@ -133,6 +133,7 @@
     <!-- Common Texts -->
     <string name="finished">Finished</string>
     <string name="next">Next</string>
+    <string name="balanced">Balanced</string>
 
 
     <!-- Buttons -->

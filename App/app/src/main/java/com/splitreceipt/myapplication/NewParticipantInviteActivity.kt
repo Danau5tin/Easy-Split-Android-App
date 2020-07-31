@@ -37,7 +37,7 @@ class NewParticipantInviteActivity : AppCompatActivity(),  InviteParticipantRecy
         participantList = ArrayList()
         participantList = SqlDbHelper(
             this
-        ).retrieveParticipants(participantList, currentSqlGroupId!!)
+        ).retrieveGroupParticipants(participantList, currentSqlGroupId!!)
 
         adapter = InviteParticipantRecyAdapter(participantList, this)
         binding.recyclerViewNewParti.adapter = adapter

@@ -7,6 +7,7 @@ import android.widget.Button
 import android.widget.TextView
 import com.splitreceipt.myapplication.ExpenseOverviewActivity
 import com.splitreceipt.myapplication.ExpenseOverviewActivity.Companion.roundToTwoDecimalPlace
+import com.splitreceipt.myapplication.R
 import com.splitreceipt.myapplication.SplitExpenseManuallyFragment
 import com.splitreceipt.myapplication.adapters.ExpenseOverViewAdapter
 import com.splitreceipt.myapplication.data.ExpenseData
@@ -37,7 +38,7 @@ class ExpenseOverViewRefreshHelper(
         ExpenseOverviewActivity.settlementArray.clear()
         val userDirectedSettlementIndexes: ArrayList<Int> = ArrayList()
         var indexCount = 0
-        if (settlementString == ExpenseOverviewActivity.balanced_string) {
+        if (settlementString == context.getString(R.string.balanced)) {
             ExpenseOverviewActivity.settlementArray.add("This account is balanced") //TODO: Source this raw string from Strings.xml
             userDirectedSettlementIndexes.add(indexCount)
         } else {
