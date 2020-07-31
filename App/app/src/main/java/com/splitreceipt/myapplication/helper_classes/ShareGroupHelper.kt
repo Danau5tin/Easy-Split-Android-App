@@ -68,11 +68,11 @@ class ShareGroupHelper(var context: Context, var firebaseGroupId: String) {
     }
 
     private fun isPackageInstalled(packName: String, packMan: PackageManager) : Boolean{
-        try {
+        return try {
             packMan.getPackageInfo(packName, 0)
-            return true
+            true
         } catch (e: PackageManager.NameNotFoundException) {
-            return false
+            false
         }
     }
 }
