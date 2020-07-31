@@ -15,8 +15,7 @@ class ASyncSaveImage(private var profileImage: Boolean, private var context: Con
     private lateinit var directory: File
 
     companion object {
-        val profileImageDir: String = "profileImageDir"
-        val scannedImageDir: String = "scannedImageDir"
+        const val profileImageDir: String = "profileImageDir"
     }
 
     override fun doInBackground(vararg params: Bitmap?): String {

@@ -181,8 +181,7 @@ class FirebaseSyncHelper() {
         usersDbRef.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onCancelled(error: DatabaseError) {}
             override fun onDataChange(snapshot: DataSnapshot) {
-                val allSqlUsers: ArrayList<ParticipantBalanceData> = ArrayList()
-                sqlHelper.retrieveGroupParticipants(allSqlUsers, sqlGroupId)
+                val allSqlUsers: ArrayList<ParticipantBalanceData> = sqlHelper.retrieveGroupParticipants(sqlGroupId)
                 for (fbUser in snapshot.children) {
                     var userExists = false
                     val fBaseKey = fbUser.key.toString()

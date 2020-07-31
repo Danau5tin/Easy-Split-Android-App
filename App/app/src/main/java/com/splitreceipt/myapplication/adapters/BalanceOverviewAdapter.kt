@@ -8,17 +8,12 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.splitreceipt.myapplication.R
 
-class BalanceOverviewAdapter(var settlementList: ArrayList<String>, var balRowClick: BalanceRowClick): RecyclerView.Adapter<BalanceOverviewAdapter.BalanceViewHolder>() {
-    override fun onCreateViewHolder(
-        parent: ViewGroup,
-        viewType: Int
-    ): BalanceViewHolder {
+class BalanceOverviewAdapter(private var settlementList: ArrayList<String>, private var balRowClick: BalanceRowClick): RecyclerView.Adapter<BalanceOverviewAdapter.BalanceViewHolder>() {
+    
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BalanceViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         val view = inflater.inflate(R.layout.balance_overview_row, parent, false)
-        return BalanceViewHolder(
-            view,
-            balRowClick
-        )
+        return BalanceViewHolder(view, balRowClick)
     }
 
     override fun getItemCount(): Int {

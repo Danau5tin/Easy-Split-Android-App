@@ -22,9 +22,6 @@ import com.splitreceipt.myapplication.adapters.ExpenseOverViewAdapter
 import com.splitreceipt.myapplication.data.*
 import com.splitreceipt.myapplication.databinding.ActivityMainBinding
 import com.splitreceipt.myapplication.helper_classes.*
-import com.splitreceipt.myapplication.helper_classes.LocalStorageHelper.loadImageFromStorage
-import java.math.RoundingMode
-import java.text.DecimalFormat
 import kotlin.collections.ArrayList
 
 
@@ -75,7 +72,7 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
         if (groupJustCreatedByUser()){
             ShareGroupHelper(this, currentGroupFirebaseId!!)
         }
-        val b = loadImageFromStorage(this, true, currentGroupFirebaseId!!)
+        val b = ImageHelper.loadImageFromStorage(this, currentGroupFirebaseId!!)
         binding.groupProfileImage.setImageBitmap(b)
 
         adapter = ExpenseOverViewAdapter(expenseList, this)
@@ -213,7 +210,7 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
         } else if (requestCode == PICK_IMAGE_RESULT) {
             if (resultCode == Activity.RESULT_OK) {
                 val uri: Uri? = data!!.data
-                GroupSettingsActivity.handleNewImage(this, uri!!, binding.groupProfileImage)
+                ImageHelper.handleNewImage(this, uri!!, binding.groupProfileImage)
             }
             if (floatingButtonsShowing) {
                 addNewReceiptButton()
@@ -266,16 +263,8 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
         return super.onSupportNavigateUp()
     }
 
-    override fun onRowClick(
-        pos: Int,
-        title: String,
-        total: String,
-        sqlID: String,
-        paidBy: String,
-        uiSymbol: String,
-        currencyCode: String,
-        scanned: Boolean
-    ) {
+    override fun onRowClick(pos: Int, title: String, total: String, sqlID: String, paidBy: String,
+        uiSymbol: String, currencyCode: String, scanned: Boolean) {
         val intent = Intent(this, ExpenseViewActivity::class.java)
         intent.putExtra(ExpenseViewActivity.expenseTitleIntentString, title)
         intent.putExtra(ExpenseViewActivity.expenseTotalIntentString, total)

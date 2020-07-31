@@ -54,10 +54,7 @@ class WelcomeJoinActivity : AppCompatActivity() {
         fBaseCurrencyCode = intent.getStringExtra(joinBaseCurrency)!!
         fBaseCurrencySymbol = CurrencyExchangeHelper.returnUiSymbol(fBaseCurrencyCode)
 
-        firebaseDbHelper =
-            FirebaseDbHelper(
-                firebaseId
-            )
+        firebaseDbHelper = FirebaseDbHelper(firebaseId)
 
         val participants: ArrayList<String> = ArrayList()
         firebaseDbHelper.syncEntireGroupFromFirebase(this, participants, binding.joinRadioGroup)
@@ -105,9 +102,8 @@ class WelcomeJoinActivity : AppCompatActivity() {
     private fun addParticipant(sqlUser: String) {
         val sqlDbHelper =
             SqlDbHelper(this)
-        val fBaseKey = NewGroupCreationActivity.generateFbaseUserKey(sqlUser)
         val timestamp = System.currentTimeMillis().toString()
-        val newParticipant = ParticipantBalanceData(sqlUser, fBaseKey=fBaseKey)
+        val newParticipant = ParticipantBalanceData(sqlUser)
         sqlDbHelper.setGroupParticipants(newParticipant, sqlRow, timestamp)
         firebaseDbHelper.setGroupParticipants(newParticipant, timestamp)
     }

@@ -21,9 +21,6 @@ import kotlinx.android.synthetic.main.alert_dialog_join_group.view.*
 import kotlinx.android.synthetic.main.alert_dialog_testing.view.*
 
 class GroupScreenActivity : AppCompatActivity() {
-    /*
-    Initial activity shown to user which shows all the groups they currently have
-     */
 
     lateinit var binding: ActivityGroupScreenBinding
     lateinit var groupList: ArrayList<GroupData>
@@ -53,7 +50,6 @@ class GroupScreenActivity : AppCompatActivity() {
 
         sharedPreferences = getSharedPreferences(SharedPrefManager.SHARED_PREF_NAME, Context.MODE_PRIVATE)
         if (!sharedPreferences.getBoolean(SharedPrefManager.SHARED_PREF_TEST_DIALOG, false)) {
-            // If this is the users first time opening the app after installing, show Dialog
             showTestingDialog()
         }
 
@@ -87,7 +83,7 @@ class GroupScreenActivity : AppCompatActivity() {
                 FirebaseDbHelper(
                     identifier
                 )
-            firebaseDbHelper!!.checkJoin(this)
+            firebaseDbHelper!!.checkJoinOkayAndStartIntent(this)
             builder.dismiss()
             }
     }

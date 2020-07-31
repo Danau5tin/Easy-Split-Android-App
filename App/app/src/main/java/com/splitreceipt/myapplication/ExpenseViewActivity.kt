@@ -107,24 +107,20 @@ class ExpenseViewActivity : AppCompatActivity() {
     }
 
     private fun deconstructContributionString() {
-        // Turn the solid contributions string into individual items for the recyclerViewAdapter
         contributionList.clear()
         val contributionsSplit = contributionString.split("/")
         for (contribution in contributionsSplit) {
             val individualContrib = contribution.split(",")
             val contributor = changeNameToYou(individualContrib[0], true)
             val baseContribution = individualContrib[1].toFloat()
-            // If the expense was in a different currency to the base currency then re-convert it.
             val originalContribution = CurrencyExchangeHelper.reverseFromBaseToExpenseCurrency(expenseExchangeRate, baseContribution)
             val value = DecimalPlaceFixer.fixDecimalPlace(originalContribution)
-
             val newString = "$contributor contributed $currencyUiSymbol$value"
             contributionList.add(ExpenseAdapterData(newString, value))
         }
     }
     private fun retrieveAllSqlDetails(scanned: Boolean){
-        val dbHelper =
-            SqlDbHelper(this)
+        val dbHelper = SqlDbHelper(this)
         dbHelper.getExpenseDetails(sqlRowId)
         if(scanned){
             itemizedProductData = ArrayList()

@@ -1,7 +1,6 @@
 package com.splitreceipt.myapplication
 
 import android.app.Activity
-import android.content.Context
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.text.Editable
@@ -11,9 +10,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.splitreceipt.myapplication.a_sync_classes.ASyncCurrencyDownload
 import com.splitreceipt.myapplication.adapters.CurrencySelectorAdapter
 import com.splitreceipt.myapplication.data.CurrencyUiData
-import com.splitreceipt.myapplication.managers.SharedPrefManager.SHARED_PREF_GROUP_CURRENCY_CODE
-import com.splitreceipt.myapplication.managers.SharedPrefManager.SHARED_PREF_GROUP_CURRENCY_SYMBOL
-import com.splitreceipt.myapplication.managers.SharedPrefManager.SHARED_PREF_NAME
 import com.splitreceipt.myapplication.helper_classes.SqlDbHelper
 import com.splitreceipt.myapplication.databinding.ActivityCurrencySelectorBinding
 import com.splitreceipt.myapplication.helper_classes.CurrencyExchangeHelper
@@ -22,7 +18,7 @@ import java.util.*
 class CurrencySelectorActivity : AppCompatActivity(), CurrencySelectorAdapter.OnCureClick {
 
     private lateinit var binding: ActivityCurrencySelectorBinding
-    private var isBase: Boolean = false
+    private var isBaseCurrency: Boolean = false
     private var countryCodeSymbolList = CurrencyExchangeHelper.currencyArray
     private var currencyList: MutableList<String> = mutableListOf()
 
@@ -34,37 +30,12 @@ class CurrencySelectorActivity : AppCompatActivity(), CurrencySelectorAdapter.On
         super.onCreate(savedInstanceState)
         binding = ActivityCurrencySelectorBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
         fillCompleteCurrencyList()
-
-        isBase = intent.getBooleanExtra(isBaseIntent, false)
-
+        isBaseCurrency = intent.getBooleanExtra(isBaseIntent, false)
         val adapter = CurrencySelectorAdapter(currencyList, this)
         binding.currencyRecy.adapter = adapter
         binding.currencyRecy.layoutManager = LinearLayoutManager(this)
-
-        binding.currencySearch.addTextChangedListener(object: TextWatcher{
-            override fun afterTextChanged(s: Editable?) {}
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int){}
-            override fun onTextChanged(text: CharSequence?, start: Int, before: Int, count: Int) {
-                if (text.isNullOrBlank()){
-                    currencyList.clear()
-                    fillCompleteCurrencyList()
-                    adapter.updateList(currencyList)
-                }
-                else {
-                    val searchString = text.toString()
-                    val currencyTempList : MutableList<String> = mutableListOf()
-                    for (currency in currencyList) {
-                        if (currency.toLowerCase(Locale.ROOT).contains(searchString.toLowerCase(Locale.ROOT))) {
-                            currencyTempList.add(currency)
-                        }
-                    }
-                    adapter.updateList(currencyTempList)
-                } } })
-
-
-
+        setTextChangedListener(adapter)
         setSupportActionBar(findViewById(R.id.toolbar))
         supportActionBar?.title = ""
         supportActionBar?.apply {
@@ -72,6 +43,30 @@ class CurrencySelectorActivity : AppCompatActivity(), CurrencySelectorAdapter.On
             setDisplayHomeAsUpEnabled(true)
             setHomeAsUpIndicator(R.drawable.vector_x_white)
         }
+    }
+
+    private fun setTextChangedListener(adapter: CurrencySelectorAdapter) {
+        binding.currencySearch.addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(s: Editable?) {}
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(text: CharSequence?, start: Int, before: Int, count: Int) {
+                if (text.isNullOrBlank()) {
+                    currencyList.clear()
+                    fillCompleteCurrencyList()
+                    adapter.updateList(currencyList)
+                } else {
+                    val searchString = text.toString()
+                    val currencyTempList: MutableList<String> = mutableListOf()
+                    for (currency in currencyList) {
+                        if (currency.toLowerCase(Locale.ROOT)
+                                .contains(searchString.toLowerCase(Locale.ROOT))) {
+                            currencyTempList.add(currency)
+                        }
+                    }
+                    adapter.updateList(currencyTempList)
+                }
+            }
+        })
     }
 
     private fun fillCompleteCurrencyList() {
@@ -82,7 +77,7 @@ class CurrencySelectorActivity : AppCompatActivity(), CurrencySelectorAdapter.On
     }
 
     override fun onRowClick(code: String) {
-        var selected: CurrencyUiData = countryCodeSymbolList[0]
+        var selected: CurrencyUiData = countryCodeSymbolList[0] //dummy as needs to be initialized
         Log.i("Currency", "Currency selected by user: $code")
         for (currency in countryCodeSymbolList) {
             if (currency.countryCode == code) {
@@ -93,25 +88,15 @@ class CurrencySelectorActivity : AppCompatActivity(), CurrencySelectorAdapter.On
         val currencyCode = selected.countryCode
         val countrySymbol = selected.currencyUiSymbol
 
-        if (isBase) {
-            Log.i("Currency", "Base currency will be downloaded")
-            val aSyncCur =
-                ASyncCurrencyDownload(
-                    SqlDbHelper(
-                        this
-                    )
-                )
+        if (isBaseCurrency) {
+            Log.i("Currency", "Base currency will be downloaded - This is a new group")
+            val aSyncCur = ASyncCurrencyDownload(SqlDbHelper(this))
             aSyncCur.execute(currencyCode)
         } else {
-            Log.i("Currency", "Base currency will NOT be downloaded")
+            Log.i("Currency", "Base currency will NOT be downloaded - This is a new expense")
         }
 
-        val sharedPreferences = getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE)
-        val edit = sharedPreferences.edit()
-        edit.putString(SHARED_PREF_GROUP_CURRENCY_CODE, currencyCode)
-        edit.putString(SHARED_PREF_GROUP_CURRENCY_SYMBOL, countrySymbol)
-        edit.apply()
-
+        CurrencyExchangeHelper.saveRecentCurrencySharedPref(this, currencyCode, countrySymbol)
         setResult(Activity.RESULT_OK)
         finish()
     }

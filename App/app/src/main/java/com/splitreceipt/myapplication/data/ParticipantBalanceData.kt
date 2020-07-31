@@ -1,6 +1,7 @@
 package com.splitreceipt.myapplication.data
 
 import com.google.firebase.database.Exclude
+import java.util.*
 
 class ParticipantBalanceData () {
 
@@ -18,9 +19,20 @@ class ParticipantBalanceData () {
         userSqlRow = sqlRowId
     }
 
+    constructor(name: String) : this() {
+        userName = name
+        generateFbaseUserKey()
+    }
+
     fun contribsToBaseCurrency(exchangeRate: Float) {
             if (userBalance > 0.0F) {
                 userBalance /= exchangeRate
             }
+    }
+
+    private fun generateFbaseUserKey() {
+        val timestamp = System.currentTimeMillis().toString().substring(7,9)
+        val randomGen = UUID.randomUUID().toString().replace("-", "").substring(5, 7)
+        this.userKey = "${userName[0]}$timestamp$randomGen"
     }
 }

@@ -12,7 +12,6 @@ class BalanceOverviewActivity : AppCompatActivity(), BalanceOverviewAdapter.Bala
 
     private lateinit var binding: ActivityBalanceOverviewBinding
     private lateinit var adapter: BalanceOverviewAdapter
-    private val settleResult: Int = 10
 
     companion object {
         const val balanceResult = "balanceResult"

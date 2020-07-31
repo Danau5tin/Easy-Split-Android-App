@@ -91,13 +91,11 @@ class NewParticipantInviteActivity : AppCompatActivity(),  InviteParticipantRecy
         if (newParticipantName.isNotEmpty()) {
             adapter.notifyDataSetChanged()
             binding.addParticActivtext.setText("")
-            val sqlDbHelper =
-                SqlDbHelper(this)
-            val fBaseKey = NewGroupCreationActivity.generateFbaseUserKey(newParticipantName)
+            val sqlDbHelper = SqlDbHelper(this)
             val timestamp = System.currentTimeMillis().toString()
-            val newParticipant = ParticipantBalanceData(newParticipantName, fBaseKey = fBaseKey)
+            val newParticipant = ParticipantBalanceData(newParticipantName)
             sqlDbHelper.setGroupParticipants(newParticipant, currentSqlGroupId!!, timestamp)
-            ExpenseOverviewActivity.firebaseDbHelper!!.setGroupParticipants(newParticipant, timestamp)
+            firebaseDbHelper!!.setGroupParticipants(newParticipant, timestamp)
             participantList.add(newParticipant)
         } else {
             Toast.makeText(this, "Please type in a name for the participant", Toast.LENGTH_SHORT).show()
@@ -124,7 +122,6 @@ class NewParticipantInviteActivity : AppCompatActivity(),  InviteParticipantRecy
                 SqlDbHelper(this)
                     .updateParticipantsName(clickedParticipant, newName, timestamp, currentSqlGroupId!!)
                 clickedParticipant.userName = newName
-                //TODO: Is it not worth re-writing the above update functions for the db's so that they just take the newParticipant as an arg with the new name already overwritten in the object?
                 adapter.notifyItemChanged(pos)
                 builder.dismiss()
             }

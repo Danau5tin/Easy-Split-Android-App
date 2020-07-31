@@ -6,6 +6,7 @@ import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.util.Log
+import com.splitreceipt.myapplication.ExpenseOverviewActivity
 import com.splitreceipt.myapplication.ExpenseViewActivity
 import com.splitreceipt.myapplication.SplitExpenseManuallyFragment
 import com.splitreceipt.myapplication.data.*
@@ -581,7 +582,6 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
     }
 
     fun deleteExpense(sqlRowId: String){
-        //Deletes an entire expense from sql
         val write = writableDatabase
         val whereClause = "$EXPENSE_COL_ID = ?"
         val whereArgs = arrayOf(sqlRowId)
@@ -590,11 +590,18 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
     }
 
     fun deleteReceiptProduct(sqlRowId: String){
-        //Deletes an individual product from sql db
         val write = writableDatabase
         val where = "$ITEMS_COL_ID = ?"
         val whereArgs = arrayOf(sqlRowId)
         write.delete(ITEMS_TABLE_NAME, where, whereArgs)
+        close()
+    }
+
+    fun deleteGroup(groupSqlId: String) {
+        val write = writableDatabase
+        val whereClause = "$GROUP_COL_ID = ?"
+        val whereArgs = arrayOf(groupSqlId)
+        write.delete(GROUP_TABLE_NAME, whereClause, whereArgs)
         close()
     }
 

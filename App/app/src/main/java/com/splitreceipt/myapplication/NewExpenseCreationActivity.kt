@@ -131,8 +131,7 @@ class NewExpenseCreationActivity : AppCompatActivity() {
     }
 
     private fun setUpPaidBySpinner(): ArrayAdapter<String> {
-        val spinnerAdapter =
-            ArrayAdapter(this, R.layout.support_simple_spinner_dropdown_item, participantList)
+        val spinnerAdapter = ArrayAdapter(this, R.layout.support_simple_spinner_dropdown_item, participantList)
         binding.paidBySpinner.adapter = spinnerAdapter
         return spinnerAdapter
     }
@@ -352,7 +351,6 @@ class NewExpenseCreationActivity : AppCompatActivity() {
     }
 
     private fun participantsToParticipantBalance(participantList: ArrayList<String>): ArrayList<ParticipantBalanceData> {
-        //TODO: Can we remove this area of the code by changing participantList from Strings to ParticipantBalanceData?
         val particBalDataList: ArrayList<ParticipantBalanceData> = ArrayList()
         for (participant in participantList) {
             if (participant != ownershipEqualString){

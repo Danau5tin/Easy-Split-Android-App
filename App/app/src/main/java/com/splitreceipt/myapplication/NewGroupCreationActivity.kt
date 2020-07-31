@@ -30,7 +30,7 @@ import com.splitreceipt.myapplication.managers.SharedPrefManager.SHARED_PREF_GRO
 import com.splitreceipt.myapplication.managers.SharedPrefManager.SHARED_PREF_GROUP_CURRENCY_SYMBOL
 import com.splitreceipt.myapplication.managers.SharedPrefManager.SHARED_PREF_NAME
 import com.splitreceipt.myapplication.databinding.ActivityNewGroupCreationBinding
-import com.splitreceipt.myapplication.helper_classes.BitmapRotationFixHelper
+import com.splitreceipt.myapplication.helper_classes.ImageHelper
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -53,13 +53,6 @@ class NewGroupCreationActivity : AppCompatActivity(), NewParticipantRecyAdapter.
     companion object {
         var profileImageSavedLocally: Boolean = false
         var newGroupCreatedIntent = "newGroupCreated"
-
-        fun generateFbaseUserKey(participant: String): String {
-            val timestamp = System.currentTimeMillis().toString().substring(7,9)
-            val randomGen = UUID.randomUUID().toString().replace("-", "").substring(5, 7)
-            val fBaseKey = "${participant[0]}$timestamp$randomGen"
-            return fBaseKey
-        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -163,8 +156,7 @@ class NewGroupCreationActivity : AppCompatActivity(), NewParticipantRecyAdapter.
         val newParticipants: ArrayList<ParticipantBalanceData> = ArrayList()
         checkIfUserForgotToAddPartic()
         for (participant in participantList) {
-            val fBaseUserKey = generateFbaseUserKey(participant)
-            newParticipants.add(ParticipantBalanceData(participant, fBaseKey = fBaseUserKey))
+            newParticipants.add(ParticipantBalanceData(participant))
         }
         return newParticipants
     }
@@ -223,11 +215,10 @@ class NewGroupCreationActivity : AppCompatActivity(), NewParticipantRecyAdapter.
                 val uri: Uri? = data!!.data
                 binding.newGroupImage.setImageURI(uri)
                 val bitmap: Bitmap = MediaStore.Images.Media.getBitmap(contentResolver, uri)
-                val bitmapHelper = BitmapRotationFixHelper()
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    newBitmap = bitmapHelper.rotateBitmap(this, uri, bitmap)
+                newBitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    ImageHelper.rotateBitmap(this, uri, bitmap)
                 } else {
-                    newBitmap = bitmap
+                    bitmap
                 }
                 binding.addPhotoHint.visibility = View.INVISIBLE
                 binding.addPhotoImageHint.visibility = View.INVISIBLE

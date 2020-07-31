@@ -91,37 +91,7 @@ class SplitReceiptScanFragment : Fragment(), NewScannedReceiptRecyclerAdapter.on
         binding.scannedRecy.adapter = adapter
         binding.scannedRecy.isNestedScrollingEnabled = false
 
-
-        binding.currencyAmountScan.addTextChangedListener(object: TextWatcher {
-            //TODO: This is copied from other fragment. Can we move this up into the activity and have the two fragments listen for changes from the main activity?
-            override fun afterTextChanged(s: Editable?) {
-                setTotal()
-            }
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(text: CharSequence?, start: Int, before: Int, count: Int) {
-                val correctNumber: CharSequence
-                if (!text.isNullOrBlank()){
-                    val allText = text.toString()
-                    if (allText.contains(".")){
-                        /* If there is a decimal place present: find the index and ensure the user
-                         cannot type more than 2 decimal places from that point by taking a substring.
-                         Reset the cursor to end of text with setSelection.
-                         */
-                        val dotIndex = allText.indexOf(".")
-                        if (start > (dotIndex + 2)){
-                            correctNumber = text.subSequence(0, dotIndex + 3)
-                            val correctText = correctNumber.toString()
-                            binding.currencyAmountScan.setText(correctText)
-                            binding.currencyAmountScan.text?.length?.let {binding.currencyAmountScan.setSelection(it)}
-                        }
-                    }
-                    SplitExpenseManuallyFragment.transactionTotal = text.toString()
-                }
-                else{
-                    SplitExpenseManuallyFragment.transactionTotal =
-                        NewExpenseCreationActivity.zeroCurrency
-
-                    }}})
+        setAmountChangeListener()
 
         binding.addReceiptImageButton.setOnClickListener {
             val okayToProceed = okayToProceed()
@@ -156,6 +126,35 @@ class SplitReceiptScanFragment : Fragment(), NewScannedReceiptRecyclerAdapter.on
                 adapter
             )
         return binding.root
+    }
+
+    private fun setAmountChangeListener() {
+        binding.currencyAmountScan.addTextChangedListener(object: TextWatcher {
+            //TODO: This is almost an exact copy from other fragment. Can we move this up into the activity and have the two fragments listen for changes from the main activity?
+            override fun afterTextChanged(s: Editable?) {
+                setTotal()
+            }
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(text: CharSequence?, start: Int, before: Int, count: Int) {
+                val correctNumber: CharSequence
+                if (!text.isNullOrBlank()){
+                    val allText = text.toString()
+                    if (allText.contains(".")){
+                        val dotIndex = allText.indexOf(".")
+                        if (start > (dotIndex + 2)){
+                            correctNumber = text.subSequence(0, dotIndex + 3)
+                            val correctText = correctNumber.toString()
+                            binding.currencyAmountScan.setText(correctText)
+                            binding.currencyAmountScan.text?.length?.let {binding.currencyAmountScan.setSelection(it)}
+                        }
+                    }
+                    SplitExpenseManuallyFragment.transactionTotal = text.toString()
+                }
+                else{
+                    SplitExpenseManuallyFragment.transactionTotal =
+                        NewExpenseCreationActivity.zeroCurrency
+
+                }}})
     }
 
 

@@ -1,13 +1,10 @@
 package com.splitreceipt.myapplication
 
 import android.app.Activity
-import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.view.Menu
@@ -17,13 +14,9 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
-import com.splitreceipt.myapplication.a_sync_classes.ASyncSaveImage
-import com.splitreceipt.myapplication.managers.SqlDbColumnsManager.GroupTable.GROUP_COL_ID
-import com.splitreceipt.myapplication.managers.SqlDbColumnsManager.GroupTable.GROUP_TABLE_NAME
 import com.splitreceipt.myapplication.helper_classes.SqlDbHelper
 import com.splitreceipt.myapplication.databinding.ActivityGroupSettingsBinding
-import com.splitreceipt.myapplication.helper_classes.BitmapRotationFixHelper
-import com.splitreceipt.myapplication.helper_classes.LocalStorageHelper
+import com.splitreceipt.myapplication.helper_classes.ImageHelper
 
 
 class GroupSettingsActivity : AppCompatActivity() {
@@ -39,32 +32,6 @@ class GroupSettingsActivity : AppCompatActivity() {
         const val groupSqlIdIntent: String = "groupSql"
         const val groupNameReturnIntent: String = "groupNameReturn"
         const val groupImageChangedUriIntent: String = "groupImageChanged"
-
-        fun handleNewImage(context: Context, uri: Uri, view: de.hdodenhof.circleimageview.CircleImageView) {
-            // Able to set a new image. Fix rotation issues if present. Upload to Firebase. Save locally.
-            view.setImageURI(uri)
-            val bitmap = MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
-            val bitmapRotationFixHelper =
-                BitmapRotationFixHelper()
-            val newBitmap: Bitmap
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                newBitmap = bitmapRotationFixHelper.rotateBitmap(context, uri, bitmap)!!
-            } else {
-                newBitmap = bitmap
-            }
-            ExpenseOverviewActivity.firebaseDbHelper!!.uploadGroupProfileImage(newBitmap)
-            val aSyncSaveImage =
-                ASyncSaveImage(
-                    true,
-                    context,
-                    ExpenseOverviewActivity.currentGroupFirebaseId!!
-                )
-            aSyncSaveImage.execute(newBitmap)
-            val lastEdit = System.currentTimeMillis().toString()
-            ExpenseOverviewActivity.firebaseDbHelper!!.setGroupImageLastEdit(lastEdit)
-            SqlDbHelper(context)
-                .setLastImageEdit(lastEdit, ExpenseOverviewActivity.currentSqlGroupId)
-        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -84,8 +51,7 @@ class GroupSettingsActivity : AppCompatActivity() {
         }
 
         sqlRowId = intent.getStringExtra(groupSqlIdIntent)!!
-        imageUri = null
-        val bitmap = LocalStorageHelper.loadImageFromStorage(this, true, ExpenseOverviewActivity.currentGroupFirebaseId!!)
+        val bitmap = ImageHelper.loadImageFromStorage(this, ExpenseOverviewActivity.currentGroupFirebaseId!!)
         binding.groupImage.setImageBitmap(bitmap)
     }
 
@@ -96,16 +62,8 @@ class GroupSettingsActivity : AppCompatActivity() {
             setMessage("This group will be deleted for ALL users involved, not just yourself.")
             setPositiveButton("Yes delete", object: DialogInterface.OnClickListener{
                 override fun onClick(dialog: DialogInterface?, which: Int) {
-                    val dbHelper =
-                        SqlDbHelper(
-                            context
-                        )
-                    val write = dbHelper.writableDatabase
-                    val whereClause = "$GROUP_COL_ID = ?"
-                    val whereArgs = arrayOf(ExpenseOverviewActivity.currentSqlGroupId)
-                    write.delete(GROUP_TABLE_NAME, whereClause, whereArgs)
-                    dbHelper.close()
-
+                    SqlDbHelper(context).deleteGroup(ExpenseOverviewActivity.currentSqlGroupId!!)
+                    //TODO: Delete from firebase also.
                     Toast.makeText(context, "Deleted successfully", Toast.LENGTH_SHORT).show()
                     onBackPressed()
                 }
@@ -130,9 +88,7 @@ class GroupSettingsActivity : AppCompatActivity() {
                 if (okayToProceed) {
                     val groupName = binding.nameEdit.text.toString()
                     ExpenseOverviewActivity.firebaseDbHelper!!.updateGroupName(groupName)
-                    SqlDbHelper(
-                        this
-                    ).updateGroupName(sqlRowId, groupName)
+                    SqlDbHelper(this).updateGroupName(sqlRowId, groupName)
                     intent.putExtra(groupNameReturnIntent, groupName)
                     intent.putExtra(groupImageChangedUriIntent, imageUri)
                     setResult(Activity.RESULT_OK, intent)
@@ -147,11 +103,11 @@ class GroupSettingsActivity : AppCompatActivity() {
     }
 
     private fun checkOkayToProceed(): Boolean {
-        if (binding.nameEdit.text!!.isEmpty()) {
+        return if (binding.nameEdit.text!!.isEmpty()) {
             Toast.makeText(this, "Check group name", Toast.LENGTH_SHORT).show()
-            return false
+            false
         } else {
-            return true
+            true
         }
     }
 
@@ -174,7 +130,7 @@ class GroupSettingsActivity : AppCompatActivity() {
         if (requestCode == pickImage) {
             if (resultCode == Activity.RESULT_OK) {
                 val uri: Uri? = data?.data
-                handleNewImage(this, uri!!, binding.groupImage)
+                ImageHelper.handleNewImage(this, uri!!, binding.groupImage)
                 imageUri = uri.toString()
             }
         }

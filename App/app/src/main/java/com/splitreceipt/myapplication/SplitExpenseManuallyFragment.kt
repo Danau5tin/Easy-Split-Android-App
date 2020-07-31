@@ -35,7 +35,6 @@ class SplitExpenseManuallyFragment : Fragment(), NewManualExpenseRecyclerAdapter
     private lateinit var sharedPreferences: SharedPreferences
 
     companion object{
-
         var transactionTotal: String = zeroCurrency
         private const val currencyIntent = 2
         var fragmentManualParticipantList: ArrayList<ParticipantData> = ArrayList()
@@ -53,31 +52,7 @@ class SplitExpenseManuallyFragment : Fragment(), NewManualExpenseRecyclerAdapter
         binding.fragManualRecy.adapter = adapter
 
 
-        binding.currencyAmountManual.addTextChangedListener(object: TextWatcher {
-            override fun afterTextChanged(s: Editable?) {}
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(text: CharSequence?, start: Int, before: Int, count: Int) {
-
-                val correctNumber: CharSequence
-                if (!text.isNullOrBlank()){
-                    val allText = text.toString()
-                    if (allText.contains(".")){
-                        /* If there is a decimal place present: find the index and ensure the user
-                         cannot type more than 2 decimal places from that point by taking a substring.
-                         Reset the cursor to end of text with setSelection.
-                         */
-                        val dotIndex = allText.indexOf(".")
-                        if (start > (dotIndex + 2)){
-                            correctNumber = text.subSequence(0, dotIndex + 3)
-                            binding.currencyAmountManual.setText(correctNumber.toString())
-                            binding.currencyAmountManual.text?.length?.let {binding.currencyAmountManual.setSelection(it)}
-                        }}
-                    transactionTotal = text.toString()
-                    setContributionStatus()
-                }
-                else{
-                    transactionTotal = zeroCurrency
-                    setContributionStatus()}}})
+        setAmountChangeListener()
 
         if (NewExpenseCreationActivity.isEdit) {
             binding.currencyButtonManual.isEnabled = false
@@ -96,6 +71,35 @@ class SplitExpenseManuallyFragment : Fragment(), NewManualExpenseRecyclerAdapter
 
         return binding.root
     }
+
+    private fun setAmountChangeListener() {
+        binding.currencyAmountManual.addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(s: Editable?) {}
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(text: CharSequence?, start: Int, before: Int, count: Int) {
+                val correctNumber: CharSequence
+                if (!text.isNullOrBlank()) {
+                    val allText = text.toString()
+                    if (allText.contains(".")) {
+                        val dotIndex = allText.indexOf(".")
+                        if (start > (dotIndex + 2)) {
+                            correctNumber = text.subSequence(0, dotIndex + 3)
+                            binding.currencyAmountManual.setText(correctNumber.toString())
+                            binding.currencyAmountManual.text?.length?.let {
+                               binding.currencyAmountManual.setSelection(it)
+                            }
+                        }
+                    }
+                    transactionTotal = text.toString()
+                    setContributionStatus()
+                } else {
+                    transactionTotal = zeroCurrency
+                    setContributionStatus()
+                }
+            }
+        })
+    }
+
 
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

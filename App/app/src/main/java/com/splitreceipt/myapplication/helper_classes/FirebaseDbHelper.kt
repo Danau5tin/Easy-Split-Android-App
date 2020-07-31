@@ -30,8 +30,7 @@ class FirebaseDbHelper(var firebaseGroupId: String) {
         database = FirebaseDatabase.getInstance()
     }
 
-    fun checkJoin(context: Context){
-        // Checks whether a firebase group ID is valid. //TODO: Is this necessary? Why not just try and download the whole group?
+    fun checkJoinOkayAndStartIntent(context: Context){
         val groupInfoPath = "$firebaseGroupId$groupInfo"
         currentPath = database.getReference(groupInfoPath)
         currentPath.addListenerForSingleValueEvent(object: ValueEventListener{

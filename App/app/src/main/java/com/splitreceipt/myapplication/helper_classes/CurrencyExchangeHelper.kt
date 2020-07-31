@@ -1,8 +1,11 @@
 package com.splitreceipt.myapplication.helper_classes
 
+import android.content.Context
 import android.util.Log
+import com.splitreceipt.myapplication.CurrencySelectorActivity
 import com.splitreceipt.myapplication.ExpenseOverviewActivity
 import com.splitreceipt.myapplication.data.CurrencyUiData
+import com.splitreceipt.myapplication.managers.SharedPrefManager
 
 object CurrencyExchangeHelper {
 
@@ -52,6 +55,14 @@ object CurrencyExchangeHelper {
             }
         }
         return "$"
+    }
+
+    fun saveRecentCurrencySharedPref(context: Context, currencyCode: String, currencySymbol: String) {
+        val sharedPreferences = context.getSharedPreferences(SharedPrefManager.SHARED_PREF_NAME, Context.MODE_PRIVATE)
+        val edit = sharedPreferences.edit()
+        edit.putString(SharedPrefManager.SHARED_PREF_GROUP_CURRENCY_CODE, currencyCode)
+        edit.putString(SharedPrefManager.SHARED_PREF_GROUP_CURRENCY_SYMBOL, currencySymbol)
+        edit.apply()
     }
 
     data class CurrencyDetails(var currencyCode: String, var currencySymbol: String, var exchangeRate: Float)
