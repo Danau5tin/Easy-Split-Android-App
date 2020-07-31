@@ -13,7 +13,7 @@ import com.splitreceipt.myapplication.helper_classes.FirebaseDbHelper
 import com.splitreceipt.myapplication.data.ParticipantBalanceData
 import com.splitreceipt.myapplication.helper_classes.SqlDbHelper
 import com.splitreceipt.myapplication.databinding.ActivityWelcomeJoinBinding
-import com.splitreceipt.myapplication.helper_classes.CurrencyHelper
+import com.splitreceipt.myapplication.helper_classes.CurrencyExchangeHelper
 
 class WelcomeJoinActivity : AppCompatActivity() {
 
@@ -52,7 +52,7 @@ class WelcomeJoinActivity : AppCompatActivity() {
         fBaseName = intent.getStringExtra(joinFireBaseName)!!
         firebaseId = intent.getStringExtra(joinFireBaseId)!!
         fBaseCurrencyCode = intent.getStringExtra(joinBaseCurrency)!!
-        fBaseCurrencySymbol = CurrencyHelper.returnUiSymbol(fBaseCurrencyCode)
+        fBaseCurrencySymbol = CurrencyExchangeHelper.returnUiSymbol(fBaseCurrencyCode)
 
         firebaseDbHelper =
             FirebaseDbHelper(

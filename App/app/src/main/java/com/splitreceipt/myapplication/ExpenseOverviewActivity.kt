@@ -52,19 +52,9 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
         var currentGroupFirebaseId: String? = "-1"
         var currentGroupName: String? = "?"
         var currentGroupBaseCurrency: String? = ""
-        lateinit var currencySymbol: String
+        lateinit var currentCurrencySymbol: String
         var settlementArray: ArrayList<String> = ArrayList()
         const val ImagePathIntent = "path_intent"
-
-        fun roundToTwoDecimalPlace(number: Float, ceiling: Boolean=true): Float {
-            val df = DecimalFormat("#.##")
-            if (ceiling) {
-                df.roundingMode = RoundingMode.CEILING
-            } else {
-                df.roundingMode = RoundingMode.FLOOR
-            }
-            return df.format(number).toFloat()
-        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -137,7 +127,7 @@ class ExpenseOverviewActivity : AppCompatActivity(), ExpenseOverViewAdapter.OnRe
         currentGroupName = intent.getStringExtra(GroupScreenActivity.groupNameIntentString)
         currentGroupFirebaseId = intent.getStringExtra(GroupScreenActivity.firebaseIntentString)
         currentGroupBaseCurrency = intent.getStringExtra(GroupScreenActivity.groupBaseCurrencyIntent)!!
-        currencySymbol =
+        currentCurrencySymbol =
             intent.getStringExtra(GroupScreenActivity.groupBaseCurrencyUiSymbolIntent)!!
     }
 

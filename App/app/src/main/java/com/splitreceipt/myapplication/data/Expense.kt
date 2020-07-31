@@ -3,8 +3,8 @@ package com.splitreceipt.myapplication.data
 import android.widget.EditText
 import com.google.firebase.database.Exclude
 import com.splitreceipt.myapplication.ExpenseOverviewActivity.Companion.currentSqlGroupId
-import com.splitreceipt.myapplication.helper_classes.CurrencyHelper.CurrencyDetails
-import com.splitreceipt.myapplication.ExpenseOverviewActivity.Companion.roundToTwoDecimalPlace
+import com.splitreceipt.myapplication.helper_classes.CurrencyExchangeHelper.CurrencyDetails
+import com.splitreceipt.myapplication.helper_classes.DecimalPlaceFixer
 
 class Expense () {
 
@@ -64,7 +64,7 @@ class Expense () {
 
     private fun setExpenseTotalByView(totalEditText: EditText) {
         val total = totalEditText.text.toString().toFloat()
-        this.total = roundToTwoDecimalPlace(total)
+        this.total = DecimalPlaceFixer.roundToTwoDecimalPlace(total)
     }
 
 

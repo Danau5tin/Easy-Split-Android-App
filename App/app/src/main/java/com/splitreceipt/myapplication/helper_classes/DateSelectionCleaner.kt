@@ -13,14 +13,8 @@ object DateSelectionCleaner {
     }
 
     fun returnDateString(year: Int, monthOfYear: Int, dayOfMonth: Int): String{
-        val dayString =
-            cleanDay(
-                dayOfMonth
-            )
-        val monthString =
-            cleanMonth(
-                monthOfYear
-            )
+        val dayString = cleanDay(dayOfMonth)
+        val monthString = cleanMonth(monthOfYear)
         val yearString: String = year.toString()
         return "$dayString/$monthString/$yearString"
     }

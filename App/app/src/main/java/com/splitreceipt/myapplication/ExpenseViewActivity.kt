@@ -15,7 +15,8 @@ import com.splitreceipt.myapplication.data.*
 import com.splitreceipt.myapplication.data.ParticipantData.Companion.changeNameToYou
 import com.splitreceipt.myapplication.databinding.ActivityExpenseViewBinding
 import com.splitreceipt.myapplication.helper_classes.BalanceSettlementHelper
-import com.splitreceipt.myapplication.helper_classes.CurrencyHelper
+import com.splitreceipt.myapplication.helper_classes.CurrencyExchangeHelper
+import com.splitreceipt.myapplication.helper_classes.DecimalPlaceFixer
 import com.splitreceipt.myapplication.helper_classes.SqlDbHelper
 import kotlin.collections.ArrayList
 
@@ -114,12 +115,11 @@ class ExpenseViewActivity : AppCompatActivity() {
             val contributor = changeNameToYou(individualContrib[0], true)
             val baseContribution = individualContrib[1].toFloat()
             // If the expense was in a different currency to the base currency then re-convert it.
-            val originalContribution = CurrencyHelper.reversePreviousExchange(expenseExchangeRate, baseContribution)
-            var value = ExpenseOverviewActivity.roundToTwoDecimalPlace(originalContribution).toString()
-            value = SplitExpenseManuallyFragment.addStringZerosForDecimalPlace(value)
+            val originalContribution = CurrencyExchangeHelper.reverseFromBaseToExpenseCurrency(expenseExchangeRate, baseContribution)
+            val value = DecimalPlaceFixer.fixDecimalPlace(originalContribution)
 
             val newString = "$contributor contributed $currencyUiSymbol$value"
-            contributionList.add(ExpenseAdapterData(newString, value.toString()))
+            contributionList.add(ExpenseAdapterData(newString, value))
         }
     }
     private fun retrieveAllSqlDetails(scanned: Boolean){
@@ -157,7 +157,7 @@ class ExpenseViewActivity : AppCompatActivity() {
                 // Below code retrieves the edited intents after they have already been saved.
                 Toast.makeText(this, "Expense edited", Toast.LENGTH_SHORT).show()
                 binding.titleTextView.text = data?.getStringExtra(expenseReturnEditTitle)
-                val total = SplitExpenseManuallyFragment.addStringZerosForDecimalPlace(data?.
+                val total = DecimalPlaceFixer.addStringZerosForDecimalPlace(data?.
                                                 getStringExtra(expenseReturnEditTotal).toString())
                 val totalWithCurrency = "$currencyUiSymbol$total"
                 binding.expenseValue.text = totalWithCurrency

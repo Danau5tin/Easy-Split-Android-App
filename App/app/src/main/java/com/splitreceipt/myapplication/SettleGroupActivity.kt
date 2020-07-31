@@ -11,8 +11,8 @@ import com.splitreceipt.myapplication.ExpenseOverviewActivity.Companion.currentG
 import com.splitreceipt.myapplication.data.Expense
 import com.splitreceipt.myapplication.helper_classes.SqlDbHelper
 import com.splitreceipt.myapplication.databinding.ActivitySettleGroupBinding
-import com.splitreceipt.myapplication.helper_classes.CurrencyHelper
-import com.splitreceipt.myapplication.helper_classes.CurrencyHelper.EXCHANGE_RATE_OF_1
+import com.splitreceipt.myapplication.helper_classes.CurrencyExchangeHelper
+import com.splitreceipt.myapplication.helper_classes.CurrencyExchangeHelper.EXCHANGE_RATE_OF_1
 import com.splitreceipt.myapplication.helper_classes.DateSelectionCleaner.retrieveTodaysDate
 
 class SettleGroupActivity : AppCompatActivity() {
@@ -48,7 +48,7 @@ class SettleGroupActivity : AppCompatActivity() {
                 if (okayToProceed()) {
                     val expense = returnBasicExpense()
                     //TODO: Allow settlements to be made in any currency instead of defaulting to the base currency.
-                    val currencyDetails = CurrencyHelper.CurrencyDetails(currentGroupBaseCurrency!!, CurrencyHelper.returnUiSymbol(currentGroupBaseCurrency!!), EXCHANGE_RATE_OF_1)
+                    val currencyDetails = CurrencyExchangeHelper.CurrencyDetails(currentGroupBaseCurrency!!, CurrencyExchangeHelper.returnUiSymbol(currentGroupBaseCurrency!!), EXCHANGE_RATE_OF_1)
                     expense.setUpNewExpense(binding.settleAmountText, paidTo, currencyDetails)
 
                     ExpenseOverviewActivity.firebaseDbHelper!!.insertOrUpdateExpense(expense)

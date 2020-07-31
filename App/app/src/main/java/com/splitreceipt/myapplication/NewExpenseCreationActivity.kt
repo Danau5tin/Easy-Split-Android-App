@@ -11,11 +11,10 @@ import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.splitreceipt.myapplication.helper_classes.CurrencyHelper.CurrencyDetails
-import com.splitreceipt.myapplication.helper_classes.CurrencyHelper.EXCHANGE_RATE_OF_1
-import com.splitreceipt.myapplication.helper_classes.CurrencyHelper.retrieveExchangeRate
+import com.splitreceipt.myapplication.helper_classes.CurrencyExchangeHelper.CurrencyDetails
+import com.splitreceipt.myapplication.helper_classes.CurrencyExchangeHelper.EXCHANGE_RATE_OF_1
+import com.splitreceipt.myapplication.helper_classes.CurrencyExchangeHelper.retrieveExchangeRate
 import com.splitreceipt.myapplication.ExpenseOverviewActivity.Companion.firebaseDbHelper
-import com.splitreceipt.myapplication.ExpenseOverviewActivity.Companion.roundToTwoDecimalPlace
 import com.splitreceipt.myapplication.SplitReceiptScanFragment.Companion.itemizedArrayList
 import com.splitreceipt.myapplication.SplitReceiptScanFragment.Companion.ownershipEqualString
 import com.splitreceipt.myapplication.adapters.ExpensePagerAdapter
@@ -26,6 +25,7 @@ import com.splitreceipt.myapplication.managers.SharedPrefManager.SHARED_PREF_GRO
 import com.splitreceipt.myapplication.managers.SharedPrefManager.SHARED_PREF_NAME
 import com.splitreceipt.myapplication.databinding.ActivityNewExpenseCreationBinding
 import com.splitreceipt.myapplication.helper_classes.DateSelectionCleaner.retrieveTodaysDate
+import com.splitreceipt.myapplication.helper_classes.DecimalPlaceFixer
 import com.splitreceipt.myapplication.helper_classes.SqlDbHelper
 import kotlinx.android.synthetic.main.fragment_split_receipt_manually.*
 import kotlinx.android.synthetic.main.fragment_split_receipt_scan.*
@@ -337,7 +337,7 @@ class NewExpenseCreationActivity : AppCompatActivity() {
     }
 
     private fun splitProductEquallyBetweenGroup(itemValue: Float, numberParticipants: Int, particBalDataList: ArrayList<ParticipantBalanceData>) {
-        val equalSplit: Float = roundToTwoDecimalPlace(itemValue / numberParticipants)
+        val equalSplit: Float = DecimalPlaceFixer.roundToTwoDecimalPlace(itemValue / numberParticipants)
         for (participant in particBalDataList) {
             participant.userBalance += equalSplit
         }

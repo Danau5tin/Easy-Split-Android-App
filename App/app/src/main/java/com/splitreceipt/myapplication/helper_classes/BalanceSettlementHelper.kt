@@ -2,10 +2,9 @@ package com.splitreceipt.myapplication.helper_classes
 
 import android.content.Context
 import android.util.Log
-import com.splitreceipt.myapplication.ExpenseOverviewActivity
 import com.splitreceipt.myapplication.ExpenseOverviewActivity.Companion.firebaseDbHelper
 import com.splitreceipt.myapplication.R
-import com.splitreceipt.myapplication.data.Contribution
+import com.splitreceipt.myapplication.data.Transaction
 import com.splitreceipt.myapplication.data.ParticipantBalanceData
 import kotlin.math.abs
 
@@ -20,7 +19,7 @@ class BalanceSettlementHelper(var context: Context, private var groupSqlRow: Str
     fun updateBalancesReturnSettlement(newContributions: String) : String {
         val sqlDbHelper = SqlDbHelper(context)
         val participants = sqlDbHelper.retrieveGroupParticipants(groupSqlRow)
-        val contributions = Contribution.createContributionsFromString(newContributions)
+        val contributions = Transaction.createTransactionsFromString(newContributions)
         newBalanceObjects = updateBalancesWithContributions(participants, contributions)
 
         firebaseDbHelper!!.updateParticipantBalances(newBalanceObjects!!) //TODO: Find a way to only update this at the end of all transactions.
@@ -46,18 +45,18 @@ class BalanceSettlementHelper(var context: Context, private var groupSqlRow: Str
     }
 
     private fun updateBalancesWithContributions(
-        participants: ArrayList<ParticipantBalanceData>, newContributions: ArrayList<Contribution>)
+        participants: ArrayList<ParticipantBalanceData>, newTransactions: ArrayList<Transaction>)
             : ArrayList<ParticipantBalanceData> {
-        for (contribution in newContributions) {
+        for (contribution in newTransactions) {
             if (contribution.contribValue == 0.0F ||
-                contribution.contributor == contribution.contributee){
+                contribution.contributor == contribution.receiver){
                 continue
             }
             for (participant in participants) {
                 if (contribution.contributor == participant.userName) {
                     participant.userBalance += contribution.contribValue!!
                 }
-                else if (contribution.contributee == participant.userName) {
+                else if (contribution.receiver == participant.userName) {
                     participant.userBalance -= contribution.contribValue!!
                 }
                 participant.userBalance = errorRate(participant.userBalance) //TODO: Necessary now?

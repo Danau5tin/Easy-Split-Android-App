@@ -4,45 +4,44 @@ import android.util.Log
 import com.splitreceipt.myapplication.ExpenseOverviewActivity
 import com.splitreceipt.myapplication.data.CurrencyUiData
 
-object CurrencyHelper {
+object CurrencyExchangeHelper {
 
     private var baseCurrencyCode = ExpenseOverviewActivity.currentGroupBaseCurrency!!
     const val EXCHANGE_RATE_OF_1: Float = 1.0F
 
     fun retrieveExchangeRate(expenseCurrencyCode: String, priorExchangeRate: Float?, sqlDbHelper: SqlDbHelper) : Float{
-        if (expenseCurrencyCode != baseCurrencyCode) {
-            // Take the exchange rate.
+        return if (expenseCurrencyCode != baseCurrencyCode) {
             val exchangeRate: Float
-            if (priorExchangeRate == null) {
-                // User is creating a new expense
+            if (userIsNotEditingExpense(priorExchangeRate)) {
                 exchangeRate = sqlDbHelper.retrieveExchangeRate(baseCurrencyCode, expenseCurrencyCode)
                 Log.i("Currency", "Retrieved exchange rate for $expenseCurrencyCode is: $exchangeRate")
             } else {
-                // User is editing a prior expense
-                exchangeRate = priorExchangeRate
+                exchangeRate = priorExchangeRate!!
                 Log.i("Currency", "Prior exchange rate: $priorExchangeRate")
             }
-            return exchangeRate
+            exchangeRate
         } else {
-            // Base currency is the same as the expense currency.
-            return EXCHANGE_RATE_OF_1
+            EXCHANGE_RATE_OF_1
         }
     }
 
-    fun reversePreviousExchange(exchangeRate: Float, baseContribution: Float) : Float {
-        if (exchangeRate == EXCHANGE_RATE_OF_1) {
-            return baseContribution
+    private fun userIsNotEditingExpense(priorExchangeRate: Float?) : Boolean {
+        return priorExchangeRate == null
+    }
+
+    fun reverseFromBaseToExpenseCurrency(exchangeRate: Float, baseContribution: Float) : Float {
+        return if (exchangeRate == EXCHANGE_RATE_OF_1) {
+            baseContribution
         } else {
-            //Using the exchange rate at the time of the transaction, re-convert back to the original currency.
-            return baseContribution * exchangeRate
+            baseContribution * exchangeRate
         }
     }
 
     fun quickExchange(exchangeRate: Float, value: Float) : Float {
-        if (exchangeRate == EXCHANGE_RATE_OF_1) {
-            return value
+        return if (exchangeRate == EXCHANGE_RATE_OF_1) {
+            value
         } else {
-            return value / exchangeRate
+            value / exchangeRate
         }
     }
 
@@ -52,7 +51,7 @@ object CurrencyHelper {
                 return currency.currencyUiSymbol
             }
         }
-        return "$" //default to $
+        return "$"
     }
 
     data class CurrencyDetails(var currencyCode: String, var currencySymbol: String, var exchangeRate: Float)

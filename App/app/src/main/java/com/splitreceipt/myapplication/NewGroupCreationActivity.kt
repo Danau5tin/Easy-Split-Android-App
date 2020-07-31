@@ -31,7 +31,6 @@ import com.splitreceipt.myapplication.managers.SharedPrefManager.SHARED_PREF_GRO
 import com.splitreceipt.myapplication.managers.SharedPrefManager.SHARED_PREF_NAME
 import com.splitreceipt.myapplication.databinding.ActivityNewGroupCreationBinding
 import com.splitreceipt.myapplication.helper_classes.BitmapRotationFixHelper
-import com.splitreceipt.myapplication.helper_classes.CurrencyHelper
 import java.util.*
 import kotlin.collections.ArrayList
 

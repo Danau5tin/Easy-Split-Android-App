@@ -77,7 +77,7 @@ class FirebaseSyncHelper() {
                     if (!expenseExistsInSql) {
                         changedSinceLastSync = true
                         val currency = firebaseExpense.currencyCode
-                        firebaseExpense.currencySymbol = CurrencyHelper.returnUiSymbol(currency)
+                        firebaseExpense.currencySymbol = CurrencyExchangeHelper.returnUiSymbol(currency)
                         val expenseSqlRow = sqlDbHelper.insertNewExpense(firebaseExpense)
                         if (firebaseExpense.scanned){
                             syncScannedExpenseProducts(firebaseDbHelper.firebaseGroupId, expenseSqlRow)

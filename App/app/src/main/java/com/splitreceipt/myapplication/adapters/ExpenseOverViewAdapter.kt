@@ -10,6 +10,7 @@ import com.splitreceipt.myapplication.R
 import com.splitreceipt.myapplication.SplitExpenseManuallyFragment
 import com.splitreceipt.myapplication.data.ParticipantData.Companion.changeNameToYou
 import com.splitreceipt.myapplication.data.ExpenseData
+import com.splitreceipt.myapplication.helper_classes.DecimalPlaceFixer
 import kotlin.collections.ArrayList
 
 class ExpenseOverViewAdapter(var expenseList: ArrayList<ExpenseData>, var onRecRowClick: OnReceRowClick) : RecyclerView.Adapter<ExpenseOverViewAdapter.ReceiptOverviewViewHolder>(){
@@ -32,7 +33,7 @@ class ExpenseOverViewAdapter(var expenseList: ArrayList<ExpenseData>, var onRecR
         holder.receiptTitleTextView.text = expenseList[position].title
 
         val totalToString = expenseList[position].total.toString()
-        val totalFixedString = SplitExpenseManuallyFragment.addStringZerosForDecimalPlace(totalToString)
+        val totalFixedString = DecimalPlaceFixer.addStringZerosForDecimalPlace(totalToString)
         val currencyUiSymbol = expenseList[position].currencyUiSymbol
         val totalString = "$currencyUiSymbol$totalFixedString"
         holder.receiptTotalTextView.text = totalString

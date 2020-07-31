@@ -23,6 +23,7 @@ import com.splitreceipt.myapplication.managers.SharedPrefManager.SHARED_PREF_GRO
 import com.splitreceipt.myapplication.managers.SharedPrefManager.SHARED_PREF_GROUP_CURRENCY_SYMBOL
 import com.splitreceipt.myapplication.managers.SharedPrefManager.SHARED_PREF_NAME
 import com.splitreceipt.myapplication.databinding.FragmentSplitReceiptManuallyBinding
+import com.splitreceipt.myapplication.helper_classes.DecimalPlaceFixer
 
 class SplitExpenseManuallyFragment : Fragment(), NewManualExpenseRecyclerAdapter.OnRecyRowCheked {
 
@@ -38,16 +39,6 @@ class SplitExpenseManuallyFragment : Fragment(), NewManualExpenseRecyclerAdapter
         var transactionTotal: String = zeroCurrency
         private const val currencyIntent = 2
         var fragmentManualParticipantList: ArrayList<ParticipantData> = ArrayList()
-
-        fun addStringZerosForDecimalPlace(value: String): String {
-            var fixedValue = ""
-            if (value.contains(".")) {
-                if (value.length - value.indexOf(".") == 2) {
-                    fixedValue = value + "0"
-                    return fixedValue }
-                else { return value } }
-            else { return "$value.00"
-            }}
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -145,14 +136,12 @@ class SplitExpenseManuallyFragment : Fragment(), NewManualExpenseRecyclerAdapter
     }
 
     private fun setContributionValues(total: Float, activeParticipants: ArrayList<ParticipantData>){
-        val contribution: String
         val fixedContribution: String
-        if (activeParticipants.isNotEmpty()){
+        fixedContribution = if (activeParticipants.isNotEmpty()){
             val num = total / activeParticipants.size
-            contribution = ExpenseOverviewActivity.roundToTwoDecimalPlace(num).toString()
-            fixedContribution = addStringZerosForDecimalPlace(contribution)
+            DecimalPlaceFixer.fixDecimalPlace(num)
         } else {
-            fixedContribution = "0.00"
+            "0.00"
         }
         for (participant in activeParticipants){
             participant.contributionValue = fixedContribution

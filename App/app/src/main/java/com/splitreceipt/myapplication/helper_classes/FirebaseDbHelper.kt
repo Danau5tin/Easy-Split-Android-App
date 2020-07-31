@@ -82,7 +82,7 @@ class FirebaseDbHelper(var firebaseGroupId: String) {
                     val expenseData = expense.getValue(Expense::class.java)!!
                     expenseData.sqlGroupRowId = newGroup.sqlGroupRowId
                     expenseData.firebaseIdentifier = expense.key!!
-                    expenseData.currencySymbol = CurrencyHelper.returnUiSymbol(expenseData.currencyCode)
+                    expenseData.currencySymbol = CurrencyExchangeHelper.returnUiSymbol(expenseData.currencyCode)
                     expenseData.sqlExpenseRowId = sqlHelper.insertNewExpense(expenseData).toString() //TODO: Change expense to carry an Int for the group ID
 
                     if (expenseData.scanned) {
@@ -109,7 +109,7 @@ class FirebaseDbHelper(var firebaseGroupId: String) {
         val financeChild = snapshot.child(groupFin.substring(1))
         val infoData = infoChild.getValue(FirebaseAccountInfoData::class.java)!!
         val financeData = financeChild.getValue(FirebaseAccountFinancialData::class.java)!!
-        val baseCurrencyUiSymbol = CurrencyHelper.returnUiSymbol(infoData.baseCurrencyCode)
+        val baseCurrencyUiSymbol = CurrencyExchangeHelper.returnUiSymbol(infoData.baseCurrencyCode)
         return GroupData(infoData.name, firebaseGroupId, infoData.baseCurrencyCode,
             baseCurrencyUiSymbol, infoData.participantLastEdit, infoData.lastImageEdit, financeData.accSettle)
     }

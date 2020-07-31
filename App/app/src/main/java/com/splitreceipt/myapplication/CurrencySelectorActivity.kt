@@ -16,14 +16,14 @@ import com.splitreceipt.myapplication.managers.SharedPrefManager.SHARED_PREF_GRO
 import com.splitreceipt.myapplication.managers.SharedPrefManager.SHARED_PREF_NAME
 import com.splitreceipt.myapplication.helper_classes.SqlDbHelper
 import com.splitreceipt.myapplication.databinding.ActivityCurrencySelectorBinding
-import com.splitreceipt.myapplication.helper_classes.CurrencyHelper
+import com.splitreceipt.myapplication.helper_classes.CurrencyExchangeHelper
 import java.util.*
 
 class CurrencySelectorActivity : AppCompatActivity(), CurrencySelectorAdapter.OnCureClick {
 
     private lateinit var binding: ActivityCurrencySelectorBinding
     private var isBase: Boolean = false
-    private var countryCodeSymbolList = CurrencyHelper.currencyArray
+    private var countryCodeSymbolList = CurrencyExchangeHelper.currencyArray
     private var currencyList: MutableList<String> = mutableListOf()
 
     companion object {

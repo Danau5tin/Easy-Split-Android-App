@@ -505,7 +505,7 @@ class SqlDbHelper(context: Context) : SQLiteOpenHelper(context,
         val sqlRowColIndex = cursor.getColumnIndexOrThrow(ITEMS_COL_ID)
         while (cursor.moveToNext()) {
             val productName = cursor.getString(nameColIndex)
-            val productValue = SplitExpenseManuallyFragment.addStringZerosForDecimalPlace(cursor.getString(valueColIndex))
+            val productValue = DecimalPlaceFixer.addStringZerosForDecimalPlace(cursor.getString(valueColIndex))
             val productOwner = cursor.getString(ownershipColIndex)
             val productSqlRow = cursor.getInt(sqlRowColIndex).toString()
             itemisedProductList.add(
